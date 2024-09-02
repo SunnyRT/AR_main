@@ -343,34 +343,37 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         
 
         GL.glUseProgram(self.shader_program)
+        GL.glPointSize(10)                  # TODO: debug
+        GL.glDrawArrays(GL.GL_POINTS, 0, 1) # TODO: debug
+        
 
-        # Set uniforms
-        model = np.identity(4, dtype=np.float32)
-        view = np.identity(4, dtype=np.float32)
-        projection = np.identity(4, dtype=np.float32) # FIXME: orthographic vs perspective projection
+        # # Set uniforms
+        # model = np.identity(4, dtype=np.float32)
+        # view = np.identity(4, dtype=np.float32)
+        # projection = np.identity(4, dtype=np.float32) # FIXME: orthographic vs perspective projection
 
-        model_loc = GL.glGetUniformLocation(self.shader_program, "model")
-        view_loc = GL.glGetUniformLocation(self.shader_program, "view")
-        proj_loc = GL.glGetUniformLocation(self.shader_program, "projection")
-        # light_pos_loc = GL.glGetUniformLocation(self.shader_program, "lightPos")
-        # view_pos_loc = GL.glGetUniformLocation(self.shader_program, "viewPos")
-        # light_color_loc = GL.glGetUniformLocation(self.shader_program, "lightColor")
-        # object_color_loc = GL.glGetUniformLocation(self.shader_program, "objectColor")
-        # alpha_loc = GL.glGetUniformLocation(self.shader_program, "alpha")
+        # model_loc = GL.glGetUniformLocation(self.shader_program, "model")
+        # view_loc = GL.glGetUniformLocation(self.shader_program, "view")
+        # proj_loc = GL.glGetUniformLocation(self.shader_program, "projection")
+        # # light_pos_loc = GL.glGetUniformLocation(self.shader_program, "lightPos")
+        # # view_pos_loc = GL.glGetUniformLocation(self.shader_program, "viewPos")
+        # # light_color_loc = GL.glGetUniformLocation(self.shader_program, "lightColor")
+        # # object_color_loc = GL.glGetUniformLocation(self.shader_program, "objectColor")
+        # # alpha_loc = GL.glGetUniformLocation(self.shader_program, "alpha")
 
 
-        GL.glUniformMatrix4fv(model_loc, 1, GL.GL_FALSE, model)
-        GL.glUniformMatrix4fv(view_loc, 1, GL.GL_FALSE, view)
-        GL.glUniformMatrix4fv(proj_loc, 1, GL.GL_FALSE, projection)
-        # GL.glUniform3fv(light_pos_loc, 1, np.array([50.0, 50.0, 50.0], dtype=np.float32))
-        # GL.glUniform3fv(view_pos_loc, 1, np.array([0.0, 0.0, 100.0], dtype=np.float32))
-        # GL.glUniform3fv(light_color_loc, 1, np.array([1.0, 1.0, 1.0], dtype=np.float32))
-        # GL.glUniform3fv(object_color_loc, 1, np.array([1.0, 0.7, 0.5], dtype=np.float32))
-        # GL.glUniform1f(alpha_loc, self.img_alpha)
+        # GL.glUniformMatrix4fv(model_loc, 1, GL.GL_FALSE, model)
+        # GL.glUniformMatrix4fv(view_loc, 1, GL.GL_FALSE, view)
+        # GL.glUniformMatrix4fv(proj_loc, 1, GL.GL_FALSE, projection)
+        # # GL.glUniform3fv(light_pos_loc, 1, np.array([50.0, 50.0, 50.0], dtype=np.float32))
+        # # GL.glUniform3fv(view_pos_loc, 1, np.array([0.0, 0.0, 100.0], dtype=np.float32))
+        # # GL.glUniform3fv(light_color_loc, 1, np.array([1.0, 1.0, 1.0], dtype=np.float32))
+        # # GL.glUniform3fv(object_color_loc, 1, np.array([1.0, 0.7, 0.5], dtype=np.float32))
+        # # GL.glUniform1f(alpha_loc, self.img_alpha)
 
-        GL.glBindVertexArray(self.vao)
-        GL.glDrawElements(GL.GL_TRIANGLES, len(self.mesh_faces)*3, GL.GL_UNSIGNED_INT, None)
-        GL.glBindVertexArray(0)
+        # GL.glBindVertexArray(self.vao)
+        # GL.glDrawElements(GL.GL_TRIANGLES, len(self.mesh_faces)*3, GL.GL_UNSIGNED_INT, None)
+        # GL.glBindVertexArray(0)
 
         GL.glUseProgram(0)
 
