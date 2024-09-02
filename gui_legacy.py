@@ -3,7 +3,6 @@ import wx.glcanvas as wxcanvas # to embed OpenGL rendering within wxPython windo
 import numpy as np
 import math
 from OpenGL import GL, GLU
-# from OpenGL.GL import *
 import glfw
 import plyfile
 from PIL import Image
@@ -62,19 +61,31 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.init = False
         self.context = wxcanvas.GLContext(self) # create a new OpenGL rendering context associate with this canvas
 
+        # Set parameters for OpenGL materials and lights
+        self.mat_diffuse = [0.0, 0.0, 0.0, 1.0]
+        self.mat_no_specular = [0.0, 0.0, 0.0, 0.0]
+        self.mat_no_shininess = [0.0]
+        self.mat_specular = [0.5, 0.5, 0.5, 1.0]
+        self.mat_shininess = [50.0]
+        self.top_right = [1.0, 1.0, 1.0, 0.0]
+        self.straight_on = [0.0, 0.0, 1.0, 0.0]
+        self.no_ambient = [0.0, 0.0, 0.0, 1.0]
+        self.dim_diffuse = [0.5, 0.5, 0.5, 1.0]
+        self.bright_diffuse = [1.0, 1.0, 1.0, 1.0]
+        self.med_diffuse = [0.75, 0.75, 0.75, 1.0]
+        self.full_specular = [0.5, 0.5, 0.5, 1.0]
+        self.no_specular = [0.0, 0.0, 0.0, 1.0]
 
         # self.mesh_alpha = 0.5
         self.img_alpha = 0.5
         self.img_size = 200.0
 
+
         # Load the 3D mesh and 2D texture
         self.mesh_vertices, self.mesh_faces, self.mesh_normals = self.load_ply(mesh_file)
         self.texture_id = self.load_texture(image_file)
 
-        # Load the shader program
-        self.shader_program = self.create_shader_program("shader_vert.glsl", "shader_frag.glsl")
-
-        self.setup_buffers()
+        # Set initial values for rotation, zoom and pan, and mouse position
 
         # Initialise variables for panning
         self.pan_x = 0
@@ -119,7 +130,18 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         print(f"Vertices: {vertices.shape}, Faces: {faces.shape}, Normals: {normals.shape}")
         return vertices, faces, normals
+    
+    # def set_meshalpha(self, alpha):
+    #     """ Set the transparency of the mesh."""
+    #     self.mesh_alpha = alpha
 
+    def set_imgalpha(self, alpha):
+        """ Set the transparency of the image."""
+        self.img_alpha = alpha
+
+    def set_imgsize(self, size):
+        """ Set the size of the image."""
+        self.img_size = size
 
     def load_texture(self, path_img):
         """ Load a texture image from an image file and return its OpenGL texture ID."""
@@ -147,107 +169,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         except Exception as e:
             print(f"Error loading texture: {e}")
             return None
-
-    
-    # def set_meshalpha(self, alpha):
-    #     """ Set the transparency of the mesh."""
-    #     self.mesh_alpha = alpha
-
-    def set_imgalpha(self, alpha):
-        """ Set the transparency of the image."""
-        self.img_alpha = alpha
-
-    def set_imgsize(self, size):
-        """ Set the size of the image."""
-        self.img_size = size
-
-
         
-
-    def create_shader_program(self, shader_vert_path, shader_frag_path):
-        """ Compile shaders and link them into a shader program."""
-        shader_vert = self.compile_shader(shader_vert_path, GL.GL_VERTEX_SHADER)
-        shader_frag = self.compile_shader(shader_frag_path, GL.GL_FRAGMENT_SHADER)
-
-        shader_program = GL.glCreateProgram()
-        GL.glAttachShader(shader_program, shader_vert)
-        GL.glAttachShader(shader_program, shader_frag)
-        GL.glLinkProgram(shader_program)
-
-        # query the linking status
-        linkSuccess = GL.glGetProgramiv(shader_program, GL.GL_LINK_STATUS)
-        if not linkSuccess:
-            errorMessage = GL.glGetProgramInfoLog(shader_program)
-            errorMessage = '\n' + errorMessage.decode('utf-8')
-            GL.glDeleteProgram(shader_program)
-            raise Exception(f"Error linking shader program: {errorMessage}")
-        GL.glDeleteShader(shader_vert)
-        GL.glDeleteShader(shader_frag)
-
-        # Validate the shader program
-        GL.glValidateProgram(shader_program)
-        if GL.glGetProgramiv(shader_program, GL.GL_VALIDATE_STATUS) != GL.GL_TRUE:
-            raise Exception(f"Error validating shader program")
-        
-        return shader_program
-
-
-    def compile_shader(self, shader_path, shader_type):
-        """ Compile a shader from a file."""
-        with open(shader_path, 'r') as file:
-            shader_src = file.read()
-
-        shader = GL.glCreateShader(shader_type)
-        GL.glShaderSource(shader, shader_src)
-        GL.glCompileShader(shader)
-
-        # query the compilation status
-        compileSuccess = GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS)
-        if not compileSuccess:
-            errorMessage = GL.glGetShaderInfoLog(shader)
-            errorMessage = '\n' + errorMessage.decode('utf-8')
-            GL.glDeleteShader(shader)
-            raise Exception(f"Error compiling shader: {errorMessage}")
-
-        return shader
-
-
-    def setup_buffers(self):
-        """ Set up the vertex array object (VAO) and vertex buffer object (VBO) 
-            which hold the vertex data, configure how data is interpreted by shaders,
-            for rendering."""
-        self.vao = GL.glGenVertexArrays(1) # generate and bind a vertex array object (VAO)
-        GL.glBindVertexArray(self.vao)
-
-        self.vbo = GL.glGenBuffers(1) # generate and bind a vertex buffer object (VBO) 
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
-        # Upload the vertex data self.mesh_vertices to the VBO (GPU)
-        # GL_STATIC_DRAW: data will be uploaded once and drawn many times
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, self.mesh_vertices.nbytes, self.mesh_vertices, GL.GL_STATIC_DRAW)
-        
-        self.ebo = GL.glGenBuffers(1) # generate and bind an element buffer object (EBO)
-        GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, self.ebo)
-        GL.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, self.mesh_faces.nbytes, self.mesh_faces, GL.GL_STATIC_DRAW)
-
-        # Position attribute
-        GL.glVertexAttribPointer(0, 3, GL.GL_FLOAT, GL.GL_FALSE, 3 * np.dtype(np.float32).itemsize, None)
-        GL.glEnableVertexAttribArray(0)
-
-        # Normal attribute
-        GL.glVertexAttribPointer(1, 3, GL.GL_FLOAT, GL.GL_FALSE, 3 * np.dtype(np.float32).itemsize, None)
-        GL.glEnableVertexAttribArray(1)
-
-
-        
-
-        GL.glBindVertexArray(0) # unbind VAO
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0) # unbind VBO
-        GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0) # unbind EBO
-
-
-
-
-
     def init_gl(self):
         """ Configure and initializes OpenGL settings 
         and prepares the rendering context with desired parameters 
@@ -277,54 +199,50 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glDrawBuffer(GL.GL_BACK)
         GL.glCullFace(GL.GL_BACK)
 
-        # GL.glEnable(GL.GL_COLOR_MATERIAL)
-        # GL.glEnable(GL.GL_CULL_FACE)
+        GL.glEnable(GL.GL_COLOR_MATERIAL)
+        GL.glEnable(GL.GL_CULL_FACE)
         GL.glEnable(GL.GL_DEPTH_TEST) # for proper occlusion handling
-        # GL.glEnable(GL.GL_NORMALIZE)
+        GL.glEnable(GL.GL_NORMALIZE)
 
         
-        # GL.glEnable(GL.GL_LIGHTING) # enable lighting
-        # GL.glEnable(GL.GL_LIGHT0)
-        # GL.glEnable(GL.GL_LIGHT1)
+        GL.glEnable(GL.GL_LIGHTING) # enable lighting
+        GL.glEnable(GL.GL_LIGHT0)
+        GL.glEnable(GL.GL_LIGHT1)
+        light_pos = [50.0, 50.0, 50.0, 1.0]
+        GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, light_pos)
 
-        # light_pos = [50.0, 50.0, 50.0, 1.0]
-        # GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, light_pos)
-        # GL.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, self.no_ambient)
-        # GL.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, self.med_diffuse)
-        # GL.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, self.no_specular)
-        # GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, self.top_right)
-        # GL.glLightfv(GL.GL_LIGHT1, GL.GL_AMBIENT, self.no_ambient)
-        # GL.glLightfv(GL.GL_LIGHT1, GL.GL_DIFFUSE, self.dim_diffuse)
-        # GL.glLightfv(GL.GL_LIGHT1, GL.GL_SPECULAR, self.no_specular)
-        # GL.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, self.straight_on)
+        GL.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, self.no_ambient)
+        GL.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, self.med_diffuse)
+        GL.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, self.no_specular)
+        GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, self.top_right)
+        GL.glLightfv(GL.GL_LIGHT1, GL.GL_AMBIENT, self.no_ambient)
+        GL.glLightfv(GL.GL_LIGHT1, GL.GL_DIFFUSE, self.dim_diffuse)
+        GL.glLightfv(GL.GL_LIGHT1, GL.GL_SPECULAR, self.no_specular)
+        GL.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, self.straight_on)
 
-        # GL.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR, self.mat_specular)
-        # GL.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SHININESS, self.mat_shininess)
-        # GL.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE,
-        #                 self.mat_diffuse)
+        GL.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR, self.mat_specular)
+        GL.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SHININESS, self.mat_shininess)
+        GL.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE,
+                        self.mat_diffuse)
         # GL.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE)
 
         GL.glEnable(GL.GL_BLEND)
         GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
 
-        # # Enable texture mapping
-        # GL.glEnable(GL.GL_TEXTURE_2D)
-        # if self.texture_id:
-        #     GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture_id)
-        # else:
-        #     raise ValueError("Texture ID is invalid. Cannot bind texture.")
+        # Enable texture mapping
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        if self.texture_id:
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture_id)
+        else:
+            raise ValueError("Texture ID is invalid. Cannot bind texture.")
 
-        # # Viewing transformation - set the viewpoint back from the scene
-        # GL.glTranslatef(0.0, 0.0, -self.depth_offset)
+        # Viewing transformation - set the viewpoint back from the scene
+        GL.glTranslatef(0.0, 0.0, -self.depth_offset)
 
-        # # Modelling transformation - pan, zoom and rotate (initially set to identity)
-        # GL.glTranslatef(self.pan_x, self.pan_y, 0.0)
-        # GL.glMultMatrixf(self.scene_rotate)
-        # GL.glScalef(self.zoom, self.zoom, self.zoom)
-
-
-
-
+        # Modelling transformation - pan, zoom and rotate (initially set to identity)
+        GL.glTranslatef(self.pan_x, self.pan_y, 0.0)
+        GL.glMultMatrixf(self.scene_rotate)
+        GL.glScalef(self.zoom, self.zoom, self.zoom)
 
 
 
@@ -341,87 +259,54 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Clear the color and depth buffers to prepare for new frame rendering
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         
-
-        GL.glUseProgram(self.shader_program)
-
-        # Set uniforms
-        model = np.identity(4, dtype=np.float32)
-        view = np.identity(4, dtype=np.float32)
-        projection = np.identity(4, dtype=np.float32) # FIXME: orthographic vs perspective projection
-
-        model_loc = GL.glGetUniformLocation(self.shader_program, "model")
-        view_loc = GL.glGetUniformLocation(self.shader_program, "view")
-        proj_loc = GL.glGetUniformLocation(self.shader_program, "projection")
-        # light_pos_loc = GL.glGetUniformLocation(self.shader_program, "lightPos")
-        # view_pos_loc = GL.glGetUniformLocation(self.shader_program, "viewPos")
-        # light_color_loc = GL.glGetUniformLocation(self.shader_program, "lightColor")
-        # object_color_loc = GL.glGetUniformLocation(self.shader_program, "objectColor")
-        # alpha_loc = GL.glGetUniformLocation(self.shader_program, "alpha")
+        # Draw the 3D mesh 
+        GL.glPushMatrix()  # Apply scaling to enlarge the mesh 
+        GL.glScalef(10, 10, 10)
+        GL.glColor4f(1.0, 0.7, 0.5, 1.0) # FIXME: change transparency into self.mesh_alpha
+        GL.glBegin(GL.GL_TRIANGLES)
+        for face in self.mesh_faces:
+            for vertex_id in face:
+                normal = self.mesh_normals[vertex_id]
+                GL.glNormal3fv(normal)
+                GL.glVertex3fv(self.mesh_vertices[vertex_id])
+        GL.glEnd()
+        GL.glPopMatrix()
+        # GL.glDepthMask(GL.GL_TRUE)
 
 
-        GL.glUniformMatrix4fv(model_loc, 1, GL.GL_FALSE, model)
-        GL.glUniformMatrix4fv(view_loc, 1, GL.GL_FALSE, view)
-        GL.glUniformMatrix4fv(proj_loc, 1, GL.GL_FALSE, projection)
-        # GL.glUniform3fv(light_pos_loc, 1, np.array([50.0, 50.0, 50.0], dtype=np.float32))
-        # GL.glUniform3fv(view_pos_loc, 1, np.array([0.0, 0.0, 100.0], dtype=np.float32))
-        # GL.glUniform3fv(light_color_loc, 1, np.array([1.0, 1.0, 1.0], dtype=np.float32))
-        # GL.glUniform3fv(object_color_loc, 1, np.array([1.0, 0.7, 0.5], dtype=np.float32))
-        # GL.glUniform1f(alpha_loc, self.img_alpha)
-
-        GL.glBindVertexArray(self.vao)
-        GL.glDrawElements(GL.GL_TRIANGLES, len(self.mesh_faces)*3, GL.GL_UNSIGNED_INT, None)
-        GL.glBindVertexArray(0)
-
-        GL.glUseProgram(0)
-
-
-
-        # # Draw the 3D mesh 
-        # GL.glPushMatrix()  # Apply scaling to enlarge the mesh 
-        # GL.glScalef(10, 10, 10)
-        # GL.glColor4f(1.0, 0.7, 0.5, 1.0) # FIXME: change transparency into self.mesh_alpha
-        # GL.glBegin(GL.GL_TRIANGLES)
-        # for face in self.mesh_faces:
-        #     for vertex_id in face:
-        #         normal = self.mesh_normals[vertex_id]
-        #         GL.glNormal3fv(normal)
-        #         GL.glVertex3fv(self.mesh_vertices[vertex_id])
-        # GL.glEnd()
-        # GL.glPopMatrix()
-        # # GL.glDepthMask(GL.GL_TRUE)
-
-
-        # # First pass: Draw the 2D image as a textured plane with transparency
-        # GL.glDisable(GL.GL_LIGHTING)
-        # GL.glEnable(GL.GL_BLEND)
-        # GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-        # # GL.glEnable(GL.GL_DEPTH_TEST)
-        # # GL.glDepthMask(GL.GL_FALSE)
-        # GL.glDisable(GL.GL_CULL_FACE)  # Disable face culling
-        # GL.glEnable(GL.GL_TEXTURE_2D)
-        # GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture_id)
-        # GL.glColor4f(1.0, 1.0, 1.0, self.img_alpha)  # set the color to white with transparency
+        # First pass: Draw the 2D image as a textured plane with transparency
+        GL.glDisable(GL.GL_LIGHTING)
+        GL.glEnable(GL.GL_BLEND)
+        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+        # GL.glEnable(GL.GL_DEPTH_TEST)
+        # GL.glDepthMask(GL.GL_FALSE)
+        GL.glDisable(GL.GL_CULL_FACE)  # Disable face culling
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture_id)
+        GL.glColor4f(1.0, 1.0, 1.0, self.img_alpha)  # set the color to white with transparency
         
 
-        # # Draw the image as a textured plane, visible from both sides
-        # for sign in [-1, 1]:
-        #     GL.glBegin(GL.GL_QUADS)
-        #     GL.glTexCoord2f(0.0, 0.0)
-        #     GL.glVertex3f(-self.img_size, -self.img_size, sign * 0.0) 
-        #     GL.glTexCoord2f(1.0, 0.0)
-        #     GL.glVertex3f(self.img_size, -self.img_size, sign * 0.0)
-        #     GL.glTexCoord2f(1.0, 1.0)
-        #     GL.glVertex3f(self.img_size, self.img_size, sign * 0.0)
-        #     GL.glTexCoord2f(0.0, 1.0)
-        #     GL.glVertex3f(-self.img_size, self.img_size, sign * 0.0)
-        #     GL.glEnd()
+        # Draw the image as a textured plane, visible from both sides
+        for sign in [-1, 1]:
+            GL.glBegin(GL.GL_QUADS)
+            GL.glTexCoord2f(0.0, 0.0)
+            GL.glVertex3f(-self.img_size, -self.img_size, sign * 0.0) 
+            GL.glTexCoord2f(1.0, 0.0)
+            GL.glVertex3f(self.img_size, -self.img_size, sign * 0.0)
+            GL.glTexCoord2f(1.0, 1.0)
+            GL.glVertex3f(self.img_size, self.img_size, sign * 0.0)
+            GL.glTexCoord2f(0.0, 1.0)
+            GL.glVertex3f(-self.img_size, self.img_size, sign * 0.0)
+            GL.glEnd()
 
         
-        # GL.glDisable(GL.GL_TEXTURE_2D)
-        # GL.glEnable(GL.GL_LIGHTING)
-        # # GL.glDepthMask(GL.GL_TRUE)
-        # GL.glDisable(GL.GL_BLEND)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glEnable(GL.GL_LIGHTING)
+        # GL.glDepthMask(GL.GL_TRUE)
+        GL.glDisable(GL.GL_BLEND)
 
+        # GL.glColor3f(1.0, 1.0, 1.0)  # text is white
+        # self.render_text("Hello World!!!", 0, 0, 210)
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
