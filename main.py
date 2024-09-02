@@ -15,13 +15,6 @@ import sys
 
 import wx
 
-from names import Names
-from devices import Devices
-from network import Network
-from monitors import Monitors
-from scanner import Scanner
-from parse import Parser
-from userint import UserInterface
 from gui import Gui
 
 

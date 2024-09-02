@@ -61,7 +61,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.init = False
         self.context = wxcanvas.GLContext(self) # create a new OpenGL rendering context associate with this canvas
 
-        # Constants for OpenGL materials and lights
+        # Set parameters for OpenGL materials and lights
         self.mat_diffuse = [0.0, 0.0, 0.0, 1.0]
         self.mat_no_specular = [0.0, 0.0, 0.0, 0.0]
         self.mat_no_shininess = [0.0]
@@ -76,8 +76,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.full_specular = [0.5, 0.5, 0.5, 1.0]
         self.no_specular = [0.0, 0.0, 0.0, 1.0]
 
-        self.mesh_alpha = 0.5
-        self.img_alpha = 1.0
+        # self.mesh_alpha = 0.5
+        self.img_alpha = 0.5
         self.img_size = 200.0
 
 
@@ -131,9 +131,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         print(f"Vertices: {vertices.shape}, Faces: {faces.shape}, Normals: {normals.shape}")
         return vertices, faces, normals
     
-    def set_meshalpha(self, alpha):
-        """ Set the transparency of the mesh."""
-        self.mesh_alpha = alpha
+    # def set_meshalpha(self, alpha):
+    #     """ Set the transparency of the mesh."""
+    #     self.mesh_alpha = alpha
 
     def set_imgalpha(self, alpha):
         """ Set the transparency of the image."""
@@ -179,7 +179,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         size = self.GetClientSize()
         self.SetCurrent(self.context)
 
-        GL.glViewport(0, 0, size.width, size.height)
+        GL.glViewport(0, 0, size.width, size.height) # (0,0) is the coordinates for bottom-left corner of the window
 
         # Projection matrix setup: switch to projection matrix mode 
         # and setup a perspective projection
@@ -195,7 +195,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         GL.glClearColor(0.0, 0.0, 0.0, 0.0)
         GL.glDepthFunc(GL.GL_LEQUAL)
-        GL.glShadeModel(GL.GL_SMOOTH)
+        GL.glShadeModel(GL.GL_SMOOTH) # GL_SMOOTH for Gouraud shading, GL_FLAT for flat shading
         GL.glDrawBuffer(GL.GL_BACK)
         GL.glCullFace(GL.GL_BACK)
 
@@ -258,26 +258,29 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Clear the color and depth buffers to prepare for new frame rendering
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        GL.glEnable(GL.GL_BLEND)
-        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-
-
-        # # Draw a sample signal trace, make sure its centre of gravity
-        # # is at the scene origin
-        # GL.glColor3f(1.0, 0.7, 0.5)  # signal trace is beige
-        # for i in range(-10, 10):
-        #     z = i * 20
-        #     if i % 2 == 0:
-        #         self.draw_cuboid(0, z, 5, 10, 1)
-        #     else:
-        #         self.draw_cuboid(0, z, 5, 10, 11)
+        
+        # Draw the 3D mesh 
+        GL.glPushMatrix()  # Apply scaling to enlarge the mesh 
+        GL.glScalef(10, 10, 10)
+        GL.glColor4f(1.0, 0.7, 0.5, 1.0) # FIXME: change transparency into self.mesh_alpha
+        GL.glBegin(GL.GL_TRIANGLES)
+        for face in self.mesh_faces:
+            for vertex_id in face:
+                normal = self.mesh_normals[vertex_id]
+                GL.glNormal3fv(normal)
+                GL.glVertex3fv(self.mesh_vertices[vertex_id])
+        GL.glEnd()
+        GL.glPopMatrix()
+        # GL.glDepthMask(GL.GL_TRUE)
 
 
         # First pass: Draw the 2D image as a textured plane with transparency
-        GL.glEnable(GL.GL_DEPTH_TEST)
-        GL.glDepthMask(GL.GL_TRUE)
-        GL.glDisable(GL.GL_CULL_FACE)  # Disable face culling
         GL.glDisable(GL.GL_LIGHTING)
+        GL.glEnable(GL.GL_BLEND)
+        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+        # GL.glEnable(GL.GL_DEPTH_TEST)
+        # GL.glDepthMask(GL.GL_FALSE)
+        GL.glDisable(GL.GL_CULL_FACE)  # Disable face culling
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture_id)
         GL.glColor4f(1.0, 1.0, 1.0, self.img_alpha)  # set the color to white with transparency
@@ -299,74 +302,19 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glEnable(GL.GL_LIGHTING)
-
-
-        # Second pass: Draw the 3D mesh with transparency
-        GL.glDepthMask(GL.GL_FALSE) # disable writing to the depth buffer
-        GL.glEnable(GL.GL_CULL_FACE)
-        GL.glCullFace(GL.GL_BACK)
-        GL.glColor4f(1.0, 0.7, 0.5, self.mesh_alpha)  # set mesh color with transparency
-        GL.glPushMatrix()  # Apply scaling to enlarge the mesh 
-        GL.glScalef(10, 10, 10)
-        GL.glBegin(GL.GL_TRIANGLES)
-        for face in self.mesh_faces:
-            for vertex_id in face:
-                normal = self.mesh_normals[vertex_id]
-                GL.glNormal3fv(normal)
-                GL.glVertex3fv(self.mesh_vertices[vertex_id])
-        GL.glEnd()
-        GL.glPopMatrix()
-        GL.glDepthMask(GL.GL_TRUE)
-
-
+        # GL.glDepthMask(GL.GL_TRUE)
+        GL.glDisable(GL.GL_BLEND)
 
         # GL.glColor3f(1.0, 1.0, 1.0)  # text is white
         # self.render_text("Hello World!!!", 0, 0, 210)
-        GL.glDisable(GL.GL_BLEND)
+
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
         GL.glFlush() # force execution of OpenGL commands in finite time
         # all programs should call glFlush whenever they count on having all of their previously issued commands completed. 
         self.SwapBuffers() # swap the front and back buffers to display the rendered image
 
-    def draw_cuboid(self, x_pos, z_pos, half_width, half_depth, height):
-        """Draw a cuboid.
 
-        Draw a cuboid at the specified position, with the specified
-        dimensions.
-        """
-        GL.glBegin(GL.GL_QUADS)
-        GL.glNormal3f(0, -1, 0)
-        GL.glVertex3f(x_pos - half_width, -6, z_pos - half_depth)
-        GL.glVertex3f(x_pos + half_width, -6, z_pos - half_depth)
-        GL.glVertex3f(x_pos + half_width, -6, z_pos + half_depth)
-        GL.glVertex3f(x_pos - half_width, -6, z_pos + half_depth)
-        GL.glNormal3f(0, 1, 0)
-        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos - half_depth)
-        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos - half_depth)
-        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos + half_depth)
-        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos + half_depth)
-        GL.glNormal3f(-1, 0, 0)
-        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos - half_depth)
-        GL.glVertex3f(x_pos - half_width, -6, z_pos - half_depth)
-        GL.glVertex3f(x_pos - half_width, -6, z_pos + half_depth)
-        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos + half_depth)
-        GL.glNormal3f(1, 0, 0)
-        GL.glVertex3f(x_pos + half_width, -6, z_pos - half_depth)
-        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos - half_depth)
-        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos + half_depth)
-        GL.glVertex3f(x_pos + half_width, -6, z_pos + half_depth)
-        GL.glNormal3f(0, 0, -1)
-        GL.glVertex3f(x_pos - half_width, -6, z_pos - half_depth)
-        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos - half_depth)
-        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos - half_depth)
-        GL.glVertex3f(x_pos + half_width, -6, z_pos - half_depth)
-        GL.glNormal3f(0, 0, 1)
-        GL.glVertex3f(x_pos - half_width, -6 + height, z_pos + half_depth)
-        GL.glVertex3f(x_pos - half_width, -6, z_pos + half_depth)
-        GL.glVertex3f(x_pos + half_width, -6, z_pos + half_depth)
-        GL.glVertex3f(x_pos + half_width, -6 + height, z_pos + half_depth)
-        GL.glEnd()
     def on_paint(self, event):
         # Handle the paint event triggered when the canvas needs to be redrawn
         # e.g. when the window is resized or uncovered
@@ -386,7 +334,29 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         """Handle the canvas resize event."""
         # Forces reconfiguration of the viewport, modelview and projection
         # matrices on the next paint event
-        self.init = False
+        size = self.GetClientSize() # Get the new size of the canvas
+
+        if size.width == 0 or size.height == 0:
+            return
+        
+        self.SetCurrent(self.context) # set the current OpenGL rendering context
+        GL.glViewport(0,0, size.width, size.height) # Reconfigure the viewport
+
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GLU.gluPerspective(45, size.width / size.height, 10, 10000) # angle, aspect ratio, n, f
+
+
+        # Modelview matrix setup
+        # Rendering State Configuration
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        self.init = False # trigger reinitialisation of the OpenGL context
+
+        self.Refresh() # triggers the on_paint() event to update display with new transformations, does not affext the OpenGL rendering context (initialization logic)
+        event.Skip() # allows the event to be processed by other event handlers
+        
+
+
 
     def on_mouse(self, event):
         """Handle mouse events for interactive manipulation of 3D scene, 
@@ -499,7 +469,7 @@ class Gui(wx.Frame):
         # Configure the widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        self.meshalpha_slider = wx.Slider(self, wx.ID_ANY, 50, 0, 100, style=wx.SL_HORIZONTAL)
+        # self.meshalpha_slider = wx.Slider(self, wx.ID_ANY, 50, 0, 100, style=wx.SL_HORIZONTAL)
         self.imgalpha_slider = wx.Slider(self, wx.ID_ANY, 50, 0, 100, style=wx.SL_HORIZONTAL)
         self.imgsize_slider = wx.Slider(self, wx.ID_ANY, 200, 50, 500, style=wx.SL_HORIZONTAL)
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
@@ -509,7 +479,7 @@ class Gui(wx.Frame):
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
-        self.meshalpha_slider.Bind(wx.EVT_SLIDER, self.on_meshalpha_slider)
+        # self.meshalpha_slider.Bind(wx.EVT_SLIDER, self.on_meshalpha_slider)
         self.imgalpha_slider.Bind(wx.EVT_SLIDER, self.on_imgalpha_slider)
         self.imgsize_slider.Bind(wx.EVT_SLIDER, self.on_imgsize_slider)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
@@ -524,8 +494,8 @@ class Gui(wx.Frame):
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        side_sizer.Add(wx.StaticText(self, wx.ID_ANY, "Mesh transparency"), 1, wx.TOP, 10)
-        side_sizer.Add(self.meshalpha_slider, 1, wx.ALL, 5)
+        # side_sizer.Add(wx.StaticText(self, wx.ID_ANY, "Mesh transparency"), 1, wx.TOP, 10)
+        # side_sizer.Add(self.meshalpha_slider, 1, wx.ALL, 5)
         side_sizer.Add(wx.StaticText(self, wx.ID_ANY, "Image transparency"), 1, wx.TOP, 10)
         side_sizer.Add(self.imgalpha_slider, 1, wx.ALL, 5)
         side_sizer.Add(wx.StaticText(self, wx.ID_ANY, "Image size"), 1, wx.TOP, 10)
@@ -554,12 +524,12 @@ class Gui(wx.Frame):
         print(f"Spin control value: {spin_value}") # TODO: tb completed
         self.canvas.render()
 
-    def on_meshalpha_slider(self, event):
-        """Handle the event when the user changes the mesh transparency slider."""
-        meshalpha_value = self.meshalpha_slider.GetValue()
-        self.canvas.set_meshalpha(meshalpha_value / 100.0)
-        self.canvas.render()
-        # print(f"Mesh transparency: {meshalpha_value}")
+    # def on_meshalpha_slider(self, event):
+    #     """Handle the event when the user changes the mesh transparency slider."""
+    #     meshalpha_value = self.meshalpha_slider.GetValue()
+    #     self.canvas.set_meshalpha(meshalpha_value / 100.0)
+    #     self.canvas.render()
+    #     # print(f"Mesh transparency: {meshalpha_value}")
 
     def on_imgalpha_slider(self, event):
         """Handle the event when the user changes the image transparency slider."""
