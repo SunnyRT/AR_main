@@ -15,7 +15,7 @@ import sys
 
 import wx
 
-from gui import Gui
+from gui_legacy import Gui
 
 
 def main(arg_list):
