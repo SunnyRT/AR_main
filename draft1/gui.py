@@ -222,7 +222,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.vbo = GL.glGenBuffers(1) # generate and bind a vertex buffer object (VBO) 
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
         # Upload the vertex data self.mesh_vertices to the VBO (GPU)
-        # GL_STATIC_DRAW: data will be uploaded once and drawn many times
+        # GL_STATIC_DRAW: data will be uploaded (modified) once and drawn many times
         GL.glBufferData(GL.GL_ARRAY_BUFFER, self.mesh_vertices.nbytes, self.mesh_vertices, GL.GL_STATIC_DRAW)
         
         self.ebo = GL.glGenBuffers(1) # generate and bind an element buffer object (EBO)
