@@ -5,6 +5,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from core.openGLUtils import *
 from core.mesh import Mesh
+# from core.mesh_cubetest import MeshCube
 import math
 import numpy as np
 
@@ -37,6 +38,9 @@ class OpenGLCanvas(wxcanvas.GLCanvas):
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
+
+
+
 
 
 
@@ -110,21 +114,21 @@ class OpenGLCanvas(wxcanvas.GLCanvas):
     
     def init_gl(self):
 
-        size = self.GetClientSize()
-        self.SetCurrent(self.context)
+        # size = self.GetClientSize()
+        # self.SetCurrent(self.context)
 
-        glViewport(0, 0, size.width, size.height)
+        # glViewport(0, 0, size.width, size.height)
 
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(45, size.width/size.height, 10, 1000.0)
+        # glMatrixMode(GL_PROJECTION)
+        # glLoadIdentity()
+        # gluPerspective(45, size.width/size.height, 10, 1000.0)
 
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
+        # glMatrixMode(GL_MODELVIEW)
+        # glLoadIdentity()
 
         glEnable(GL_DEPTH_TEST)
-        glDepthFunc(GL_LESS)  # Use default depth function
-        glClearDepth(1.0)  # Clear depth to maximum value
+        # glDepthFunc(GL_LESS)  # Use default depth function
+        # glClearDepth(1.0)  # Clear depth to maximum value
         glClearColor(0.0, 0.0, 0.0, 1.0)  # Clear the screen to black
         # OpenGLUtils.printSystemInfo()
         self.mesh.initialize()
@@ -149,6 +153,7 @@ class OpenGLCanvas(wxcanvas.GLCanvas):
 
         
         self.mesh.render()
+        # self.draw_cube()
 
         glFlush()
         self.SwapBuffers()

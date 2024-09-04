@@ -16,14 +16,14 @@ class Mesh:
         self.colorAttribute = None
         self.indexBuffer = None
         self.programRef = None
-        self.load_ply(path)
-        ## for debugging with known data: ##
-        # self.vertices = np.array([
-        #     [-0.5, -0.5, 0.0],
-        #     [0.5, -0.5, 0.0],
-        #     [0.0, 0.5, 0.0]
-        # ], dtype=np.float32)
-        # self.indices = np.array([0, 1, 2], dtype=np.uint32)
+        # self.load_ply(path)
+        # for debugging with known data: ##
+        self.vertices = np.array([
+            [-0.5, -0.5, 0.0],
+            [0.5, -0.5, 0.0],
+            [0.0, 0.5, 0.0]
+        ], dtype=np.float32)
+        self.indices = np.array([0, 1, 2], dtype=np.uint32)
 
     def load_ply(self, path):
         """ Load a PLY file """
