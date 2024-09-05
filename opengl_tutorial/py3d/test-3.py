@@ -123,7 +123,7 @@ class Test(Base):
 
         # local rotation
         if self.input.isKeyPressed('u'):
-            m = Matrix.makeRotationZ(pi/180)
+            m = Matrix.makeRotationZ(pi/180) 
             self.modelMatrix.data = self.modelMatrix.data @ m
         if self.input.isKeyPressed('o'):
             m = Matrix.makeRotationZ(-pi/180)

@@ -37,7 +37,7 @@ class GridHelper(Mesh):
         geometry.add_attribute("vec3", "vertexColor", color_data)
         material = LineMaterial(
             property_dict = {
-                "useVertexColors": 1,
+                "useVertexColors": True,
                 "lineWidth": line_width,
                 "lineType": "segments"
             }
