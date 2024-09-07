@@ -30,14 +30,10 @@ class Test(Base):
         self.rig.setPosition([10,10,50])
         self.scene.add(self.rig)
 
-        # set up grid and axes
-        grid = GridHelper(size=1024, divisions = 1024, gridColor=[1,1,1], centerColor=[1,1,0], lineWidth=1)
+        # set up grid 
+        grid = GridHelper(size=1024, divisions = 1024, gridColor=[0.5,0.5,0.5], centerColor=[1,1,1], lineWidth=1)
         grid.rotateX(-pi/2)
         self.scene.add(grid)
-
-        axes = AxesHelper(axisLength=2, lineWidth=4)
-        self.scene.add(axes) 
-
 
         # load 3d model
         geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\summer\\fitted_otic_capsule.ply") # TODO: change path to desired .ply file
@@ -54,11 +50,21 @@ class Test(Base):
         # self.image2d.translate(0.5,0.5,0)
         self.scene.add(self.image2d)
 
+        # set up axes
+        axes = AxesHelper(axisLength=128, lineWidth=2)
+        self.scene.add(axes) 
+
+
     def update(self):
+
         self.mesh3d.rotateY(0.0514) 
         self.mesh3d.rotateX(0.0337)
-        self.renderer.render(self.scene, self.camera)
+        
         self.rig.update(self.input)
+        self.camera.update(self.input)
+        self.renderer.render(self.scene, self.camera)
+
+
 
 # instantiate this class and run the program
 Test(screenSize=[800,600]).run()

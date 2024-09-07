@@ -18,11 +18,13 @@ class MovementRig(Object3D):
         # # control rate of movement
         # self.unitsPerSecond = unitsPerSecond
         # self.degreesPerSecond = degreesPerSecond
+        self.isPerspective = True
+        self.zoom = 1.0 # for orthographic projection
 
         # customize key mappings
         # Defaults: W, A, S, D, R, F (move), Q, E (turn), T, G (look)
-        self.KEY_MOVE_FORWARDS = "w"
-        self.KEY_MOVE_BACKWARDS = "s"
+        self.KEY_MOVE_FORWARDS = "w" # orthographic zoom in
+        self.KEY_MOVE_BACKWARDS = "s" # orthographic zoom out
         self.KEY_MOVE_LEFT = "a"
         self.KEY_MOVE_RIGHT = "d"
         self.KEY_MOVE_UP = "r"
@@ -84,9 +86,11 @@ class MovementRig(Object3D):
             mouseDelta = inputObject.getMouseDelta()
             self.translate(-mouseDelta[0] * moveAmount, mouseDelta[1] * moveAmount, 0)
 
-        # Handle middle mouse button to move forward/backward (i.e. zoom)
+        # Handle middle mouse button to move forward/backward (or zoom)
         mouseScroll = inputObject.getMouseScroll()
         if mouseScroll != 0:
             self.translate(0, 0, -mouseScroll * moveAmount)
 
+
+        
         
