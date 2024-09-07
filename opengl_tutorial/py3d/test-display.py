@@ -8,23 +8,45 @@ from geometry.planeGeometry import PlaneGeometry
 from geometry.model3dGeometry import Model3dGeometry
 from material.surfaceMaterial import SurfaceMaterial
 
+from extras.axesHelper import AxesHelper
+from extras.gridHelper import GridHelper
+from extras.movementRig import MovementRig
+from math import pi
+
 # render a basic scene
 class Test(Base):
 
     def initialize(self):
         print("Initializing program...")
 
+        # initialize renderer, scene, camera
         self.renderer = Renderer()
         self.scene = Scene()
         self.camera = Camera(aspectRatio=800/600)
-        self.camera.setPosition([0,0,100])
 
+
+        self.rig = MovementRig()
+        self.rig.add(self.camera)
+        self.rig.setPosition([10,10,50])
+        self.scene.add(self.rig)
+
+        # set up grid and axes
+        grid = GridHelper(size=1024, divisions = 1024, gridColor=[1,1,1], centerColor=[1,1,0], lineWidth=1)
+        grid.rotateX(-pi/2)
+        self.scene.add(grid)
+
+        axes = AxesHelper(axisLength=2, lineWidth=4)
+        self.scene.add(axes) 
+
+
+        # load 3d model
         geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\summer\\fitted_otic_capsule.ply") # TODO: change path to desired .ply file
         material3d = SurfaceMaterial(
             {"useVertexColors": True})
         self.mesh3d = Mesh(geometry3d, material3d)
         self.scene.add(self.mesh3d)
 
+        # load 2d image
         geometry2d = PlaneGeometry(64,64,256,256)
         material2d = SurfaceMaterial(
             {"useVertexColors": True})
@@ -36,6 +58,7 @@ class Test(Base):
         self.mesh3d.rotateY(0.0514) 
         self.mesh3d.rotateX(0.0337)
         self.renderer.render(self.scene, self.camera)
+        self.rig.update(self.input)
 
 # instantiate this class and run the program
 Test(screenSize=[800,600]).run()

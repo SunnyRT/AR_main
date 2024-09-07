@@ -1,5 +1,6 @@
 from geometry.geometry import Geometry
 from plyfile import PlyData
+import numpy as np
 
 class Model3dGeometry(Geometry):
     def __init__(self, path):
@@ -10,8 +11,12 @@ class Model3dGeometry(Geometry):
             plyData = PlyData.read(file)
         
         # extract vertex positions from the .ply file
-        vertex_data = plyData['vertex']
+        vertex_data = plyData['vertex'].data
         vertex_positions = [[vertex['x'], vertex['y'], vertex['z']] for vertex in vertex_data]
+
+        # FIXME: recenter the model3d about its centroid
+        centroid = np.mean(vertex_positions, axis=0)
+        vertex_positions = [[vertex[0] - centroid[0], vertex[1] - centroid[1], vertex[2] - centroid[2]] for vertex in vertex_positions] 
 
         # extract vertex colors if available
         if 'red' in vertex_data.dtype.names:
@@ -26,17 +31,17 @@ class Model3dGeometry(Geometry):
         if 'nx' in vertex_data.dtype.names:
             vertex_normals = [[vertex['nx'], vertex['ny'], vertex['nz']] for vertex in vertex_data]
         else:
-            # compute normals if no normal data is available
             print("No normal data found in .ply file. Computing normals.")
-            vertex_normals = []
+            vertex_normals = self.compute_normals(vertex_positions)
 
             
 
         # initialize lists to store data grouped by triangle face
         positionData = []
         colorData = []
+        normalData = []
 
-        face_data = plyData['face']
+        face_data = plyData['face'].data
         for face in face_data:
             # get indices of vertices in face
             vertex_indices = face[0]
@@ -45,4 +50,14 @@ class Model3dGeometry(Geometry):
                 vertex_index = vertex_indices[i]
                 positionData.append(vertex_positions[vertex_index])
                 colorData.append(vertex_colors[vertex_index])
+                normalData.append(vertex_normals[vertex_index])
+
+        self.addAttribute("vec3", "vertexPosition", positionData)
+        self.addAttribute("vec3", "vertexColor", colorData)
+        # self.addAttribute("vec3", "vertexNormal", normalData)
+
         
+    def compute_normals(self, vertex_positions):
+        # compute normals for each vertex
+        vertex_normals = [[0,0,0]] * len(vertex_positions) # TODO: compute normals
+        return vertex_normals
