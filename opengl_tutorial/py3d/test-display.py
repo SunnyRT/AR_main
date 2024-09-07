@@ -3,10 +3,12 @@ from core_ext.renderer import Renderer
 from core_ext.scene import Scene
 from core_ext.camera import Camera
 from core_ext.mesh import Mesh
-from geometry.boxGeometry import BoxGeometry
+# from geometry.boxGeometry import BoxGeometry
 from geometry.planeGeometry import PlaneGeometry
 from geometry.model3dGeometry import Model3dGeometry
 from material.surfaceMaterial import SurfaceMaterial
+from core_ext.texture import Texture
+from material.textureMaterial import TextureMaterial
 
 from extras.axesHelper import AxesHelper
 from extras.gridHelper import GridHelper
@@ -44,8 +46,8 @@ class Test(Base):
 
         # load 2d image
         geometry2d = PlaneGeometry(64,64,256,256)
-        material2d = SurfaceMaterial(
-            {"useVertexColors": True})
+        texture2d = Texture("D:\\sunny\\Codes\\IIB_project\\data\\summer\\JPEG0836.jpg")
+        material2d = TextureMaterial(texture2d)
         self.image2d = Mesh(geometry2d, material2d)
         # self.image2d.translate(0.5,0.5,0)
         self.scene.add(self.image2d)

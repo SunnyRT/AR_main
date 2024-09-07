@@ -24,7 +24,7 @@ class Model3dGeometry(Geometry):
         else:
             # default to white if no color data is available
             print("No color data found in .ply file. Defaulting to white.")
-            vertex_colors = [[1, 1, 1]] * len(vertex_positions)
+            vertex_colors = [[1, 0.5, 0]] * len(vertex_positions)
 
 
         # extract normal data if available
