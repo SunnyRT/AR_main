@@ -37,8 +37,21 @@ class Uniform(object):
             glUniform3f(self.variableRef, self.data[0], self.data[1], self.data[2])
         elif self.dataType == 'vec4':
             glUniform4f(self.variableRef, self.data[0], self.data[1], self.data[2], self.data[3])
+
         elif self.dataType == 'mat4':
             glUniformMatrix4fv(self.variableRef, 1, GL_TRUE, self.data) # transpose = GL_TRUE (data as array of row vectors)
+
+        elif self.dataType == 'sampler2D':
+            textureObjectRef, textureUnitRef = self.data
+            # activate texture unit
+            glActiveTexture(GL_TEXTURE0 + textureUnitRef)
+            # associate texture object reference 
+            # to currently active texture unit
+            glBindTexture(GL_TEXTURE_2D, textureObjectRef)
+            # upload texture unit number (0, 1, 2, ..., 15) 
+            # to sampler uniform variable in shader
+            glUniform1i(self.variableRef, textureUnitRef)
+
 
 
         

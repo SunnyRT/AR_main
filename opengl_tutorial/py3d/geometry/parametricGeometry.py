@@ -8,7 +8,6 @@ class ParametricGeometry(Geometry):
         deltaU = (uEnd - uStart) / uResolution
         deltaV = (vEnd - vStart) / vResolution
         positions = []
-
         for uIndex in range(uResolution+1):
             vArray = []
             for vIndex in range(vResolution+1):
@@ -17,16 +16,31 @@ class ParametricGeometry(Geometry):
                 vArray.append(surfaceFunction(u, v))
             positions.append(vArray)
 
-        # store vertex data
-        positionData = []
-        colorData = []
+        uvs = []
+        for uIndex in range (uResolution+1):
+            vArray = []
+            for vIndex in range(vResolution+1):
+                u = uIndex / uResolution
+                v = vIndex / vResolution
+                vArray.append([u, v])
+            uvs.append(vArray)
+        
+
 
         # default vertex colors 
         C1, C2, C3 = [1, 0, 0], [0, 1, 0], [0, 0, 1]
         C4, C5, C6 = [1, 1, 0], [0, 1, 1], [1, 0, 1]
         
+
+
+
+
         # group vertex data into triangles
         # note: .copy() is necessary to avoid stored references to mutable objects
+        positionData = []
+        colorData = []
+        uvData = []
+
         for xIndex in range(uResolution):
             for yIndex in range(vResolution):
                 # position data
@@ -39,5 +53,13 @@ class ParametricGeometry(Geometry):
                 # color data
                 colorData += [C1, C2, C3, C4, C5, C6]
 
+                # uv coordinates
+                uvA = uvs[xIndex+0][yIndex+0]
+                uvB = uvs[xIndex+1][yIndex+0]
+                uvD = uvs[xIndex+0][yIndex+1]
+                uvC = uvs[xIndex+1][yIndex+1]
+                uvData += [uvA, uvB, uvC, uvA, uvC, uvD]
+
         self.addAttribute("vec3", "vertexPosition", positionData)
         self.addAttribute("vec3", "vertexColor", colorData)
+        self.addAttribute("vec2", "vertexUV", uvData)
