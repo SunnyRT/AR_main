@@ -45,8 +45,11 @@ class MovementRig(Object3D):
     def update(self, inputObject, deltaTime=None):
         # moveAmount = self.unitsPerSecond * deltaTime
         # rotate_amount = self.degreesPerSecond * (math.pi / 180) * deltaTime
-        moveAmount = 0.1
-        rotateAmount = pi / 180
+        moveAmount = 0.1 # TODO: adjust sensitivity
+        rotateAmount = pi / 180 # TODO: adjust sensitivity
+        
+        
+        # Handle keyboard-based movement and rotation
         if inputObject.isKeyPressed(self.KEY_MOVE_FORWARDS):
             self.translate(0, 0, -moveAmount)
         if inputObject.isKeyPressed(self.KEY_MOVE_BACKWARDS):
@@ -69,3 +72,21 @@ class MovementRig(Object3D):
             self.lookAttachment.rotateX(rotateAmount)
         if inputObject.isKeyPressed(self.KEY_LOOK_DOWN):
             self.llokAttachment.rotateX(-rotateAmount)
+
+        # Handle mouse-based rotation when left mouse button is held down
+        if inputObject.isMouseLeftDown():
+            mouseDelta = inputObject.getMouseDelta()
+            self.rotateY(-mouseDelta[0] * rotateAmount)
+            self.lookAttachment.rotateX(-mouseDelta[1] * rotateAmount)
+
+        # Handle mouse-based panning when right mouse button is held down
+        if inputObject.isMouseRightDown():
+            mouseDelta = inputObject.getMouseDelta()
+            self.translate(-mouseDelta[0] * moveAmount, mouseDelta[1] * moveAmount, 0)
+
+        # Handle middle mouse button to move forward/backward (i.e. zoom)
+        mouseScroll = inputObject.getMouseScroll()
+        if mouseScroll != 0:
+            self.translate(0, 0, -mouseScroll * moveAmount)
+
+        
