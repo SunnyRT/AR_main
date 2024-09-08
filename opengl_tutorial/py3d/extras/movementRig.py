@@ -18,8 +18,6 @@ class MovementRig(Object3D):
         # # control rate of movement
         # self.unitsPerSecond = unitsPerSecond
         # self.degreesPerSecond = degreesPerSecond
-        self.isPerspective = True
-        self.zoom = 1.0 # for orthographic projection
 
         # customize key mappings
         # Defaults: W, A, S, D, R, F (move), Q, E (turn), T, G (look)

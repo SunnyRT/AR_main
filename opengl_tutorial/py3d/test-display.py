@@ -22,7 +22,7 @@ class Test(Base):
         print("Initializing program...")
 
         # initialize renderer, scene, camera
-        self.renderer = Renderer()
+        self.renderer = Renderer(clearColor=[1,1,1])
         self.scene = Scene()
         self.camera = Camera(aspectRatio=800/600)
 
@@ -33,7 +33,7 @@ class Test(Base):
         self.scene.add(self.rig)
 
         # set up grid 
-        grid = GridHelper(size=1024, divisions = 1024, gridColor=[0.5,0.5,0.5], centerColor=[1,1,1], lineWidth=1)
+        grid = GridHelper(size=1024, divisions=512, gridColor=[0.8,0.8,0.8], centerColor=[0.5,0.5,0.5], lineWidth=1)
         grid.rotateX(-pi/2)
         self.scene.add(grid)
 
