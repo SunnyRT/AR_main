@@ -32,7 +32,9 @@ class Model3dGeometry(Geometry):
             vertex_normals = [[vertex['nx'], vertex['ny'], vertex['nz']] for vertex in vertex_data]
         else:
             print("No normal data found in .ply file. Computing normals.")
-            vertex_normals = self.compute_normals(vertex_positions)
+            vertex_normals = []
+            # FIXME: compute normals for each vertex
+
 
             
 
@@ -57,7 +59,11 @@ class Model3dGeometry(Geometry):
         # self.addAttribute("vec3", "vertexNormal", normalData)
 
         
-    def compute_normals(self, vertex_positions):
+    def calcNormal(self, P0, P1, P2):
         # compute normals for each vertex
-        vertex_normals = [[0,0,0]] * len(vertex_positions) # TODO: compute normals
-        return vertex_normals
+        v1 = np.array(P1) - np.array(P0)
+        v2 = np.array(P2) - np.array(P0)
+        normal = np.cross(v1, v2)
+        normal = normal / np.linalg.norm(normal)
+        return normal
+    
