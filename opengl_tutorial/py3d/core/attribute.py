@@ -13,7 +13,9 @@ class Attribute(object):
         self.data = data
 
         # reference of available buffer from GPU
-        self.bufferRef = glGenBuffers(1) # arg = 1: number of buffers to generate
+        # arg = 1: number of buffers to generate
+        # 1 buffer is created for each attribute
+        self.bufferRef = glGenBuffers(1) 
 
         # upload data immediately
         self.uploadData()
@@ -45,6 +47,7 @@ class Attribute(object):
         glBindBuffer(GL_ARRAY_BUFFER, self.bufferRef)
 
         # specify how data will be read from currently bound buffer into specified variable
+        # tell OpenGL how to interpret the data in the buffer and how to pass it to GPU for use in the shader program
         if self.dataType == 'int':
             glVertexAttribPointer(variableRef, 1, GL_INT, GL_FALSE, 0, None)
         elif self.dataType == 'float':

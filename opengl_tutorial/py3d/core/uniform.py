@@ -12,11 +12,20 @@ class Uniform(object):
         self.data = data
 
         # reference for variable location in program
-        self.variableRef = None
+        self.variableRef = None # an integer value as identifier for the variable location in the program
 
     # get and store reference for program variable with given name
     def locateVariable(self, programRef, variableName):
-        self.variableRef = glGetUniformLocation(programRef, variableName)
+        if self.dataType == "Light":
+            self.variableRef = {} # a dictionary to store location integer identifiers (value) for each variable (key)
+            # if glGetUniformLocation returns -1, the variable is not used in the shader
+            self.variableRef["lightType"] = glGetUniformLocation(programRef, variableName + ".lightType")
+            self.variableRef["color"] = glGetUniformLocation(programRef, variableName + ".color")
+            self.variableRef["direction"] = glGetUniformLocation(programRef, variableName + ".direction")
+            self.variableRef["position"] = glGetUniformLocation(programRef, variableName + ".position")
+            self.variableRef["attenuation"] = glGetUniformLocation(programRef, variableName + ".attenuation")
+        else:
+            self.variableRef = glGetUniformLocation(programRef, variableName)
 
     # store data in uniform variable previously located
     def uploadData(self):
@@ -52,6 +61,14 @@ class Uniform(object):
             # to sampler uniform variable in shader
             glUniform1i(self.variableRef, textureUnitRef)
 
+        elif self.dataType == 'Light':
+            glUniform1i(self.variableRef["lightType"], self.data.lightType)
+            glUniform3f(self.variableRef["color"], self.data.color[0], self.data.color[1], self.data.color[2])
+            direction = self.data.getDirection()
+            glUniform3f(self.variableRef["direction"], direction[0], direction[1], direction[2])
+            position = self.data.getPosition()
+            glUniform3f(self.variableRef["position"], position[0], position[1], position[2])
+            glUniform3f(self.variableRef["attenuation"], self.data.attenuation[0], self.data.attenuation[1], self.data.attenuation[2])
 
 
         

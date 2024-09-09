@@ -35,7 +35,7 @@ class Renderer(object):
 
             glUseProgram(mesh.material.programRef)
 
-            # bind VAO
+            # bind (activate) VAO for rendering
             glBindVertexArray(mesh.vaoRef)
 
             # update uniform values stored outside of material

@@ -32,7 +32,7 @@ class Model3dGeometry(Geometry):
             vertex_normals = [[vertex['nx'], vertex['ny'], vertex['nz']] for vertex in vertex_data]
         else:
             print("No normal data found in .ply file. Computing normals.")
-            vertex_normals = []
+            vertex_normals = None
             # FIXME: compute normals for each vertex
 
 
@@ -41,7 +41,8 @@ class Model3dGeometry(Geometry):
         # initialize lists to store data grouped by triangle face
         positionData = []
         colorData = []
-        normalData = []
+        vnormalData = []
+        fnormalData = []
 
         face_data = plyData['face'].data
         for face in face_data:
@@ -52,18 +53,34 @@ class Model3dGeometry(Geometry):
                 vertex_index = vertex_indices[i]
                 positionData.append(vertex_positions[vertex_index])
                 colorData.append(vertex_colors[vertex_index])
-                normalData.append(vertex_normals[vertex_index])
+                
+                if vertex_normals is not None:
+                    vnormalData.append(vertex_normals[vertex_index])
+                else:
+                    vnormalData.append([0, 0, 0]) # FIXME: compute normals for each vertex
 
+        fnormalData = self.calcFaceNormals(positionData)
+        # print(f"vertexnormal: {len(vnormalData)}, facenormal: {len(fnormalData)}")
+
+        # add attributes to the geometry object
         self.addAttribute("vec3", "vertexPosition", positionData)
         self.addAttribute("vec3", "vertexColor", colorData)
-        # self.addAttribute("vec3", "vertexNormal", normalData)
+        self.addAttribute("vec3", "vertexNormal", vnormalData)
+        self.addAttribute("vec3", "faceNormal", fnormalData)
 
-        
-    def calcNormal(self, P0, P1, P2):
-        # compute normals for each vertex
-        v1 = np.array(P1) - np.array(P0)
-        v2 = np.array(P2) - np.array(P0)
-        normal = np.cross(v1, v2)
-        normal = normal / np.linalg.norm(normal)
-        return normal
+
+
     
+    def calcFaceNormals(self, positionData):
+        # compute normals for each face
+        faceNormals = []
+        for i in range(0, len(positionData), 3):
+            P0 = positionData[i]
+            P1 = positionData[i + 1]
+            P2 = positionData[i + 2]
+            v1 = np.array(P1) - np.array(P0)
+            v2 = np.array(P2) - np.array(P0)
+            normal = np.cross(v1, v2)
+            normal = normal / np.linalg.norm(normal)
+            faceNormals.append(normal)
+        return faceNormals
