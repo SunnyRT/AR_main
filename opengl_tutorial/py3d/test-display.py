@@ -10,6 +10,13 @@ from material.surfaceMaterial import SurfaceMaterial
 from core_ext.texture import Texture
 from material.textureMaterial import TextureMaterial
 
+from light.ambientLight import AmbientLight
+from light.directionalLight import DirecitonalLight
+from light.pointLight import PointLight
+from material.flatMaterial import FlatMaterial
+from material.lambertMaterial import LambertMaterial
+from material.phongMaterial import PhongMaterial
+
 from extras.axesHelper import AxesHelper
 from extras.gridHelper import GridHelper
 from extras.movementRig import MovementRig
@@ -32,6 +39,16 @@ class Test(Base):
         self.rig.setPosition([10,10,50])
         self.scene.add(self.rig)
 
+
+        # three light sources
+
+        ambient = AmbientLight(color=[0.1, 0.1, 0.1])
+        self.scene.add(ambient)
+        directional = DirecitonalLight(color = [1, 1, 1], direction = [-1,-1,-2])
+        self.scene.add(directional)
+        point = PointLight(color = [0.3, 0.3, 0.3], position = [20,20,16], attenuation = [1,0.1,0.1])
+        self.scene.add(point)
+
         # set up grid 
         grid = GridHelper(size=1024, divisions=512, gridColor=[0.8,0.8,0.8], centerColor=[0.5,0.5,0.5], lineWidth=1)
         grid.rotateX(-pi/2)
@@ -39,8 +56,11 @@ class Test(Base):
 
         # load 3d model
         geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\summer\\fitted_otic_capsule.ply") # TODO: change path to desired .ply file
-        material3d = SurfaceMaterial(
-            {"useVertexColors": True})
+        # material3d = SurfaceMaterial(
+        #     {"useVertexColors": True})
+        lamberMaterial = LambertMaterial(properties={"baseColor": [0.5, 0.5, 0.2]})
+        phongMaterial = PhongMaterial(properties={"baseColor": [0.5, 0.5, 0.2]})
+        material3d = lamberMaterial
         self.mesh3d = Mesh(geometry3d, material3d)
         self.scene.add(self.mesh3d)
 

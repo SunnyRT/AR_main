@@ -6,6 +6,7 @@ from core_ext.mesh import Mesh
 from geometry.boxGeometry import BoxGeometry
 from geometry.planeGeometry import PlaneGeometry
 from geometry.sphereGeometry import SphereGeometry
+from geometry.model3dGeometry import Model3dGeometry
 from material.surfaceMaterial import SurfaceMaterial
 from core_ext.texture import Texture
 from material.textureMaterial import TextureMaterial
@@ -37,9 +38,9 @@ class Test(Base):
 
 
         # three light sources
-        ambient = AmbientLight(color=[1, 1, 1])
+        ambient = AmbientLight(color=[0.1, 0.1, 0.1])
         self.scene.add(ambient)
-        directional = DirecitonalLight(color = [10, 10, 10], direction = [-1,-1,-2])
+        directional = DirecitonalLight(color = [1, 1, 1], direction = [-1,-1,-2])
         self.scene.add(directional)
         point = PointLight(color = [0.9, 0, 0], position = [1,1,0.8], attenuation = [1,0,0.1])
         self.scene.add(point)

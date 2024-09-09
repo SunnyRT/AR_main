@@ -59,11 +59,11 @@ class Renderer(object):
                     lightObject = lightList[lightNumber]
                     mesh.material.uniforms[lightName].data = lightObject
                     # print(f"light {lightNumber} type: {lightObject}; color: {lightObject.color}")
-                    if lightObject.lightType == Light.DIRECTIONAL:
-                        print(f"directional light direction: {lightObject.getDirection()}")
-                    elif lightObject.lightType == Light.POINT:
-                        print(f"point light position: {lightObject.getPosition()}")
-                        print(f"point light attenuation: {lightObject.attenuation}")
+                    # if lightObject.lightType == Light.DIRECTIONAL:
+                    #     print(f"directional light direction: {lightObject.getDirection()}")
+                    # elif lightObject.lightType == Light.POINT:
+                    #     print(f"point light position: {lightObject.getPosition()}")
+                    #     print(f"point light attenuation: {lightObject.attenuation}")
             # add camera position if needed (for specular highlights)
             if "viewPosition" in mesh.material.uniforms.keys():
                 mesh.material.uniforms["viewPosition"].data = camera.getWorldPosition()

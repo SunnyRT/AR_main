@@ -88,7 +88,7 @@ class PhongMaterial(Material):
                         // vec3 halfDirection = normalize(-lightDirection + viewDirection);
                         // specular = max(dot(halfDirection, pointNormal), 0.0); 
 
-                        // alternatively (navie approach): reflect direciton and view direction
+                        // alternatively (naive approach): reflect direction and view direction
                         vec3 reflectDirection = reflect(lightDirection, pointNormal);
                         specular = max(dot(reflectDirection, viewDirection), 0.0);
                         specular = specularStrength * pow(specular, shininess);
