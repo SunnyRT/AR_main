@@ -62,17 +62,16 @@ class Uniform(object):
             glUniform1i(self.variableRef, textureUnitRef)
 
         elif self.dataType == 'Light':
-            if self.data is None:
-                glUniform1i(self.variableRef["lightType"], 0)
-            else:
-                glUniform1i(self.variableRef["lightType"], self.data.lightType)
-                glUniform3f(self.variableRef["color"], self.data.color[0], self.data.color[1], self.data.color[2])
-                direction = self.data.getDirection()
-                glUniform3f(self.variableRef["direction"], direction[0], direction[1], direction[2])
-                position = self.data.getPosition()
-                glUniform3f(self.variableRef["position"], position[0], position[1], position[2])
-                if self.data.lightType == 3: # attenuation only for point lights
-                    glUniform3f(self.variableRef["attenuation"], self.data.attenuation[0], self.data.attenuation[1], self.data.attenuation[2])
+
+            glUniform1i(self.variableRef["lightType"], self.data.lightType)
+            glUniform3f(self.variableRef["color"], self.data.color[0], self.data.color[1], self.data.color[2])
+            direction = self.data.getDirection()
+            glUniform3f(self.variableRef["direction"], direction[0], direction[1], direction[2])
+            position = self.data.getPosition()
+            glUniform3f(self.variableRef["position"], position[0], position[1], position[2])
+        
+            if self.data.lightType == 3: # attenuation only for point lights
+                glUniform3f(self.variableRef["attenuation"], self.data.attenuation[0], self.data.attenuation[1], self.data.attenuation[2])
 
 
         

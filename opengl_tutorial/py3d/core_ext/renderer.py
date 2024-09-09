@@ -51,9 +51,25 @@ class Renderer(object):
             mesh.material.uniforms["modelMatrix"].data = mesh.getWorldMatrix()
             mesh.material.uniforms["viewMatrix"].data = camera.viewMatrix
             mesh.material.uniforms["projectionMatrix"].data = camera.projectionMatrix
+            # render lights
+            # if material uses light data, add lights from list
+            if "light0" in mesh.material.uniforms.keys():
+                for lightNumber in range(4):
+                    lightName = "light" + str(lightNumber)
+                    lightObject = lightList[lightNumber]
+                    mesh.material.uniforms[lightName].data = lightObject
+                    # print(f"light {lightNumber} type: {lightObject}; color: {lightObject.color}")
+                    if lightObject.lightType == Light.DIRECTIONAL:
+                        print(f"directional light direction: {lightObject.getDirection()}")
+                    elif lightObject.lightType == Light.POINT:
+                        print(f"point light position: {lightObject.getPosition()}")
+                        print(f"point light attenuation: {lightObject.attenuation}")
+            # add camera position if needed (for specular highlights)
+            if "viewPosition" in mesh.material.uniforms.keys():
+                mesh.material.uniforms["viewPosition"].data = camera.getWorldPosition()
 
             # update uniforms stored in material
-            for variableName, uniformObject in mesh.material.uniforms.items():
+            for uniformObject in mesh.material.uniforms.values():
                 uniformObject.uploadData()
 
             # update render settings
@@ -62,17 +78,7 @@ class Renderer(object):
             glDrawArrays(mesh.material.settings["drawStyle"], 0, mesh.geometry.vertexCount)
 
 
-            # render lights
-            # if material uses light data, add lights from list
-            if "light0" in mesh.material.uniforms.keys():
-                for lightNumber in range(4):
-                    lightName = "light" + str(lightNumber)
-                    lightObject = lightList[lightNumber]
-                    mesh.material.uniforms[lightName].data = lightObject
-            
-            # add camera position if needed (for specular highlights)
-            if "viewPosition" in mesh.material.uniforms.keys():
-                mesh.material.uniforms["viewPosition"].data = camera.getWorldPosition()
+
 
         
 

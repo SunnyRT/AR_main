@@ -17,6 +17,8 @@ from material.flatMaterial import FlatMaterial
 from material.lambertMaterial import LambertMaterial
 from material.phongMaterial import PhongMaterial
 
+from extras.movementRig import MovementRig
+
 
 
 # render a basic scene
@@ -28,24 +30,27 @@ class Test(Base):
         self.renderer = Renderer()
         self.scene = Scene()
         self.camera = Camera(aspectRatio=800/600)
-        self.camera.setPosition([0,0,6])
+        self.rig = MovementRig()
+        self.rig.add(self.camera)
+        self.rig.setPosition([0, 0, 6])
+        self.scene.add(self.rig)
 
-        # four light sources
-        ambient = AmbientLight(color=[0.1, 0.1, 0.1])
+
+        # three light sources
+        ambient = AmbientLight(color=[1, 1, 1])
         self.scene.add(ambient)
-        directional = DirecitonalLight(color = [1, 1, 1], direction = [-1,-1,-2])
+        directional = DirecitonalLight(color = [10, 10, 10], direction = [-1,-1,-2])
         self.scene.add(directional)
-        point1 = PointLight(color = [0.9, 0, 0], position = [1,1,0.8], attenuation = [1,0,0])
-        self.scene.add(point1)
-        point2 = PointLight(color = [0, 0.9, 0], position = [-1,1,0.8], attenuation = [1,0,0])
-        self.scene.add(point2)
+        point = PointLight(color = [0.9, 0, 0], position = [1,1,0.8], attenuation = [1,0,0.1])
+        self.scene.add(point)
+
 
 
         
         flatMaterial = FlatMaterial(properties={"baseColor": [0.6, 0.2, 0.2]})
         # grid = Texture("grid.png") # TODO: image
-        lambertMaterial = LambertMaterial(properties={"baseColor": [0.2, 0.5, 0.5]})
-        phongMaterial = PhongMaterial(properties={"baseColor": [ 0.5, 0.5, 1]})
+        lambertMaterial = LambertMaterial(properties={"baseColor": [0.6, 0.2, 0.2]})
+        phongMaterial = PhongMaterial(properties={"baseColor": [0.6, 0.2, 0.2]})
         
         sphereGeometry = BoxGeometry()
         sphere1 = Mesh(sphereGeometry, flatMaterial)
@@ -62,6 +67,7 @@ class Test(Base):
 
 
     def update(self):
+        self.rig.update(self.input)
         self.renderer.render(self.scene, self.camera)
 
 # instantiate this class and run the program

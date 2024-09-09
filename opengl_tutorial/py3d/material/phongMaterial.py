@@ -69,7 +69,9 @@ class PhongMaterial(Material):
                 {
                     lightDirection = normalize(pointPosition - light.position);
                     float distance = length(light.position - pointPosition);
-                    attenuation = 1.0 / (light.attenuation[0] + light.attenuation[1] * distance + light.attenuation[2] * distance * distance);
+                    attenuation = 1.0 / (light.attenuation[0] 
+                                    + light.attenuation[1] * distance 
+                                    + light.attenuation[2] * distance * distance);
                 }
                 
                 if (light.lightType > 1) // directional or point light
@@ -78,19 +80,18 @@ class PhongMaterial(Material):
                     diffuse = max(dot(pointNormal, -lightDirection), 0.0);
                     diffuse = diffuse * attenuation;
 
-                    if (diffuse > 0.0)
+                    if (diffuse > 0)
                     {
                         vec3 viewDirection = normalize(viewPosition - pointPosition);
 
                         // FIXME: half direction is between light and view direction
-                        vec3 halfDirection = normalize(-lightDirection + viewDirection);
-                        specular = max(dot(halfDirection, pointNormal), 0.0); 
+                        // vec3 halfDirection = normalize(-lightDirection + viewDirection);
+                        // specular = max(dot(halfDirection, pointNormal), 0.0); 
 
                         // alternatively (navie approach): reflect direciton and view direction
-                        // vec3 reflectDirection = reflect(lightDirection, pointNormal);
-                        // specular = max(dot(reflectDirection, viewDirection), 0.0);
-
-                        specular = pow(specular, shininess) * specularStrength;
+                        vec3 reflectDirection = reflect(lightDirection, pointNormal);
+                        specular = max(dot(reflectDirection, viewDirection), 0.0);
+                        specular = specularStrength * pow(specular, shininess);
                     }
                 }
                 return light.color * (ambient + diffuse + specular);
@@ -153,16 +154,16 @@ class PhongMaterial(Material):
 
     def updateRenderSettings(self):
             
-            if self.settings["doubleSided"]:
-                glDisable(GL_CULL_FACE)
-            else:
-                glEnable(GL_CULL_FACE)
-    
-            if self.settings["wireframe"]:
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            else:
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-            
-            glLineWidth(self.settings["lineWidth"])
+        if self.settings["doubleSided"]:
+            glDisable(GL_CULL_FACE)
+        else:
+            glEnable(GL_CULL_FACE)
+
+        if self.settings["wireframe"]:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        else:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        
+        glLineWidth(self.settings["lineWidth"])
 
             

@@ -131,16 +131,16 @@ class LambertMaterial(Material):
 
     def updateRenderSettings(self):
             
-            if self.settings["doubleSided"]:
-                glDisable(GL_CULL_FACE)
-            else:
-                glEnable(GL_CULL_FACE)
-    
-            if self.settings["wireframe"]:
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            else:
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-            
-            glLineWidth(self.settings["lineWidth"])
+        if self.settings["doubleSided"]:
+            glDisable(GL_CULL_FACE)
+        else:
+            glEnable(GL_CULL_FACE)
+
+        if self.settings["wireframe"]:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        else:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        
+        glLineWidth(self.settings["lineWidth"])
 
             
