@@ -26,23 +26,20 @@ class Model3dGeometry(Geometry):
             print("No color data found in .ply file. Defaulting to white.")
             vertex_colors = [[1, 0.5, 0]] * len(vertex_positions)
 
-
-        # extract normal data if available
+        # extract vertex normals if available
         if 'nx' in vertex_data.dtype.names:
             vertex_normals = [[vertex['nx'], vertex['ny'], vertex['nz']] for vertex in vertex_data]
         else:
             print("No normal data found in .ply file. Computing normals.")
             vertex_normals = None
-            # FIXME: compute normals for each vertex
 
-
-            
 
         # initialize lists to store data grouped by triangle face
         positionData = []
         colorData = []
-        vnormalData = []
         fnormalData = []
+        vnormalData = []
+
 
         face_data = plyData['face'].data
         for face in face_data:
@@ -53,14 +50,26 @@ class Model3dGeometry(Geometry):
                 vertex_index = vertex_indices[i]
                 positionData.append(vertex_positions[vertex_index])
                 colorData.append(vertex_colors[vertex_index])
-                
+
                 if vertex_normals is not None:
                     vnormalData.append(vertex_normals[vertex_index])
-                else:
-                    vnormalData.append([0, 0, 0]) # FIXME: compute normals for each vertex
+                
 
+        
         fnormalData = self.calcFaceNormals(positionData)
         # print(f"vertexnormal: {len(vnormalData)}, facenormal: {len(fnormalData)}")
+
+        if vertex_normals is None:
+            vertex_normals = self.calcVertexNormals(vertex_positions, fnormalData, face_data)
+
+            # group calculated vertex_normals by triangle face
+            for face in face_data:
+                vertex_indices = face[0]
+                for i in range(3):
+                    vertex_index = vertex_indices[i]
+                    vnormalData.append(vertex_normals[vertex_index])
+
+        
 
         # add attributes to the geometry object
         self.addAttribute("vec3", "vertexPosition", positionData)
@@ -84,3 +93,22 @@ class Model3dGeometry(Geometry):
             normal = normal / np.linalg.norm(normal)
             faceNormals.append(normal)
         return faceNormals
+    
+    def calcVertexNormals(self, vertex_positions, faceNormals, face_data):
+        # Initialize a list of zero vectors for vertex normals
+        vertex_count = len(vertex_positions)
+        vertex_normals = [np.array([0.0, 0.0, 0.0]) for _ in range(vertex_count)]
+        
+        # For each face, accumulate its normal to the vertices of the face
+        for face_idx, face in enumerate(face_data):
+            vertex_indices = face[0]  # Get the vertex indices for this face
+            normal = faceNormals[face_idx]
+            
+            # Add the face normal to each vertex's normal
+            for i in vertex_indices:
+                vertex_normals[i] += normal
+        
+        # Normalize the accumulated vertex normals
+        vertex_normals = [normal / np.linalg.norm(normal) if np.linalg.norm(normal) != 0 else [0.0, 0.0, 0.0] for normal in vertex_normals]
+        
+        return vertex_normals
