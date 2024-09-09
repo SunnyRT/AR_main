@@ -5,9 +5,18 @@ from core_ext.camera import Camera
 from core_ext.mesh import Mesh
 from geometry.boxGeometry import BoxGeometry
 from geometry.planeGeometry import PlaneGeometry
+from geometry.sphereGeometry import SphereGeometry
 from material.surfaceMaterial import SurfaceMaterial
 from core_ext.texture import Texture
 from material.textureMaterial import TextureMaterial
+
+from light.ambientLight import AmbientLight
+from light.directionalLight import DirectionalLight
+from light.pointLight import PointLight
+from material.flatMaterial import FlatMaterial
+from opengl_tutorial.py3d.material.lambertMaterial import LambertMaterial
+from material.phongMaterial import PhongMaterial
+
 
 
 # render a basic scene

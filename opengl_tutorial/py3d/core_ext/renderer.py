@@ -1,5 +1,6 @@
 from OpenGL.GL import *
 from core_ext.mesh import Mesh
+from light.light import Light
 
 class Renderer(object):
 
@@ -26,6 +27,14 @@ class Renderer(object):
         meshFilter = lambda obj: isinstance(obj, Mesh) # anonymous function which returns True if obj is of type Mesh
         meshList = list(filter(meshFilter, descendantList)) # filter() returns an iterator, which contains only objects of type Mesh
 
+        # extract list of all Light objects in scene
+        lightFilter = lambda obj: isinstance(obj, Light) # anonymous function which returns True if obj is of type Light
+        lightList = list(filter(lightFilter, descendantList)) # filter() returns an iterator, which contains only objects of type Light
+        # scenes support 4 lights; precisely 4 must be present in the scene
+        while len(lightList) < 4:
+            lightList.append(Light())
+        
+
         for mesh in meshList:
 
             # if this object is not visible, skip it
@@ -51,6 +60,23 @@ class Renderer(object):
             mesh.material.updateRenderSettings()
             
             glDrawArrays(mesh.material.settings["drawStyle"], 0, mesh.geometry.vertexCount)
+
+
+            # render lights
+            # if material uses light data, add lights from list
+            if "light0" in mesh.material.uniforms.keys():
+                for lightNumber in range(4):
+                    lightName = "light" + str(lightNumber)
+                    lightObject = lightList[lightNumber]
+                    mesh.material.uniforms[lightName].data = lightObject
+            
+            # add camera position if needed (for specular highlights)
+            if "viewPosition" in mesh.material.uniforms.keys():
+                mesh.material.uniforms["viewPosition"].data = camera.getWorldPosition()
+
+        
+
+                
 
             
 
