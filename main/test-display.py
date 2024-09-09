@@ -66,7 +66,7 @@ class Test(Base):
 
         # load 2d image
         geometry2d = PlaneGeometry(64,64,256,256)
-        texture2d = Texture("D:\\sunny\\Codes\\IIB_project\\data\\summer\\JPEG0836.jpg")
+        texture2d = Texture("D:\\sunny\\Codes\\IIB_project\\data\\summer\\JPEG0836.jpg") # TODO: change path to desired image file
         material2d = TextureMaterial(texture2d)
         self.image2d = Mesh(geometry2d, material2d)
         # self.image2d.translate(0.5,0.5,0)

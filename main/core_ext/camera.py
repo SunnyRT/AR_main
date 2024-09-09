@@ -8,7 +8,7 @@ class Camera(Object3D):
 
     def __init__(self, angleOfView=60,
                     aspectRatio=1.0, 
-                    distance=20,
+                    distance=20, # FIXME: to find a better way to match perspective and orthographic projection????
                     near=0.1,
                     far=1000):
             super().__init__()
@@ -43,7 +43,7 @@ class Camera(Object3D):
 
 
 
-# FIXME: need to find a better way to define projection?????
+
     def toggleProjection(self):
         self.isPerspective = not self.isPerspective
         if self.isPerspective:
