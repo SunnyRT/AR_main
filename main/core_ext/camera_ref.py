@@ -6,14 +6,13 @@ from math import tan
 
 class Camera(Object3D):
 
-    def __init__(self, isPerspective=False, angleOfView=60,
+    def __init__(self, angleOfView=60,
                     aspectRatio=1.0, 
                     distance=20, # FIXME: to find a better way to match perspective and orthographic projection????
                     near=0.1,
                     far=1000):
             super().__init__()
 
-            self.isPerspective = isPerspective
             self.theta = angleOfView
             self.r = aspectRatio
             self.d = distance
@@ -22,12 +21,9 @@ class Camera(Object3D):
 
             self.zoom = 1.0
 
-
-            if self.isPerspective:
-                self.setPerspective()
-            else:
-                self.setOrthographic()
-
+            # default to perspective projection
+            self.isPerspective = True
+            self.setPerspective()
             self.viewMatrix = Matrix.makeIdentity()
 
     def updateViewMatrix(self):
@@ -48,17 +44,17 @@ class Camera(Object3D):
 
 
 
-    # def toggleProjection(self):
-    #     self.isPerspective = not self.isPerspective
-    #     if self.isPerspective:
-    #         self.setPerspective()
-    #     else:
-    #         self.setOrthographic()
+    def toggleProjection(self):
+        self.isPerspective = not self.isPerspective
+        if self.isPerspective:
+            self.setPerspective()
+        else:
+            self.setOrthographic()
 
 
     def update(self, inputObject, deltaTime=None):
-        # if inputObject.isKeyDown('space'):
-        #     self.toggleProjection()
+        if inputObject.isKeyDown('space'):
+            self.toggleProjection()
         
         
         if self.isPerspective:
@@ -69,10 +65,10 @@ class Camera(Object3D):
                 self.theta += 0.1
                 self.setPerspective()
         else:
-            if inputObject.isKeyPressed('w'):
+            if inputObject.isKeyPressed('up'):
                 self.zoom += 0.01
                 self.setOrthographic()
-            if inputObject.isKeyPressed('s'):
+            if inputObject.isKeyPressed('down'):
                 self.zoom -= 0.01
                 self.setOrthographic()
             mouseScroll = inputObject.getMouseScroll()

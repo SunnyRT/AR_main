@@ -14,7 +14,7 @@ from light.ambientLight import AmbientLight
 from light.directionalLight import DirectionalLight
 from light.pointLight import PointLight
 from material.flatMaterial import FlatMaterial
-from opengl_tutorial.py3d.material.lambertMaterial import LambertMaterial
+from material.lambertMaterial import LambertMaterial
 from material.phongMaterial import PhongMaterial
 
 

@@ -82,6 +82,12 @@ class Test(Base):
         self.mesh3d.rotateY(0.0514) 
         self.mesh3d.rotateX(0.0337)
         
+        # if self.camera.isPerspective: # rotate the plane with camera
+        #     # FIXME: to be completed
+        #     self.image2d.rotateX()
+        #     self.image2d.rotateY()
+
+
         self.rig.update(self.input)
         self.camera.update(self.input)
         self.renderer.render(self.scene, self.camera)
