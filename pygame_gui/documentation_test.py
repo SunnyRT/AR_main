@@ -24,10 +24,10 @@ manager = pygame_gui.UIManager((800, 600), 'data/themes/documentation_theme.json
 background = pygame.Surface((800, 600))
 background.fill(pygame.Color('#fcfcfc'))
 
-# pygame_gui.elements.UIDropDownMenu(options_list=['Easy', 'Medium', 'Hard', 'Very Hard'],
-#                                    starting_option='Medium',
-#                                    relative_rect=pygame.Rect((350, 280), (250, 50)),
-#                                    manager=manager)
+pygame_gui.elements.UIDropDownMenu(options_list=['Easy', 'Medium', 'Hard', 'Very Hard'],
+                                   starting_option='Medium',
+                                   relative_rect=pygame.Rect((350, 280), (250, 50)),
+                                   manager=manager)
 
 # pygame_gui.elements.UIHorizontalSlider(relative_rect=pygame.Rect((350, 280), (250, 40)),
 #                                        start_value=50,
@@ -57,8 +57,8 @@ background.fill(pygame.Color('#fcfcfc'))
 #                                           sprite_to_monitor=test_sprite,
 #                                           manager=manager)
 
-pygame_gui.windows.UIColourPickerDialog(rect=pygame.Rect(100, 100, 390, 390),
-                                        manager=manager)
+# pygame_gui.windows.UIColourPickerDialog(rect=pygame.Rect(100, 100, 390, 390),
+#                                         manager=manager)
 
 clock = pygame.time.Clock()
 is_running = True
