@@ -1,0 +1,26 @@
+{
+    "text_box":
+    {
+        "misc":
+        {
+            "border_width": "0",
+            "shadow_width": "0"
+        },
+        "colours":
+        {
+            "text_cursor": "white"
+        }
+    },
+    "text_entry_box":
+    {
+        "misc":
+        {
+            "border_width": "0",
+            "shadow_width": "0"
+        },
+        "colours":
+        {
+            "text_cursor": "white"
+        }
+    }
+}

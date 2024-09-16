@@ -1,0 +1,11 @@
+{
+    "text_box":
+    {
+        "misc":
+        {
+            "shape": "rectangle",
+            "text_horiz_alignment": "left",
+            "line_spacing": "1.5"
+        }
+    }
+}
