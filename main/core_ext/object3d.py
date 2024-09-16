@@ -72,6 +72,31 @@ class Object3D(object):
         self.applyMatrix(m, localCoord)
 
 
+    # TODO: (New method) Rotate around the X-axis but relative to the global origin
+    def rotateXorigin(self, angle):
+        # Step 1: Translate to global origin
+        position = self.getPosition()
+        self.translate(-position[0], -position[1], -position[2], localCoord=False)
+
+        # Step 2: Rotate around the X-axis in local coordinates
+        self.rotateX(angle, localCoord=True)
+
+        # Step 3: Translate back to original position
+        self.translate(position[0], position[1], position[2], localCoord=False)
+
+    # TODO: (New method) Rotate around the Y-axis but relative to the global origin
+    def rotateYorigin(self, angle):
+        # Step 1: Translate to global origin
+        position = self.getPosition()
+        self.translate(-position[0], -position[1], -position[2], localCoord=False)
+
+        # Step 2: Rotate around the Y-axis in local coordinates
+        self.rotateY(angle, localCoord=True)
+
+        # Step 3: Translate back to original position
+        self.translate(position[0], position[1], position[2], localCoord=False)
+
+
     
     # get/set position components of transform
     def getPosition(self):

@@ -31,14 +31,14 @@ class Test(Base):
         # Two cameras in the scene
         self.cameraIdx = 0
 
-        self.camera0 = Camera(isPerspective=True, aspectRatio=800/600)
+        self.camera0 = Camera(isPerspective=False, aspectRatio=800/600)
         # self.camera1.setPosition([0,0,4])
         self.rig0 = MovementRig()
         self.rig0.add(self.camera0)
         self.rig0.setPosition([0,0,10])
         self.scene.add(self.rig0)
 
-        self.camera1 = Camera(aspectRatio=800/600)
+        self.camera1 = Camera(isPerspective=True, aspectRatio=800/600)
         # self.camera2.setPosition([1,1,1])
         self.rig1 = MovementRig()
         self.rig1.add(self.camera1)
@@ -56,11 +56,11 @@ class Test(Base):
         self.model3d = Mesh(geometry3d, material3d)
         self.scene.add(self.model3d)
 
-        geometry2d = PlaneGeometry(16,16,8,8)
+        geometry2d = PlaneGeometry(4,4,8,8)
         material2d = SurfaceMaterial(
             {"useVertexColors": True})
         self.image2d = Mesh(geometry2d, material2d)
-        self.image2d.translate(0,0,-10)
+        self.image2d.translate(0,0,-15)
         self.camera1.add(self.image2d) # add the image to the second camera
         
 
