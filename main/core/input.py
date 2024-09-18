@@ -1,109 +1,115 @@
-import pygame   
+import wx
 
 class Input(object):
 
     def __init__(self):
-        # has the user quit the application?
+        # Has the user quit the application?
         self.quit = False
 
-        # lists to store key states
-            # down, up: discrete events; lasts for one iteration
-            # pressed: continuous event; between down and up events
-        self.keysDownList = []
+        # Lists to store key states
+        self.keysDownList = [] # FIXME: this does not seem to be working well????
         self.keysPressedList = []
         self.keysUpList = []
 
-        # variables to store mouse state
+        # Variables to store mouse state
         self.mouseLeftDown = False
         self.mouseMiddleDown = False
         self.mouseRightDown = False
-        self.mousePos = pygame.mouse.get_pos()
-        self.mouseDelta = (0,0)
+        self.mousePos = wx.GetMousePosition()
+        self.mouseDelta = (0, 0)
         self.mouseScroll = 0
-
-
-
 
     def update(self):
-
-        # reset discrete key states
+        """Reset discrete key and mouse states"""
         self.keysDownList = []
         self.keysUpList = []
-        self.mouseDelta = (0,0)
+        self.mouseDelta = (0, 0)
         self.mouseScroll = 0
 
-        newMousePos = pygame.mouse.get_pos()
+        # Calculate mouse delta (movement)
+        newMousePos = wx.GetMousePosition()
         self.mouseDelta = (newMousePos[0] - self.mousePos[0], newMousePos[1] - self.mousePos[1])
         self.mousePos = newMousePos
 
-        # iterate over all user input events (e.g. keyboard, mouse)
-        # that have occurred since the last time events were checked
-        for event in pygame.event.get():
+    # Handle key down event
+    def on_key_down(self, event):
+        keyCode = event.GetKeyCode()
+        keyName = self.get_key_name(keyCode)
+        if keyName not in self.keysPressedList:
+            self.keysDownList.append(keyName)
+            self.keysPressedList.append(keyName)
 
-        # quit event occurs by clicking the close button
-        # if event.type == pygame.QUIT:
-            if event.type == pygame.QUIT:
-                self.quit = True
+    # Handle key up event
+    def on_key_up(self, event):
+        keyCode = event.GetKeyCode()
+        keyName = self.get_key_name(keyCode)
+        if keyName in self.keysPressedList:
+            self.keysUpList.append(keyName)
+            self.keysPressedList.remove(keyName)
 
-            # check for keydown and keyup events
-                # get name of key from event
-                # and append / remove from list
-            if event.type == pygame.KEYDOWN:
-                keyName = pygame.key.name(event.key)
-                self.keysDownList.append(keyName)
-                self.keysPressedList.append(keyName)
+    # Handle mouse down event
+    def on_mouse_down(self, event):
+        if event.LeftIsDown():
+            self.mouseLeftDown = True
+        if event.MiddleIsDown():
+            self.mouseMiddleDown = True
+        if event.RightIsDown():
+            self.mouseRightDown = True
 
-            if event.type == pygame.KEYUP:
-                keyName = pygame.key.name(event.key)
-                self.keysUpList.append(keyName)
-                self.keysPressedList.remove(keyName)
+    # Handle mouse up event
+    def on_mouse_up(self, event):
+        if not event.LeftIsDown():
+            self.mouseLeftDown = False
+        if not event.MiddleIsDown():
+            self.mouseMiddleDown = False
+        if not event.RightIsDown():
+            self.mouseRightDown = False
 
-            # check for mouse button down events
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1: # left
-                    self.mouseLeftDown = True
-                if event.button == 2: # middle
-                    self.mouseMiddleDown = True
-                if event.button == 3: # right
-                    self.mouseRightDown = True
-                if event.button == 4: # scroll up
-                    self.mouseScroll = 1
-                if event.button == 5: # scroll down
-                    self.mouseScroll = -1
+    # Handle mouse scroll event
+    def on_mouse_scroll(self, event):
+        scroll = event.GetWheelRotation()
+        if scroll > 0:
+            self.mouseScroll = 1  # Scroll up
+        elif scroll < 0:
+            self.mouseScroll = -1  # Scroll down
 
-            # check for mouse button up events
-            if event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1: # left
-                    self.mouseLeftDown = False
-                if event.button == 2: # middle
-                    self.mouseMiddleDown = False
-                if event.button == 3: # right
-                    self.mouseRightDown = False
-
-
-
-    
-    # functions to check key states
+    # Function to check key states
     def isKeyDown(self, keyName):
         return keyName in self.keysDownList
+
     def isKeyPressed(self, keyName):
         return keyName in self.keysPressedList
+
     def isKeyUp(self, keyName):
         return keyName in self.keysUpList
-    
 
-    # functions to check mouse states
+    # Functions to check mouse states
     def isMouseLeftDown(self):
         return self.mouseLeftDown
+
     def isMouseMiddleDown(self):
         return self.mouseMiddleDown
+
     def isMouseRightDown(self):
         return self.mouseRightDown
+
     def getMousePos(self):
         return self.mousePos
+
     def getMouseDelta(self):
         return self.mouseDelta
+
     def getMouseScroll(self):
         return self.mouseScroll
 
-        
+    # A simple helper to map key codes to human-readable key names
+    def get_key_name(self, keyCode):
+        key_map = {
+            wx.WXK_SPACE: "space",
+            wx.WXK_RIGHT: "right",
+            wx.WXK_LEFT: "left",
+            wx.WXK_UP: "up",
+            wx.WXK_DOWN: "down",
+            # Add more key mappings here as needed
+        }
+        return key_map.get(keyCode, f"key_{keyCode}")  # Return raw keyCode if not mapped

@@ -43,12 +43,13 @@ class MovementRig(Object3D):
 
     
     def update(self, inputObject, deltaTime=None):
-        # moveAmount = self.unitsPerSecond * deltaTime
-        # rotate_amount = self.degreesPerSecond * (math.pi / 180) * deltaTime
-        moveAmount = 0.1 # TODO: adjust sensitivity
-        rotateAmount = pi / 180 # TODO: adjust sensitivity
+        if inputObject is None:
+            print("MovementRig.update() error: inputObject is None")
+            return  # Exit if inputObject is not passed correctly
         
-        
+        moveAmount = 0.1
+        rotateAmount = pi / 180
+
         # Handle keyboard-based movement and rotation
         if inputObject.isKeyPressed(self.KEY_MOVE_FORWARDS):
             self.translate(0, 0, -moveAmount)
@@ -88,7 +89,6 @@ class MovementRig(Object3D):
         mouseScroll = inputObject.getMouseScroll()
         if mouseScroll != 0:
             self.translate(0, 0, -mouseScroll * moveAmount)
-
 
         
         

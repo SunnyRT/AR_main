@@ -9,7 +9,7 @@ class Input(object):
         # lists to store key states
             # down, up: discrete events; lasts for one iteration
             # pressed: continuous event; between down and up events
-        self.keysDownList = []
+        self.keysDownList = [] 
         self.keysPressedList = []
         self.keysUpList = []
 

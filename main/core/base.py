@@ -2,6 +2,7 @@ import wx
 import wx.glcanvas as glcanvas
 import sys
 from OpenGL.GL import glViewport
+from core.input import Input
 
 
 class BaseCanvas(glcanvas.GLCanvas):
@@ -29,7 +30,7 @@ class BaseCanvas(glcanvas.GLCanvas):
         self.timer.Start(16)  # ~60 FPS
 
         # Manage input
-        self.input = None  # We'll define this later if needed
+        self.input = Input()  
 
     def initialize(self):
         """Override in subclass."""
@@ -59,6 +60,59 @@ class BaseCanvas(glcanvas.GLCanvas):
     def on_timer(self, event):
         # Trigger paint event to continuously update the scene
         self.Refresh()
+
+
+
+class BaseFrame(wx.Frame):
+    def __init__(self, title="Graphics Window"):
+        super().__init__(None, title=title, size=(800, 600))
+        
+        # Initialize input handler
+        self.input = Input()
+        
+        # Bind key and mouse events
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+        self.Bind(wx.EVT_KEY_UP, self.on_key_up)
+        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
+        self.Bind(wx.EVT_MIDDLE_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_MIDDLE_UP, self.on_mouse_up)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_RIGHT_UP, self.on_mouse_up)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.on_mouse_scroll)
+
+        # Timer for continuous updates
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.on_timer)
+        self.timer.Start(16)  # Roughly 60 FPS
+
+        # Show the window
+        self.Show()
+
+
+    def on_timer(self, event):
+        self.input.update()
+        self.update()
+
+    def on_key_down(self, event):
+        self.input.on_key_down(event)
+
+    def on_key_up(self, event):
+        self.input.on_key_up(event)
+
+    def on_mouse_down(self, event):
+        self.input.on_mouse_down(event)
+
+    def on_mouse_up(self, event):
+        self.input.on_mouse_up(event)
+
+    def on_mouse_scroll(self, event):
+        self.input.on_mouse_scroll(event)
+
+    def update(self):
+        """ This should be overridden in your child class """
+        pass
+
 
 class BaseApp(wx.App):
     def OnInit(self):
