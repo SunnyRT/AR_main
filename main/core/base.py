@@ -1,86 +1,68 @@
-import pygame
+import wx
+import wx.glcanvas as glcanvas
 import sys
-from core.input import Input
+from OpenGL.GL import glViewport
 
 
-class Base(object):
-
-    def __init__(self, screenSize=[512,512]):
-
-        # initialize all pygame modules
-        pygame.init()
-        # indicate rendering details
-        displayFlags = pygame.DOUBLEBUF | pygame.OPENGL # “|” is a bitwise OR operator
+class BaseCanvas(glcanvas.GLCanvas):
+    def __init__(self, parent, screenSize=[800, 600]):
+        attrib_list = [
+            glcanvas.WX_GL_RGBA,
+            glcanvas.WX_GL_DOUBLEBUFFER,
+            glcanvas.WX_GL_DEPTH_SIZE, 16, 0
+        ]
         
-        
-        # antialiasing
-        # MSAA: multisample antialiasing
-        pygame.display.gl_set_attribute(
-            pygame.GL_MULTISAMPLEBUFFERS, 1 
-        ) # enable multisampling: to allocate a single additional multipsample buffer per pixel
-        pygame.display.gl_set_attribute(
-            pygame.GL_MULTISAMPLESAMPLES, 4
-        ) 
-        # for each pixel, graphics hardware calculate and store 4 samples, 
-        # these samples represent different positions within the pixel (subpixels),
-        # which are averaged to determine the final color of the pixel
+        # Create GLCanvas with OpenGL context
+        super().__init__(parent, -1, attribList=attrib_list)
 
-        # use a core OpegnGL profile for cross-platform compatibility
-        pygame.display.gl_set_attribute(
-            pygame.GL_CONTEXT_PROFILE_MASK, 
-            pygame.GL_CONTEXT_PROFILE_CORE
-        )
-        
-        # create and display the window
-        self.screen = pygame.display.set_mode(
-            screenSize, displayFlags
-        )
-
-        # set the text that appears in the title bar of the window
-        pygame.display.set_caption("Graphics Window")
-
-        # determine if main loop is active
+        self.context = glcanvas.GLContext(self)
         self.running = True
-        # manage time-related data and operations
-        self.clock = pygame.time.Clock()
+        self.init = False
 
-        # manage user input
-        self.input = Input()
+        # Event bindings
+        self.Bind(wx.EVT_PAINT, self.on_paint)
+        self.Bind(wx.EVT_SIZE, self.on_size)
+        self.Bind(wx.EVT_TIMER, self.on_timer)
 
+        # Timer for update loop (60 FPS)
+        self.timer = wx.Timer(self)
+        self.timer.Start(16)  # ~60 FPS
 
-    # implement by extending class
+        # Manage input
+        self.input = None  # We'll define this later if needed
+
     def initialize(self):
+        """Override in subclass."""
         pass
 
-
-    # implement by extending class
     def update(self):
+        """Override in subclass."""
         pass
 
-    def run(self):
-        """ contains all the phases of an interactive 
-            graphics-based application """
+    def on_paint(self, event):
+        self.SetCurrent(self.context)
+        if not self.init:
+            self.initialize()
+            self.init = True
 
-        ## startup ##
-        self.initialize()
+        # Run the update method
+        self.update()
 
-        ## main loop ##
-        while self.running:
-            ## process input ##
-            self.input.update()
-            if self.input.quit:
-                self.running = False
+        # Swap buffers to display the rendered image
+        self.SwapBuffers()
 
-            ## update ##
-            self.update()
+    def on_size(self, event):
+        size = self.GetClientSize()
+        self.SetCurrent(self.context)
+        glViewport(0, 0, size.width, size.height)
 
-            ## render ##
-            # display image on the screen
-            pygame.display.flip() # filp the back buffer to the front buffer (double buffering)
+    def on_timer(self, event):
+        # Trigger paint event to continuously update the scene
+        self.Refresh()
 
-            # set the frame rate: pause the program to maintain 60 FPS
-            self.clock.tick(60)
-        
-        ## shutdown ##
-        pygame.quit()
-        sys.exit()
+class BaseApp(wx.App):
+    def OnInit(self):
+        self.frame = wx.Frame(None, title="Graphics Window", size=(800, 600))
+        self.canvas = BaseCanvas(self.frame)
+        self.frame.Show()
+        return True

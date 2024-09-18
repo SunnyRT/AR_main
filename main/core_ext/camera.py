@@ -38,11 +38,12 @@ class Camera(Object3D):
         self.projectionMatrix = Matrix.makePerspective(self.theta, self.r, self.n, self.f)
 
 
-    def setOrthographic(self):
-        top = self.d / self.zoom
-        bottom = -top
-        right = top * self.r
-        left = -right
+    def setOrthographic(self, left=None, right=None, bottom=None, top=None):
+        if left is None:
+            top = self.d / self.zoom
+            bottom = -top
+            right = top * self.r
+            left = -right
         self.projectionMatrix = Matrix.makeOrthographic(left, right, bottom, top, self.n, self.f)
 
 

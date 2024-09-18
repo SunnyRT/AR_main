@@ -107,10 +107,14 @@ class Object3D(object):
         return [worldTransform.item((0, 3)), worldTransform.item((1, 3)), worldTransform.item((2, 3))]
     
     def setPosition(self, position):
-        self.transform.itemset((0, 3), position[0])
-        self.transform.itemset((1, 3), position[1])
-        self.transform.itemset((2, 3), position[2])
-
+        # self.transform.itemset((0, 3), position[0])
+        # self.transform.itemset((1, 3), position[1])
+        # self.transform.itemset((2, 3), position[2])
+        
+        # TODO: Updated version
+        self.transform[0, 3] = position[0]
+        self.transform[1, 3] = position[1]
+        self.transform[2, 3] = position[2]
 
     def lookAt(self, targetPosition):
         self.transform = Matrix.makeLookAt(self.getWorldPosition(), targetPosition)
