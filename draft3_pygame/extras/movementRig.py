@@ -1,0 +1,94 @@
+from core_ext.object3d import Object3D
+from math import pi
+
+class MovementRig(Object3D):
+
+    def __init__(self, unitsPerSecond=1, degreesPerSecond=60):
+        
+        # intialize base Object3D
+        # controls movement, annd turn left/right
+        super().__init__()
+
+        # initialize attached Object3D
+        # controls look up/down
+        self.lookAttachment = Object3D()
+        self.children = [self.lookAttachment]
+        self.lookAttachment.parent = self
+
+        # # control rate of movement
+        # self.unitsPerSecond = unitsPerSecond
+        # self.degreesPerSecond = degreesPerSecond
+
+        # customize key mappings
+        # Defaults: W, A, S, D, R, F (move), Q, E (turn), T, G (look)
+        self.KEY_MOVE_FORWARDS = "w" # orthographic zoom in
+        self.KEY_MOVE_BACKWARDS = "s" # orthographic zoom out
+        self.KEY_MOVE_LEFT = "a"
+        self.KEY_MOVE_RIGHT = "d"
+        self.KEY_MOVE_UP = "r"
+        self.KEY_MOVE_DOWN = "f"
+        self.KEY_TURN_LEFT = "q"
+        self.KEY_TURN_RIGHT = "e"
+        self.KEY_LOOK_UP = "t"
+        self.KEY_LOOK_DOWN = "g" 
+
+    
+    # adding and removing objects applies to the lookAttachment
+    # override functions from Object3D class
+    def add(self, child):
+        self.lookAttachment.add(child)
+    
+    def remove(self, child):
+        self.lookAttachment.remove(child)
+
+    
+    def update(self, inputObject, deltaTime=None):
+        # moveAmount = self.unitsPerSecond * deltaTime
+        # rotate_amount = self.degreesPerSecond * (math.pi / 180) * deltaTime
+        moveAmount = 0.1 # TODO: adjust sensitivity
+        rotateAmount = pi / 180 # TODO: adjust sensitivity
+        
+        
+        # Handle keyboard-based movement and rotation
+        if inputObject.isKeyPressed(self.KEY_MOVE_FORWARDS):
+            self.translate(0, 0, -moveAmount)
+        if inputObject.isKeyPressed(self.KEY_MOVE_BACKWARDS):
+            self.translate(0, 0, moveAmount)
+        if inputObject.isKeyPressed(self.KEY_MOVE_LEFT):
+            self.translate(-moveAmount, 0, 0)
+        if inputObject.isKeyPressed(self.KEY_MOVE_RIGHT):
+            self.translate(moveAmount, 0, 0)
+        if inputObject.isKeyPressed(self.KEY_MOVE_UP):
+            self.translate(0, moveAmount, 0)
+        if inputObject.isKeyPressed(self.KEY_MOVE_DOWN):
+            self.translate(0, -moveAmount, 0)
+
+        if inputObject.isKeyPressed(self.KEY_TURN_RIGHT):
+            self.rotateY(-rotateAmount)
+        if inputObject.isKeyPressed(self.KEY_TURN_LEFT):
+            self.rotateY(rotateAmount)
+
+        if inputObject.isKeyPressed(self.KEY_LOOK_UP):
+            self.lookAttachment.rotateX(rotateAmount)
+        if inputObject.isKeyPressed(self.KEY_LOOK_DOWN):
+            self.lookAttachment.rotateX(-rotateAmount)
+
+        # Handle mouse-based rotation when left mouse button is held down
+        if inputObject.isMouseLeftDown():
+            mouseDelta = inputObject.getMouseDelta()
+            self.rotateY(-mouseDelta[0] * rotateAmount)
+            self.lookAttachment.rotateX(-mouseDelta[1] * rotateAmount)
+
+        # Handle mouse-based panning when right mouse button is held down
+        if inputObject.isMouseRightDown():
+            mouseDelta = inputObject.getMouseDelta()
+            self.translate(-mouseDelta[0] * moveAmount, mouseDelta[1] * moveAmount, 0)
+
+        # Handle middle mouse button to move forward/backward (or zoom)
+        mouseScroll = inputObject.getMouseScroll()
+        if mouseScroll != 0:
+            self.translate(0, 0, -mouseScroll * moveAmount)
+
+
+        
+        
