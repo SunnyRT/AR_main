@@ -31,6 +31,8 @@ class Input(object):
         self.mouseDelta = (newMousePos[0] - self.mousePos[0], newMousePos[1] - self.mousePos[1])
         self.mousePos = newMousePos
 
+        
+
     # Handle key down event
     def on_key_down(self, event):
         keyCode = event.GetKeyCode()
@@ -49,7 +51,6 @@ class Input(object):
 
     # Handle mouse down event
     def on_mouse_down(self, event):
-        # print(f"Mouse down:{event.GetButton()} at {event.GetPosition()}")
         if event.LeftIsDown():
             self.mouseLeftDown = True
         if event.MiddleIsDown():
@@ -71,8 +72,10 @@ class Input(object):
         scroll = event.GetWheelRotation()
         if scroll > 0:
             self.mouseScroll = 1  # Scroll up
+            # print("Scroll up")
         elif scroll < 0:
             self.mouseScroll = -1  # Scroll down
+            # print("Scroll down")
 
 
 
