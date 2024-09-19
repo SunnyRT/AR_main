@@ -1,10 +1,15 @@
-from core.base import BaseCanvas
+from core.base import BaseCanvas, BaseFrame
 import wx
 
 # Check input with basic debugging
 class TestCanvas(BaseCanvas):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+
     def initialize(self):
         print("Initializing program...")
+    
 
     def update(self):
         # Debug printing
@@ -34,5 +39,6 @@ class TestCanvas(BaseCanvas):
 # Instantiate this class and run the program
 if __name__ == "__main__":
     app = wx.App(False)
-    test = TestCanvas()
+    frame = BaseFrame()
+    test = TestCanvas(frame)
     app.MainLoop()

@@ -52,10 +52,8 @@ class MovementRig(Object3D):
 
         # Handle keyboard-based movement and rotation
         if inputObject.isKeyPressed(self.KEY_MOVE_FORWARDS):
-            print("move forwards")
             self.translate(0, 0, -moveAmount)
         if inputObject.isKeyPressed(self.KEY_MOVE_BACKWARDS):
-            print("move backwards")
             self.translate(0, 0, moveAmount)
         if inputObject.isKeyPressed(self.KEY_MOVE_LEFT):
             self.translate(-moveAmount, 0, 0)
@@ -75,6 +73,7 @@ class MovementRig(Object3D):
             self.lookAttachment.rotateX(rotateAmount)
         if inputObject.isKeyPressed(self.KEY_LOOK_DOWN):
             self.lookAttachment.rotateX(-rotateAmount)
+
 
         # Handle mouse-based rotation when left mouse button is held down
         if inputObject.isMouseLeftDown():

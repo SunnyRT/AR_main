@@ -33,7 +33,6 @@ class Input(object):
 
     # Handle key down event
     def on_key_down(self, event):
-        print(f"Key down:{event.GetKeyCode()}")
         keyCode = event.GetKeyCode()
         keyName = self.get_key_name(keyCode)
         if keyName not in self.keysPressedList:
@@ -50,7 +49,7 @@ class Input(object):
 
     # Handle mouse down event
     def on_mouse_down(self, event):
-        print(f"Mouse down:{event.GetButton()} at {event.GetPosition()}")
+        # print(f"Mouse down:{event.GetButton()} at {event.GetPosition()}")
         if event.LeftIsDown():
             self.mouseLeftDown = True
         if event.MiddleIsDown():
@@ -74,6 +73,8 @@ class Input(object):
             self.mouseScroll = 1  # Scroll up
         elif scroll < 0:
             self.mouseScroll = -1  # Scroll down
+
+
 
     # Function to check key states
     def isKeyDown(self, keyName):
@@ -104,14 +105,23 @@ class Input(object):
     def getMouseScroll(self):
         return self.mouseScroll
 
-    # A simple helper to map key codes to human-readable key names
     def get_key_name(self, keyCode):
-        key_map = {
+        """ Translate the wx key code into a string representation """
+        keyMap = {
             wx.WXK_SPACE: "space",
-            wx.WXK_RIGHT: "right",
-            wx.WXK_LEFT: "left",
             wx.WXK_UP: "up",
             wx.WXK_DOWN: "down",
-            # Add more key mappings here as needed
+            wx.WXK_LEFT: "left",
+            wx.WXK_RIGHT: "right",
+            ord('W'): "w",
+            ord('A'): "a",
+            ord('S'): "s",
+            ord('D'): "d",
+            ord('Q'): "q",
+            ord('E'): "e",
+            ord('R'): "r",
+            ord('F'): "f",
+            ord('T'): "t",
+            ord('G'): "g",
         }
-        return key_map.get(keyCode, f"key_{keyCode}")  # Return raw keyCode if not mapped
+        return keyMap.get(keyCode, f"key_{keyCode}")
