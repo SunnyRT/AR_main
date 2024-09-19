@@ -43,8 +43,17 @@ class TestCanvas(BaseCanvas):  # Extend the existing BaseCanvas
         if not self.scene_initialized:
             self.initialize_scene()
 
-        self.renderer.render(self.scene, self.camera)
+        self.input.update()
+
+        if self.input.isKeyPressed("w"):
+            print("W key being pressed")
+
+        if self.input.isMouseLeftDown():
+            print("Left mouse button down")
+        
         self.rig.update(self.input)
+        
+        self.renderer.render(self.scene, self.camera)
 
 
 class TestFrame(BaseFrame):  # Extend the existing BaseFrame

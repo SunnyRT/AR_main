@@ -33,7 +33,6 @@ class Input(object):
 
     # Handle key down event
     def on_key_down(self, event):
-        print(f"Key down:{event.GetKeyCode()}")
         keyCode = event.GetKeyCode()
         keyName = self.get_key_name(keyCode)
         if keyName not in self.keysPressedList:
@@ -50,7 +49,6 @@ class Input(object):
 
     # Handle mouse down event
     def on_mouse_down(self, event):
-        print(f"Mouse down:{event.GetButton()} at {event.GetPosition()}")
         if event.LeftIsDown():
             self.mouseLeftDown = True
         if event.MiddleIsDown():

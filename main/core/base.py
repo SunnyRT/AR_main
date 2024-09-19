@@ -20,6 +20,11 @@ class BaseCanvas(glcanvas.GLCanvas):
         self.running = True
         self.init = False
 
+
+        # Manage input
+        self.input = Input()  
+
+        
         # Event bindings
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -29,8 +34,17 @@ class BaseCanvas(glcanvas.GLCanvas):
         self.timer = wx.Timer(self)
         self.timer.Start(16)  # ~60 FPS
 
-        # Manage input
-        self.input = Input()  
+        # Event bindings for key and mouse events
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+        self.Bind(wx.EVT_KEY_UP, self.on_key_up)
+        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
+        self.Bind(wx.EVT_MIDDLE_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_MIDDLE_UP, self.on_mouse_up)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_RIGHT_UP, self.on_mouse_up)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.on_mouse_scroll)
+
 
     def initialize(self):
         """Override in subclass."""
@@ -62,38 +76,7 @@ class BaseCanvas(glcanvas.GLCanvas):
         self.Refresh()
 
 
-
-class BaseFrame(wx.Frame):
-    def __init__(self, title="Graphics Window"):
-        super().__init__(None, title=title, size=(800, 600))
-        
-        # Initialize input handler
-        self.input = Input()
-        
-        # Bind key and mouse events
-        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
-        self.Bind(wx.EVT_KEY_UP, self.on_key_up)
-        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
-        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
-        self.Bind(wx.EVT_MIDDLE_DOWN, self.on_mouse_down)
-        self.Bind(wx.EVT_MIDDLE_UP, self.on_mouse_up)
-        self.Bind(wx.EVT_RIGHT_DOWN, self.on_mouse_down)
-        self.Bind(wx.EVT_RIGHT_UP, self.on_mouse_up)
-        self.Bind(wx.EVT_MOUSEWHEEL, self.on_mouse_scroll)
-
-        # Timer for continuous updates
-        self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.on_timer)
-        self.timer.Start(16)  # Roughly 60 FPS
-
-        # Show the window
-        self.Show()
-
-
-    def on_timer(self, event):
-        self.input.update()
-        self.update()
-
+    # Event handlers for input
     def on_key_down(self, event):
         self.input.on_key_down(event)
 
@@ -109,9 +92,19 @@ class BaseFrame(wx.Frame):
     def on_mouse_scroll(self, event):
         self.input.on_mouse_scroll(event)
 
-    def update(self):
-        """ This should be overridden in your child class """
-        pass
+
+
+
+class BaseFrame(wx.Frame):
+    def __init__(self, title="Graphics Window"):
+        super().__init__(None, title=title, size=(800, 600))
+        
+        # TODO: Set up the canvas (to be implemented in subclass)
+        # self.canvas = BaseCanvas(self)
+
+        # Show the window
+        self.Show()
+
 
 
 class BaseApp(wx.App):
