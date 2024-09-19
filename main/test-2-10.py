@@ -1,8 +1,8 @@
-from core.base import BaseCanvas, BaseFrame
+from core.baseInput import InputCanvas, InputFrame
 import wx
 
 # Check input with basic debugging
-class TestCanvas(BaseCanvas):
+class TestCanvas(InputCanvas):
     def __init__(self, parent):
         super().__init__(parent)
         self.scene_initialized = False
@@ -12,38 +12,40 @@ class TestCanvas(BaseCanvas):
         self.scene_initialized = True
 
     def update(self):
+        # Update input
+        self.update_input()
+
         # Check if scene is initialized before rendering
         if not self.scene_initialized:
             self.initialize_scene()
 
-        self.input.update()
 
         # Debug printing
-        if len(self.input.keysDownList) > 0: 
-            print("Keys down: ", self.input.keysDownList) # FIXME:???
+        if len(self.keysDownList) > 0: 
+            print("Keys down: ", self.keysDownList) # FIXME:???
 
-        # if len(self.input.keysPressedList) > 0:
-        #     print("Keys pressed: ", self.input.keysPressedList)
+        # if len(self.keysPressedList) > 0:
+        #     print("Keys pressed: ", self.keysPressedList)
 
-        if len(self.input.keysUpList) > 0:
-            print("Keys up: ", self.input.keysUpList)
+        if len(self.keysUpList) > 0:
+            print("Keys up: ", self.keysUpList)
 
-        if self.input.mouseDelta != (0, 0):
-            print("Mouse delta: ", self.input.mouseDelta)
+        if self.mouseDelta != (0, 0):
+            print("Mouse delta: ", self.mouseDelta)
 
-        if self.input.mouseScroll != 0:
-            print("Mouse scroll: ", self.input.mouseScroll)
+        if self.mouseScroll != 0:
+            print("Mouse scroll: ", self.mouseScroll)
 
         # Typical usage example
-        if self.input.isKeyDown("space"):
+        if self.isKeyDown("space"):
             print("The 'space' bar was just pressed down.") # FIXME:???
         
-        if self.input.isKeyPressed("right"):
+        if self.isKeyPressed("right"):
             print("The 'right' key is currently being pressed.")
 
 
 
-class TestFrame(BaseFrame):  # Extend the existing BaseFrame
+class TestFrame(InputFrame):  # Extend the existing BaseFrame
     def __init__(self, parent, title, size):
         # Call the wx.Frame constructor with title and size
         wx.Frame.__init__(self, parent, title=title, size=size)

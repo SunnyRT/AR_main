@@ -47,5 +47,96 @@ class InputCanvas(BaseCanvas):
             self.keysDownList.append(keyName)
             self.keysPressedList.append(keyName)
     
+    def on_key_up(self, event):
+        keyCode = event.GetKeyCode()
+        keyName = self.get_key_name(keyCode)
+        if keyName in self.keysPressedList:
+            self.keysUpList.append(keyName)
+            self.keysPressedList.remove(keyName)
+
+    def on_mouse_down(self, event):
+        if event.LeftIsDown():
+            self.mouseLeftDown = True
+        if event.MiddleIsDown():
+            self.mouseMiddleDown = True
+        if event.RightIsDown():
+            self.mouseRightDown = True
+
+    def on_mouse_up(self, event):
+        if not event.LeftIsDown():
+            self.mouseLeftDown = False
+        if not event.MiddleIsDown():
+            self.mouseMiddleDown = False
+        if not event.RightIsDown():
+            self.mouseRightDown = False
+
+    def on_mouse_scroll(self, event):
+        scroll = event.GetWheelRotation()
+        if scroll > 0:
+            self.mouseScroll = 1  # Scroll up
+            # print("Scroll up")
+        elif scroll < 0:
+            self.mouseScroll = -1  # Scroll down
+            # print("Scroll down")   
+
+    # Function to check key states
+    def isKeyDown(self, keyName):
+        return keyName in self.keysDownList
+
+    def isKeyPressed(self, keyName):
+        return keyName in self.keysPressedList
+
+    def isKeyUp(self, keyName):
+        return keyName in self.keysUpList
+
+    # Functions to check mouse states
+    def isMouseLeftDown(self):
+        return self.mouseLeftDown
+
+    def isMouseMiddleDown(self):
+        return self.mouseMiddleDown
+
+    def isMouseRightDown(self):
+        return self.mouseRightDown
+
+    def getMousePos(self):
+        return self.mousePos
+
+    def getMouseDelta(self):
+        return self.mouseDelta
+
+    def getMouseScroll(self):
+        return self.mouseScroll
+
+    def get_key_name(self, keyCode):
+        """ Translate the wx key code into a string representation """
+        keyMap = {
+            wx.WXK_SPACE: "space",
+            wx.WXK_UP: "up",
+            wx.WXK_DOWN: "down",
+            wx.WXK_LEFT: "left",
+            wx.WXK_RIGHT: "right",
+            ord('W'): "w",
+            ord('A'): "a",
+            ord('S'): "s",
+            ord('D'): "d",
+            ord('Q'): "q",
+            ord('E'): "e",
+            ord('R'): "r",
+            ord('F'): "f",
+            ord('T'): "t",
+            ord('G'): "g",
+        }
+        return keyMap.get(keyCode, f"key_{keyCode}")
     
 
+
+class InputFrame(BaseFrame):
+    def __init__(self, title="Graphics Window"):
+        super().__init__(None, title=title, size=(800, 600))
+        
+        # TODO: Set up the canvas (to be implemented in subclass)
+        self.canvas = InputCanvas(self)
+
+        # Show the window
+        self.Show()

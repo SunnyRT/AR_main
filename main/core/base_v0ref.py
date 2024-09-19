@@ -2,7 +2,7 @@ import wx
 import wx.glcanvas as glcanvas
 import sys
 from OpenGL.GL import glViewport
-
+from core.input import Input
 
 
 class BaseCanvas(glcanvas.GLCanvas):
@@ -21,7 +21,10 @@ class BaseCanvas(glcanvas.GLCanvas):
         self.init = False
 
 
-
+        # Manage input
+        self.input = Input()  
+        # self.SetFocus()  # Set focus to the canvas for input
+        
         # Event bindings
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -30,6 +33,17 @@ class BaseCanvas(glcanvas.GLCanvas):
         # Timer for update loop (60 FPS)
         self.timer = wx.Timer(self)
         self.timer.Start(16)  # ~60 FPS
+
+        # Event bindings for key and mouse events
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+        self.Bind(wx.EVT_KEY_UP, self.on_key_up)
+        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_up)
+        self.Bind(wx.EVT_MIDDLE_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_MIDDLE_UP, self.on_mouse_up)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.on_mouse_down)
+        self.Bind(wx.EVT_RIGHT_UP, self.on_mouse_up)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.on_mouse_scroll)
 
 
     def initialize(self):
@@ -58,8 +72,24 @@ class BaseCanvas(glcanvas.GLCanvas):
         glViewport(0, 0, size.width, size.height)
 
     def on_timer(self, event):
-
         self.Refresh()  # Force a paint event
+
+
+    # Event handlers for input
+    def on_key_down(self, event):
+        self.input.on_key_down(event)
+
+    def on_key_up(self, event):
+        self.input.on_key_up(event)
+
+    def on_mouse_down(self, event):
+        self.input.on_mouse_down(event)
+
+    def on_mouse_up(self, event):
+        self.input.on_mouse_up(event)
+
+    def on_mouse_scroll(self, event):
+        self.input.on_mouse_scroll(event)
 
 
 
