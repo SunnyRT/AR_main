@@ -30,6 +30,7 @@ class InputCanvas(BaseCanvas):
         self.Bind(wx.EVT_MOUSEWHEEL, self.on_mouse_scroll)
 
     def update_input(self):
+
         self.keysDownList = []
         self.keysUpList = []
         self.mouseDelta = (0, 0)
@@ -40,12 +41,19 @@ class InputCanvas(BaseCanvas):
         self.mouseDelta = (newMousePos[0] - self.mousePos[0], newMousePos[1] - self.mousePos[1])
         self.mousePos = newMousePos
 
+
+    def on_timer(self, event):
+        self.update_input()
+        event.Skip()  # Allow the event to propagate
+        self.Refresh()  # Force a paint event
+
     def on_key_down(self, event):
         keyCode = event.GetKeyCode()
         keyName = self.get_key_name(keyCode)
         if keyName not in self.keysPressedList:
             self.keysDownList.append(keyName)
             self.keysPressedList.append(keyName)
+            self.Refresh()
     
     def on_key_up(self, event):
         keyCode = event.GetKeyCode()
@@ -53,6 +61,7 @@ class InputCanvas(BaseCanvas):
         if keyName in self.keysPressedList:
             self.keysUpList.append(keyName)
             self.keysPressedList.remove(keyName)
+            self.Refresh()
 
     def on_mouse_down(self, event):
         if event.LeftIsDown():
@@ -78,6 +87,7 @@ class InputCanvas(BaseCanvas):
         elif scroll < 0:
             self.mouseScroll = -1  # Scroll down
             # print("Scroll down")   
+        self.Refresh()  # Force a paint event
 
     # Function to check key states
     def isKeyDown(self, keyName):

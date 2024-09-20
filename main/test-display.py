@@ -1,5 +1,5 @@
 import wx
-from core.base import BaseCanvas  # Extend your existing BaseCanvas
+from core.baseInput import InputCanvas, InputFrame  # Extend your existing BaseCanvas
 from core_ext.renderer import Renderer
 from core_ext.scene import Scene
 from core_ext.camera import Camera
@@ -21,17 +21,17 @@ from math import pi
 
 
 # Extend your previous BaseCanvas instead of creating a new MyGLCanvas
-class ExtendedCanvas(BaseCanvas):
+class MyCanvas(InputCanvas):
     def __init__(self, parent):
         # Call the constructor of the parent BaseCanvas
         super().__init__(parent)
+
+        self.initialized = False  # Ensure scene isn't initialized multiple times
+
         self.cameraIdx = 0
         self.init = False
 
-        # Bind the timer for regular updates (60 FPS)
-        self.timer = wx.Timer(self)
-        self.timer.Start(16)
-        self.Bind(wx.EVT_TIMER, self.on_timer)
+
 
     def initialize(self):
         """ Initialize the scene with lights, cameras, objects, etc."""
@@ -85,35 +85,35 @@ class ExtendedCanvas(BaseCanvas):
         axes = AxesHelper(axisLength=128, lineWidth=2)
         self.scene.add(axes)
 
+        self.initialized = True
+
     def update(self):
 
-        self.input.update()
-        
+        if not self.initialized:
+            self.initialize()
+
         """ Update the scene and toggle between cameras."""
-        if wx.GetKeyState(wx.WXK_SPACE):  # Toggle between cameras with spacebar
+        if self.isKeyDown("space"):  # Toggle between cameras with spacebar
             self.cameraIdx = (self.cameraIdx + 1) % 2
 
         if self.cameraIdx == 0:
-            self.rig0.update(self.input)
-            self.camera0.update(self.input)
+            self.rig0.update(self)
+            self.camera0.update(self)
             self.renderer.render(self.scene, self.camera0)
         else:
-            self.rig1.update(self.input)
-            self.camera1.update(self.input)
+            self.rig1.update(self)
+            self.camera1.update(self)
             self.renderer.render(self.scene, self.camera1)
 
-    def on_timer(self, event):
-        """ Timer event to continuously update the scene."""
-        self.Refresh()
 
 
 # Main Frame with Menu Bar
-class MyFrame(wx.Frame):
-    def __init__(self):
-        super().__init__(None, title="wxPython + OpenGL Example", size=(800, 600))
+class MyFrame(InputFrame):
+    def __init__(self, parent, title, size):
+        wx.Frame.__init__(self, parent, title=title, size=size)
 
         # Set up the OpenGL canvas using the extended BaseCanvas
-        self.canvas = ExtendedCanvas(self)
+        self.canvas = MyCanvas(self)
 
         # Set up the menu bar
         self.create_menu_bar()
@@ -155,7 +155,7 @@ class MyFrame(wx.Frame):
 # Main App
 class MyApp(wx.App):
     def OnInit(self):
-        self.frame = MyFrame()
+        self.frame = MyFrame(None, title="AR Registration", size=(800, 600))
         self.SetTopWindow(self.frame)
         return True
 

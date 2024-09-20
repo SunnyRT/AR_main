@@ -6,10 +6,10 @@ from extras.gridHelper import GridHelper
 from extras.axesHelper import AxesHelper
 from extras.movementRig import MovementRig
 from math import pi
-from core.base import BaseCanvas, BaseFrame  # Assuming this is where your BaseCanvas class is defined
+from core.baseInput import InputCanvas, InputFrame  
 
 # FIXME: no movement!!!!!!!!
-class TestCanvas(BaseCanvas):  # Extend the existing BaseCanvas
+class TestCanvas(InputCanvas):  # Extend the existing BaseCanvas
     def __init__(self, parent):
         super().__init__(parent)
         self.scene_initialized = False  # Ensure scene isn't initialized multiple times
@@ -43,20 +43,27 @@ class TestCanvas(BaseCanvas):  # Extend the existing BaseCanvas
         if not self.scene_initialized:
             self.initialize_scene()
 
-        self.input.update()
+        # self.input.update()
 
-        if self.input.isKeyPressed("w"):
+        # if self.input.isKeyPressed("w"):
+        #     print("W key being pressed")
+
+        # if self.input.isMouseLeftDown():
+        #     print("Left mouse button down")
+
+        if self.isKeyPressed("w"):
             print("W key being pressed")
 
-        if self.input.isMouseLeftDown():
-            print("Left mouse button down")
+        if self.isKeyDown("a"):
+            print("A key down")
         
-        self.rig.update(self.input)
+        # self.rig.update(self.input)
+        self.rig.update(self)
         
         self.renderer.render(self.scene, self.camera)
 
 
-class TestFrame(BaseFrame):  # Extend the existing BaseFrame
+class TestFrame(InputFrame):  # Extend the existing BaseFrame
     def __init__(self, parent, title, size):
         # Call the wx.Frame constructor with title and size
         wx.Frame.__init__(self, parent, title=title, size=size)

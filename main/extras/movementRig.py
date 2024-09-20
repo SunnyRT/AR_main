@@ -15,9 +15,9 @@ class MovementRig(Object3D):
         self.children = [self.lookAttachment]
         self.lookAttachment.parent = self
 
-        # # control rate of movement
-        # self.unitsPerSecond = unitsPerSecond
-        # self.degreesPerSecond = degreesPerSecond
+        # control rate of movement
+        self.unitsPerSecond = unitsPerSecond
+        self.degreesPerSecond = degreesPerSecond
 
         # customize key mappings
         # Defaults: W, A, S, D, R, F (move), Q, E (turn), T, G (look)
@@ -85,6 +85,10 @@ class MovementRig(Object3D):
         if inputObject.isMouseRightDown():
             mouseDelta = inputObject.getMouseDelta()
             self.translate(-mouseDelta[0] * moveAmount, mouseDelta[1] * moveAmount, 0)
+
+        if inputObject.isMouseMiddleDown():
+            mouseDelta = inputObject.getMouseDelta()
+            self.rotateZ(-(mouseDelta[0] + mouseDelta[1]) * rotateAmount)
 
         # Handle middle mouse button to move forward/backward (or zoom)
         mouseScroll = inputObject.getMouseScroll()

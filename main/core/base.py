@@ -58,7 +58,6 @@ class BaseCanvas(glcanvas.GLCanvas):
         glViewport(0, 0, size.width, size.height)
 
     def on_timer(self, event):
-
         self.Refresh()  # Force a paint event
 
 

@@ -12,8 +12,8 @@ class TestCanvas(InputCanvas):
         self.scene_initialized = True
 
     def update(self):
-        # Update input
-        self.update_input()
+        # # Update input
+        # self.update_input()
 
         # Check if scene is initialized before rendering
         if not self.scene_initialized:
@@ -22,23 +22,23 @@ class TestCanvas(InputCanvas):
 
         # Debug printing
         if len(self.keysDownList) > 0: 
-            print("Keys down: ", self.keysDownList) # FIXME:???
+            print("Keys down: ", self.keysDownList) 
 
         # if len(self.keysPressedList) > 0:
-        #     print("Keys pressed: ", self.keysPressedList)
+            # print("Keys pressed: ", self.keysPressedList)
 
         if len(self.keysUpList) > 0:
             print("Keys up: ", self.keysUpList)
 
-        if self.mouseDelta != (0, 0):
-            print("Mouse delta: ", self.mouseDelta)
+        # if self.mouseDelta != (0, 0):
+        #     print("Mouse delta: ", self.mouseDelta)
 
         if self.mouseScroll != 0:
             print("Mouse scroll: ", self.mouseScroll)
 
         # Typical usage example
         if self.isKeyDown("space"):
-            print("The 'space' bar was just pressed down.") # FIXME:???
+            print("The 'space' bar was just pressed down.") 
         
         if self.isKeyPressed("right"):
             print("The 'right' key is currently being pressed.")
