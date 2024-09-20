@@ -1,4 +1,5 @@
 import wx
+import numpy as np
 from core.baseInput import InputCanvas # Extend your existing BaseCanvas
 from core.baseGUI import GUIFrame
 from core_ext.renderer import Renderer
@@ -92,6 +93,11 @@ class MyCanvas(InputCanvas):
         if not self.initialized:
             self.initialize()
 
+
+        transform_matrix = self.image2d.getWorldMatrix()
+        distance = np.linalg.norm(self.camera1.getWorldPosition())
+        self.GetParent().update_tool_panel(transform_matrix, distance)
+
         """ Update the scene and toggle between cameras."""
         if self.isKeyDown("space"):  # Toggle between cameras with spacebar
             self.cameraIdx = (self.cameraIdx + 1) % 2
@@ -104,6 +110,8 @@ class MyCanvas(InputCanvas):
             self.rig1.update(self)
             self.camera1.update(self)
             self.renderer.render(self.scene, self.camera1)
+
+        
 
 
 class MyFrame(GUIFrame):

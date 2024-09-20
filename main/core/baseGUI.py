@@ -1,4 +1,5 @@
 import wx
+import numpy as np
 from core.baseInput import InputFrame, InputCanvas
 
 from core_ext.texture import Texture
@@ -70,13 +71,51 @@ class GUIFrame(InputFrame):
         tool_sizer.Add(self.textbox, 0, wx.ALL | wx.EXPAND, 5)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_text_enter, self.textbox)
 
+
         # Create another button
         self.exit_button = wx.Button(self.tool_panel, label="Exit")
         tool_sizer.Add(self.exit_button, 0, wx.ALL | wx.EXPAND, 5)
         self.Bind(wx.EVT_BUTTON, self.on_exit_click, self.exit_button)
 
+
+
+        """ Display Registration Parameters"""
+        # Transformation matrix display(text)
+        self.transform_matrix_text = wx.StaticText(
+            self.tool_panel, 
+            label="Transformation Matrix\n"+self.format_matrix(np.identity(4)))
+        tool_sizer.Add(self.transform_matrix_text, 0, wx.ALL | wx.EXPAND, 5)
+        
+        
+        self.distance_text = wx.StaticText(
+            self.tool_panel,
+            label="Distance to Origin: 0.0")
+        tool_sizer.Add(self.distance_text, 0, wx.ALL | wx.EXPAND, 5)
+        
+        
+        
+        
+        
+
+        
         # Set sizer for the tool panel
         self.tool_panel.SetSizer(tool_sizer)
+
+
+    def update_tool_panel(self, transform_matrix, distance):
+        self.transform_matrix_text.SetLabel("Transformation Matrix:\n"+self.format_matrix(transform_matrix))
+        self.distance_text.SetLabel(f"Distance to Origin:\n {distance:.2f}")
+
+    def format_matrix(self, matrix):
+        """ Format the matrix as a string for display."""
+        formatted_matrix = ""
+        for row in matrix:
+            formatted_matrix += " ".join(f"{val:.2f}" for val in row) + "\n"
+        return formatted_matrix
+
+
+
+
 
     def on_menu(self, event):
         event_id = event.GetId()
