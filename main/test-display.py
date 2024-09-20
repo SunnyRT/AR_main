@@ -1,5 +1,6 @@
 import wx
-from core.baseInput import InputCanvas, InputFrame  # Extend your existing BaseCanvas
+from core.baseInput import InputCanvas # Extend your existing BaseCanvas
+from core.baseGUI import GUIFrame
 from core_ext.renderer import Renderer
 from core_ext.scene import Scene
 from core_ext.camera import Camera
@@ -26,11 +27,10 @@ class MyCanvas(InputCanvas):
         # Call the constructor of the parent BaseCanvas
         super().__init__(parent)
 
-        self.initialized = False  # Ensure scene isn't initialized multiple times
 
         self.cameraIdx = 0
-        self.init = False
-
+        self.image2d_path = "D:/sunny/Codes/IIB_project/data/summer/JPEG0803.jpg"
+        self.initialized = False  # Ensure scene isn't initialized multiple times
 
 
     def initialize(self):
@@ -75,7 +75,7 @@ class MyCanvas(InputCanvas):
 
         # Load 2D texture
         geometry2d = PlaneGeometry(64, 64, 256, 256)
-        texture2d = Texture("D:\\sunny\\Codes\\IIB_project\\data\\summer\\JPEG0836.jpg")
+        texture2d = Texture(self.image2d_path)
         material2d = TextureMaterial(texture2d)
         self.image2d = Mesh(geometry2d, material2d)
         self.image2d.translate(0, 0, -60)
@@ -106,50 +106,24 @@ class MyCanvas(InputCanvas):
             self.renderer.render(self.scene, self.camera1)
 
 
-
-# Main Frame with Menu Bar
-class MyFrame(InputFrame):
+class MyFrame(GUIFrame):
     def __init__(self, parent, title, size):
         wx.Frame.__init__(self, parent, title=title, size=size)
 
-        # Set up the OpenGL canvas using the extended BaseCanvas
+        # override default InputCanvas with MyCanvas
         self.canvas = MyCanvas(self)
-
-        # Set up the menu bar
-        self.create_menu_bar()
-
-        self.Show()
-
-    def create_menu_bar(self):
-        menubar = wx.MenuBar()
-
-        # File menu
-        file_menu = wx.Menu()
-        file_menu.Append(wx.ID_OPEN, "&Open")
-        file_menu.Append(wx.ID_SAVE, "&Save")
-        file_menu.AppendSeparator()
-        file_menu.Append(wx.ID_EXIT, "E&xit")
-
-        # Help menu
-        help_menu = wx.Menu()
-        help_menu.Append(wx.ID_ABOUT, "&About")
-
-        # Append menus to the menu bar
-        menubar.Append(file_menu, "&File")
-        menubar.Append(help_menu, "&Help")
-
-        # Bind menu events
-        self.Bind(wx.EVT_MENU, self.on_menu)
         
-        # Set the menu bar for the frame
-        self.SetMenuBar(menubar)
+        self.create_menu_bar()
+        self.create_tool_panel()
 
-    def on_menu(self, event):
-        event_id = event.GetId()
-        if event_id == wx.ID_EXIT:
-            self.Close()
-        elif event_id == wx.ID_ABOUT:
-            wx.MessageBox("wxPython OpenGL Example with Menu Bar", "About", wx.OK | wx.ICON_INFORMATION)
+        # Use a box sizer to hold both the canvas and the tool panel
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.canvas, 1, wx.EXPAND)  # The OpenGL canvas fills most of the window
+        self.sizer.Add(self.tool_panel, 0, wx.EXPAND)  # Tool panel on the right side
+
+        # Set the sizer for the frame
+        self.SetSizer(self.sizer)
+        self.Show()     
 
 
 # Main App
