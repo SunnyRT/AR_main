@@ -58,53 +58,61 @@ class GUIFrame(InputFrame):
 
         # Create a button
         self.button = wx.Button(self.tool_panel, label="Projection")
-        tool_sizer.Add(self.button, 0, wx.ALL | wx.EXPAND, 5)
+        tool_sizer.Add(self.button, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
         self.Bind(wx.EVT_BUTTON, self.on_button_click, self.button)
 
         # Create a slider
         self.slider = wx.Slider(self.tool_panel, value=50, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
-        tool_sizer.Add(self.slider, 0, wx.ALL | wx.EXPAND, 5)
+        tool_sizer.Add(self.slider, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
         self.Bind(wx.EVT_SLIDER, self.on_slider_change, self.slider)
 
         # Create a text box
         self.textbox = wx.TextCtrl(self.tool_panel, style=wx.TE_PROCESS_ENTER)
-        tool_sizer.Add(self.textbox, 0, wx.ALL | wx.EXPAND, 5)
+        tool_sizer.Add(self.textbox, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
         self.Bind(wx.EVT_TEXT_ENTER, self.on_text_enter, self.textbox)
 
+        tool_sizer.AddSpacer(10)
 
         # Create another button
         self.exit_button = wx.Button(self.tool_panel, label="Exit")
-        tool_sizer.Add(self.exit_button, 0, wx.ALL | wx.EXPAND, 5)
+        tool_sizer.Add(self.exit_button, 0, wx.ALL | wx.EXPAND, 10)
         self.Bind(wx.EVT_BUTTON, self.on_exit_click, self.exit_button)
 
-
+        tool_sizer.AddSpacer(10)
 
         """ Display Registration Parameters"""
         # Transformation matrix display(text)
         self.transform_matrix_text = wx.StaticText(
             self.tool_panel, 
-            label="Transformation Matrix\n"+self.format_matrix(np.identity(4)))
-        tool_sizer.Add(self.transform_matrix_text, 0, wx.ALL | wx.EXPAND, 5)
-        
-        
+            label="Transformation Matrix\n" + self.format_matrix(np.identity(4)),
+            style=wx.ALIGN_LEFT
+        )
+        tool_sizer.Add(self.transform_matrix_text, 0, wx.ALL | wx.EXPAND, 10)
+
         self.distance_text = wx.StaticText(
             self.tool_panel,
-            label="Distance to Origin: 0.0")
-        tool_sizer.Add(self.distance_text, 0, wx.ALL | wx.EXPAND, 5)
-        
-        
-        
-        
-        
+            label="Distance to Origin: 0.0",
+            style=wx.ALIGN_LEFT
+        )
+        tool_sizer.Add(self.distance_text, 0, wx.ALL | wx.EXPAND, 10)
 
-        
+        tool_sizer.AddSpacer(10)
+
+        self.view_angle_text = wx.StaticText(
+            self.tool_panel,
+            label="View Angle: 0.0",
+            style=wx.ALIGN_LEFT
+        )
+        tool_sizer.Add(self.view_angle_text, 0, wx.ALL | wx.EXPAND, 10)
+
         # Set sizer for the tool panel
         self.tool_panel.SetSizer(tool_sizer)
 
 
-    def update_tool_panel(self, transform_matrix, distance):
+    def update_tool_panel(self, transform_matrix, distance, view_angle):
         self.transform_matrix_text.SetLabel("Transformation Matrix:\n"+self.format_matrix(transform_matrix))
         self.distance_text.SetLabel(f"Distance to Origin:\n {distance:.2f}")
+        self.view_angle_text.SetLabel(f"View Angle:\n {view_angle:.2f}")
 
     def format_matrix(self, matrix):
         """ Format the matrix as a string for display."""

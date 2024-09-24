@@ -96,7 +96,8 @@ class MyCanvas(InputCanvas):
 
         transform_matrix = self.image2d.getWorldMatrix()
         distance = np.linalg.norm(self.camera1.getWorldPosition())
-        self.GetParent().update_tool_panel(transform_matrix, distance)
+        view_angle = self.camera1.theta
+        self.GetParent().update_tool_panel(transform_matrix, distance, view_angle)
 
         """ Update the scene and toggle between cameras."""
         if self.isKeyDown("space"):  # Toggle between cameras with spacebar
