@@ -7,6 +7,9 @@ from OpenGL.GL import glViewport
 
 class BaseCanvas(glcanvas.GLCanvas):
     def __init__(self, parent, screenSize=[800, 600]):
+        
+        self.aspectRatio = screenSize[0] / screenSize[1]
+        
         attrib_list = [
             glcanvas.WX_GL_RGBA,
             glcanvas.WX_GL_DOUBLEBUFFER,
@@ -54,8 +57,10 @@ class BaseCanvas(glcanvas.GLCanvas):
 
     def on_size(self, event):
         size = self.GetClientSize()
+        h = size.height
+        w = int(h * self.aspectRatio)
         self.SetCurrent(self.context)
-        glViewport(0, 0, size.width, size.height)
+        glViewport(0, 0, w, h)
 
     def on_timer(self, event):
         self.Refresh()  # Force a paint event
