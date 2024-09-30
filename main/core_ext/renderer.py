@@ -1,16 +1,31 @@
 from OpenGL.GL import *
+import wx
 from core_ext.mesh import Mesh
 from light.light import Light
 
 class Renderer(object):
 
-    def __init__(self, clearColor=[0,0,0]):
+    def __init__(self, glcanvas=None, clearColor=[0,0,0]):
 
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_MULTISAMPLE) # anti-aliasing
         glClearColor(clearColor[0], clearColor[1], clearColor[2], 1)
 
-    def render(self, scene, camera, clearColor=True, clearDepth=True):
+        if glcanvas is not None:
+            self.windowSize = glcanvas.GetClientSize() # TODO:
+
+    def render(self, scene, camera, clearColor=True, clearDepth=True, renderTarget=None):
+
+        # activate render target if provided
+        if renderTarget is None:
+            # set render target to window
+            glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            glViewport(0, 0, self.windowSize.width, self.windowSize.height)
+        else:
+            # set render target properties
+            glBindFramebuffer(GL_FRAMEBUFFER, renderTarget.framebufferRef)
+            glViewport(0, 0, renderTarget.width, renderTarget.height)
+
 
         # clear color and depth buffer
         if clearColor:

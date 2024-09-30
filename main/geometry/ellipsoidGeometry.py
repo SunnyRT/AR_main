@@ -10,8 +10,8 @@ class EllipsoidGeometry(ParametricGeometry):
         def S(u, v):
 
             return [width / 2 * sin(v) * cos(u),
-                    height / 2 * sin(v),
-                    depth / 2 * cos(u) * cos(v)]
+                    height / 2 * sin(v) * sin(u),
+                    depth / 2 * cos(v)]
 
         super().__init__(uStart=0,
                          uEnd=2*pi,

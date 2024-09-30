@@ -39,7 +39,7 @@ class MyCanvas(InputCanvas):
         print("Initializing program...")
 
         # Initialize renderer, scene, and cameras
-        self.renderer = Renderer()
+        self.renderer = Renderer(glcanvas=self)
         self.scene = Scene()
 
         # Set up two cameras

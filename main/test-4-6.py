@@ -8,7 +8,7 @@ from extras.movementRig import MovementRig
 from math import pi
 from core.baseInput import InputCanvas, InputFrame  
 
-# FIXME: no movement!!!!!!!!
+
 class TestCanvas(InputCanvas):  # Extend the existing BaseCanvas
     def __init__(self, parent):
         super().__init__(parent)
