@@ -2,7 +2,7 @@ import wx
 import numpy as np
 from core.baseInput import InputCanvas # Extend your existing BaseCanvas
 from core.baseGUI import GUIFrame
-from core_ext.rendererDual import RendererDual
+from core_ext.renderer import Renderer
 from core_ext.scene import Scene
 from core_ext.camera import Camera
 from core_ext.mesh import Mesh
@@ -24,9 +24,9 @@ from math import pi
 
 # Extend your previous BaseCanvas instead of creating a new MyGLCanvas
 class MyCanvas(InputCanvas):
-    def __init__(self, parent, screenSize=[1200, 900]):
+    def __init__(self, parent):
         # Call the constructor of the parent BaseCanvas
-        super().__init__(parent, screenSize)
+        super().__init__(parent)
 
 
         self.cameraIdx = 0
@@ -39,17 +39,21 @@ class MyCanvas(InputCanvas):
         print("Initializing program...")
 
         # Initialize renderer, scene, and cameras
-        self.renderer = RendererDual(glcanvas=self, clearColor=[0.8, 0.8, 0.8])
+        self.renderer = Renderer(glcanvas=self)
         self.scene = Scene()
 
-        # Set up first camera: camera0 for CAD engineering viewport
-        self.camera0 = Camera(isPerspective=False, aspectRatio=600/900)
+        # Set up two cameras
+        self.camera0 = Camera(isPerspective=False, aspectRatio=800 / 600)
         self.rig0 = MovementRig()
         self.rig0.add(self.camera0)
         self.rig0.setPosition([10, 10, 50])
         self.scene.add(self.rig0)
 
-
+        self.camera1 = Camera(isPerspective=True, aspectRatio=800 / 600)
+        self.rig1 = MovementRig()
+        self.rig1.add(self.camera1)
+        self.rig1.setPosition([0, 0, 50])
+        self.scene.add(self.rig1)
 
         # Add lights
         ambient = AmbientLight(color=[0.1, 0.1, 0.1])
@@ -60,7 +64,7 @@ class MyCanvas(InputCanvas):
         self.scene.add(point)
 
         # Grid setup
-        grid = GridHelper(size=1024, divisions=512, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
+        grid = GridHelper(size=1024, divisions=512, gridColor=[0.8, 0.8, 0.8], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
         grid.rotateX(-pi / 2)
         self.scene.add(grid)
 
@@ -71,32 +75,12 @@ class MyCanvas(InputCanvas):
         self.scene.add(self.mesh3d)
 
         # Load 2D texture
+        geometry2d = PlaneGeometry(64, 64, 256, 256)
         texture2d = Texture(self.image2d_path)
-        texture2d_height = texture2d.height
-        texture2d_width = texture2d.width
-        image2d_aspect_ratio = texture2d_width / texture2d_height
         material2d = TextureMaterial(texture2d)
-        image2d_height = 64
-        image2d_width = image2d_height * image2d_aspect_ratio
-        geometry2d = PlaneGeometry(image2d_width, image2d_height, 256, 256)
         self.image2d = Mesh(geometry2d, material2d)
-
-        
-        # Set up second camera: camera1 for surgeon viewport
-        camera1_z = 50
-        camera1_d = 80
-        camera1_theta = 2* np.arctan((image2d_height / 2) / camera1_d) /np.pi * 180
-        self.camera1 = Camera(isPerspective=True, angleOfView=camera1_theta, aspectRatio=image2d_aspect_ratio)
-        self.rig1 = MovementRig()
-        self.rig1.add(self.camera1)
-
-        print(camera1_z)
-        self.rig1.setPosition([0, 0, camera1_z])
-        self.scene.add(self.rig1)    
+        self.image2d.translate(0, 0, -60)
         self.camera1.add(self.image2d)
-        self.image2d.translate(0, 0, -camera1_d)
-
-
 
         # Axes helper
         axes = AxesHelper(axisLength=128, lineWidth=2)
@@ -122,14 +106,12 @@ class MyCanvas(InputCanvas):
         if self.cameraIdx == 0:
             self.rig0.update(self)
             self.camera0.update(self)
+            self.renderer.render(self.scene, self.camera0)
         else:
             self.rig1.update(self)
             self.camera1.update(self)
+            self.renderer.render(self.scene, self.camera1)
 
-
-        self.renderer.render(self.scene, self.camera0, viewportSplit="left")   
-        self.renderer.render(self.scene, self.camera1, clearColor = False,viewportSplit="right")
-        
         
 
 
@@ -156,7 +138,7 @@ class MyFrame(GUIFrame):
 # Main App
 class MyApp(wx.App):
     def OnInit(self):
-        self.frame = MyFrame(None, title="AR Registration", size=(1200, 900))
+        self.frame = MyFrame(None, title="AR Registration", size=(800, 600))
         self.SetTopWindow(self.frame)
         return True
 
