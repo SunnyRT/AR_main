@@ -6,8 +6,9 @@ from OpenGL.GL import *
 class Texture(object):
 
     def __init__(self, fileName=None, properties={}):
-        # wx.Bitmap object for storing pixel data (converted from Pillow)
-        self.surface = None
+        # # wx.Bitmap object for storing pixel data (converted from Pillow)
+        # self.surface = None
+        self.image_data = None
 
         # Reference of available texture from GPU
         self.textureRef = glGenTextures(1)
@@ -40,13 +41,15 @@ class Texture(object):
         # Get image width and height
         self.width, self.height = image.size
 
+        # print("Loaded image: %s (%d x %d)" % (fileName, self.width, self.height))
+
         # Convert to wx.Image for display in wxPython
-        wx_image = wx.Image(self.width, self.height)
+        wx_image = wx.Image(image.size[0], image.size[1])
         wx_image.SetData(image.convert("RGB").tobytes())  # Set the RGB data
         wx_image.SetAlpha(image.getchannel("A").tobytes())  # Set the Alpha channel (transparency)
 
-        # Convert the wx.Image to wx.Bitmap for display in wx widgets
-        self.surface = wx.Bitmap(wx_image)
+        # # Convert the wx.Image to wx.Bitmap for display in wx widgets
+        # self.surface = wx.Bitmap(wx_image)
 
     # Set properties for texture
     def setProperties(self, properties):
@@ -58,13 +61,11 @@ class Texture(object):
 
     # Upload pixel data to GPU
     def uploadData(self):
-        # Store image dimensions
-        width = self.width
-        height = self.height
+
 
         # Bind the texture, and upload the pixel data from Pillow
         glBindTexture(GL_TEXTURE_2D, self.textureRef)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, self.image_data)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.width, self.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, self.image_data)
 
         # Generate mipmaps from the uploaded pixel data
         glGenerateMipmap(GL_TEXTURE_2D)

@@ -16,10 +16,17 @@ class RenderTarget(object):
             self.texture = Texture(None, {
                 "magFilter": GL_LINEAR,
                 "minFilter": GL_LINEAR,
-                "wrapS": GL_CLAMP_TO_EDGE,
+                "wrap": GL_CLAMP_TO_EDGE,
             })
             self.texture.setProperties(properties)
-            self.texture.surface = wx.Bitmap(wx.Image(self.width, self.height)) # FIXME: not sure if this is correct
+            # self.texture.loadImage(wx.Image(self.width, self.height))
+            # self.texture.surface = wx.Bitmap(wx.Image(self.width, self.height)) # FIXME: not sure if this is correct
+            self.texture.width, self.texture.height = self.width, self.height
+            image = wx.Image(self.width, self.height)
+            image_rgb = image.GetData()
+            image_a = b"\xFF" * (self.width * self.height)
+            pixel_data = image_rgb + image_a
+            self.texture.image_data = pixel_data
             self.texture.uploadData()
 
         

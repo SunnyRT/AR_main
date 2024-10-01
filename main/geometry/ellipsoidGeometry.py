@@ -16,8 +16,8 @@ class EllipsoidGeometry(ParametricGeometry):
         super().__init__(uStart=0,
                          uEnd=2*pi,
                          uResolution=radiusSegments,
-                         vStart=-pi/2,
-                         vEnd=pi/2,
+                         vStart=0,
+                         vEnd=pi,
                          vResolution=heightSegments,
                          surfaceFunction=S)
       
