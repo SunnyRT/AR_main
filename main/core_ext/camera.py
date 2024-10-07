@@ -1,7 +1,9 @@
 from core_ext.object3d import Object3D
 from core.matrix import Matrix
 from numpy.linalg import inv
-from math import tan
+from geometry.boxGeometry import BoxGeometry
+from material.lambertMaterial import LambertMaterial
+from core_ext.mesh import Mesh
 
 
 class Camera(Object3D):
@@ -10,7 +12,8 @@ class Camera(Object3D):
                     aspectRatio=1.0, 
                     distance=20, # FIXME: to find a better way to match perspective and orthographic projection????
                     near=0.1,
-                    far=1000):
+                    far=1000,
+                    renderBox=False, boxDimensions=[5, 5, 10], boxColor=[0.8, 0.8, 0]):
             super().__init__()
 
             self.isPerspective = isPerspective
@@ -29,6 +32,13 @@ class Camera(Object3D):
                 self.setOrthographic()
 
             self.viewMatrix = Matrix.makeIdentity()
+
+            if renderBox:
+                cameraGeometry = BoxGeometry(boxDimensions[0], boxDimensions[1], boxDimensions[2])
+                cameraMaterial = LambertMaterial(properties={"baseColor": boxColor})
+                cameraBox = Mesh(cameraGeometry, cameraMaterial)
+                self.add(cameraBox)
+                cameraBox.translate(0, 0, boxDimensions[2] / 2)
 
     def updateViewMatrix(self):
         self.viewMatrix = inv(self.getWorldMatrix())
