@@ -125,7 +125,7 @@ class MyCanvas(InputCanvas):
 
         ############################################
         # Add projector from camera1 through contour points
-        self.projector = Projector(self.camera1, contourPoints, lineWidth=2, color=[1,1,0], ConvertToSurface=True)
+        self.projector = Projector(self.camera1, contourPoints, lineWidth=2, color=[1,1,0], ConvertToSurface=False)
         self.camera1.add(self.projector)
         self.projector.translate(0, 0, -camera1_z) # Move projector to camera1 position (remove offset)
 

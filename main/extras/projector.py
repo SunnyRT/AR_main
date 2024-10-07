@@ -21,7 +21,7 @@ class Projector(Mesh):
         contourVertPos = contourMesh.geometry.attributes["vertexPosition"].data
         contourVertWorldPos = np.array(contourVertPos) + contourPos
         
-        if not ConvertToSurface:
+        if not ConvertToSurface: # TODO: add option to convert to surface
             for vertPos in contourVertWorldPos:
                 positionData.append(cameraPos)
                 positionData.append(vertPos)
