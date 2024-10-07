@@ -21,6 +21,7 @@ class AxesHelper(Mesh):
         mat = LineMaterial({"useVertexColors":True,
                             "lineWidth":lineWidth,
                             "lineType":"segments"})
+        mat.updateRenderSettings()
         
         # intialize mesh
         super().__init__(geo, mat)
