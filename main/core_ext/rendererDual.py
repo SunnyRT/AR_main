@@ -21,7 +21,7 @@ class RendererDual(object):
 
         # glBindFramebuffer(GL_FRAMEBUFFER, 0) # set render target to window
         
-        if viewportSplit is not None: # TODO: maybe 
+        if viewportSplit is not None: # TODO: 
             height= self.glcanvas.GetClientSize().height
             width = int(self.glcanvas.aspectRatio * height)
             if viewportSplit == "left":
