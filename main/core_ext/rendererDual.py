@@ -11,6 +11,8 @@ class RendererDual(object):
         glEnable(GL_MULTISAMPLE) # anti-aliasing
         glClearColor(clearColor[0], clearColor[1], clearColor[2], 1)
 
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         self.glcanvas = glcanvas
 
