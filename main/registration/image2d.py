@@ -3,6 +3,9 @@ from core_ext.texture import Texture
 from core_ext.camera import Camera
 from material.textureMaterial import TextureMaterial
 from geometry.planeGeometry import PlaneGeometry
+from geometry.contourGeometry import ContourGeometry
+from material.pointMaterial import PointMaterial
+from material.lineMaterial import LineMaterial
 from extras.movementRig import MovementRig
 
 import numpy as np
@@ -16,6 +19,8 @@ class Image2D(object):
         texture2d = Texture(imagePath)
         pxWidth = texture2d.width
         pxHeight = texture2d.height
+        self.resolution = resolution
+        self.focalLength = focalLength
         self.width = pxWidth * resolution * focalLength
         self.height = pxHeight * resolution * focalLength
         self.aspectRatio = pxWidth / pxHeight
@@ -39,5 +44,27 @@ class Image2D(object):
         print("Image2D initialized")
 
 
+    def insertContour(self, sw_path, contourColor = [1, 0, 0], displayStyle = 'line', contourSize = 1):
+        with open(sw_path, 'r') as f:
+            lines = f.readlines()
+        
+        
+        for line in lines:
+            if line.startswith('CONT'):
+                parts = line.strip().split()[4:]  # TODO: Skip the first 4 elements: "CONT 0 0 1"
+
+                # Extract pairs of (px_x, px_y) pixel coordinates and convert to 3D numpy array
+                px_coords = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
+                break
 
         
+        
+        contourGeometry = ContourGeometry(px_coords, self.width, self.height, self.resolution, self.focalLength, contourColor)
+        if displayStyle == 'point':
+            contourMaterial = PointMaterial({"pointSize": contourSize, "baseColor": contourColor, "roundedPoints": True})
+        elif displayStyle == 'line':
+            contourMaterial = LineMaterial({"lineWidth": contourSize, "baseColor": contourColor, "lineType": "connected"})
+
+        self.contourMesh = Mesh(contourGeometry, contourMaterial)
+        self.imagePlane.add(self.contourMesh) # rig -> camera -> imagePlane -> contourMesh
+        self.contourMesh.translate(0, 0, 0.1) # TODO: Move contour slightly above imagePlane

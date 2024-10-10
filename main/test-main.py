@@ -38,7 +38,9 @@ class MyCanvas(InputCanvas):
 
 
         self.cameraIdx = 0
-        self.image2d_path = "D:/sunny/Codes/IIB_project/data/summer/JPEG0803.jpg"
+        self.image2d_path = "D:\\sunny\\Codes\\IIB_project\\data\\JPEG0888.jpg"
+        self.contour_path = "D:\\sunny\\Codes\\IIB_project\\data\\JPEG0888.sw"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\summer\\fitted_otic_capsule.ply"
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
 
@@ -73,20 +75,12 @@ class MyCanvas(InputCanvas):
         self.scene.add(grid)
 
         # Load 3D model
-        geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\summer\\fitted_otic_capsule.ply")
+        geometry3d = Model3dGeometry(self.model3d_path)
         lambertMaterial = LambertMaterial(properties={"baseColor": [0.2, 0.5, 0.5]})
         self.mesh3d = Mesh(geometry3d, lambertMaterial)
         self.scene.add(self.mesh3d)
 
 
-
-        # ############################################
-        # # Add contour points on 2D image
-        # pointGeometry = RectangleGeometry(image2d_width, image2d_height)
-        # pointMaterial = PointMaterial({"pointSize": 5, "useVertexColors": True})
-        # contourPoints = Mesh(pointGeometry, pointMaterial)
-        # self.image2d.add(contourPoints)
-        # ############################################
 
 
         # Load 2D texture image
@@ -94,6 +88,10 @@ class MyCanvas(InputCanvas):
         self.camera1 = self.image2d.camera
         self.rig1 = self.image2d.rig
         self.scene.add(self.rig1)
+        # add contour to image2d
+        self.image2d.insertContour(self.contour_path, contourColor=[1, 0, 0], displayStyle='line', contourSize=3)
+
+
 
 
         # ############################################
