@@ -24,7 +24,7 @@ from light.pointLight import PointLight
 from extras.axesHelper import AxesHelper
 from extras.gridHelper import GridHelper
 from extras.movementRig import MovementRig
-from extras.projector import Projector
+from main.registration.projector import Projector
 from extras.posMarker import PosMarker
 from math import pi
 

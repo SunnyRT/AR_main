@@ -25,7 +25,7 @@ from registration.image2d import Image2D
 from extras.axesHelper import AxesHelper
 from extras.gridHelper import GridHelper
 from extras.movementRig import MovementRig
-from extras.projector import Projector
+from registration.projector import Projector
 from extras.posMarker import PosMarker
 from math import pi
 
@@ -94,12 +94,12 @@ class MyCanvas(InputCanvas):
 
 
 
-        # ############################################
-        # # Add projector from camera1 through contour points
-        # self.projector = Projector(self.camera1, contourPoints, lineWidth=2, color=[1,1,0], ConvertToSurface=False)
-        # self.camera1.add(self.projector)
-        # self.projector.translate(0, 0, -camera1_z) # Move projector to camera1 position (remove offset)
-
+        ############################################
+        # Add projector from camera1 through contour points
+        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=40, far=100, lineWidth=1, color=[1,1,0])
+        self.camera1.add(self.projector.rayMesh)
+        self.projector.rayMesh.translate(0, 0, -50) # FIXME: Move projector to camera1 position (remove offset)
+        self.projector.generateCone(visibleRay=True)
 
         # # Add position markers
         # posMarker1 = PosMarker([0, 0, camera1_z], color=[0, 1, 1], size=10)

@@ -97,6 +97,7 @@ class Model3dGeometry(Geometry):
     def calcVertexNormals(self, vertex_positions, faceNormals, face_data):
         # Initialize a list of zero vectors for vertex normals
         vertex_count = len(vertex_positions)
+        # FIXME: calculate vertex normals from vertex normals!!!!!!!
         vertex_normals = [np.array([0.0, 0.0, 0.0]) for _ in range(vertex_count)]
         
         # For each face, accumulate its normal to the vertices of the face
