@@ -12,7 +12,7 @@ class RendererDual(object):
         glClearColor(clearColor[0], clearColor[1], clearColor[2], 1)
 
         glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) 
 
         self.glcanvas = glcanvas
 

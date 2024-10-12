@@ -11,7 +11,7 @@ from extras.movementRig import MovementRig
 import numpy as np
 
 class Image2D(object):
-    def __init__(self, imagePath, resolution, focalLength, camera_z=50, cameraDisplay=True):    
+    def __init__(self, imagePath, resolution, focalLength, camera_z=50, alpha=0.5, cameraDisplay=True):    
 
         print("Initializing Image2D...")
 
@@ -24,7 +24,7 @@ class Image2D(object):
         self.width = pxWidth * resolution * focalLength
         self.height = pxHeight * resolution * focalLength
         self.aspectRatio = pxWidth / pxHeight
-        material2d = TextureMaterial(texture2d)
+        material2d = TextureMaterial(texture2d, {"alpha": alpha})
         geometry2d = PlaneGeometry(self.width, self.height, 4, 4)
         self.imagePlane = Mesh(geometry2d, material2d)
         

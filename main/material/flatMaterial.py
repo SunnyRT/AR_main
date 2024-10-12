@@ -84,6 +84,7 @@ class FlatMaterial(Material):
 
         fragmentShaderCode = """
             uniform vec3 baseColor;
+            uniform float alpha; //TODO: add transparency to properties
             uniform bool useTexture;
             uniform sampler2D texture;
             in vec2 UV;
@@ -91,7 +92,7 @@ class FlatMaterial(Material):
             out vec4 fragColor;
             void main()
             {
-                vec4 color = vec4(baseColor, 1.0);
+                vec4 color = vec4(baseColor, alpha); //TODO: add transparency to properties
                 if (useTexture)
                 {
                     color *= texture2D(texture, UV);
@@ -105,6 +106,7 @@ class FlatMaterial(Material):
         
         # add uniforms
         self.addUniform("vec3", "baseColor", [1.0, 1.0, 1.0])
+        self.addUniform("float", "alpha", 1.0) #TODO: add transparency to properties
         self.addUniform("Light", "light0", None)
         self.addUniform("Light", "light1", None)
         self.addUniform("Light", "light2", None)
@@ -140,5 +142,7 @@ class FlatMaterial(Material):
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         
         glLineWidth(self.settings["lineWidth"])
+
+        
 
             

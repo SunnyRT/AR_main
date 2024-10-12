@@ -56,7 +56,7 @@ class MyCanvas(InputCanvas):
         self.camera0 = Camera(isPerspective=False, aspectRatio=600/900)
         self.rig0 = MovementRig()
         self.rig0.add(self.camera0)
-        self.rig0.setPosition([10, 10, 50])
+        self.rig0.setPosition([10, 10, 100])
         self.scene.add(self.rig0)
 
 
@@ -69,22 +69,14 @@ class MyCanvas(InputCanvas):
         point = PointLight(color=[0.3, 0.3, 0.3], position=[20, 20, 16], attenuation=[1, 0.1, 0.1])
         self.scene.add(point)
 
-        # Grid setup
-        grid = GridHelper(size=1024, divisions=512, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
-        grid.rotateX(-pi / 2)
-        self.scene.add(grid)
 
-        # Load 3D model
-        geometry3d = Model3dGeometry(self.model3d_path)
-        lambertMaterial = LambertMaterial(properties={"baseColor": [0.2, 0.5, 0.5]})
-        self.mesh3d = Mesh(geometry3d, lambertMaterial)
-        self.scene.add(self.mesh3d)
 
 
 
 
         # Load 2D texture image
-        self.image2d = Image2D(self.image2d_path, resolution=0.0003, focalLength=80, camera_z=50)
+        camera1_z = 80
+        self.image2d = Image2D(self.image2d_path, resolution=0.0003, focalLength=50, camera_z=camera1_z, alpha=0.5)
         self.camera1 = self.image2d.camera
         self.rig1 = self.image2d.rig
         self.scene.add(self.rig1)
@@ -98,7 +90,7 @@ class MyCanvas(InputCanvas):
         # Add projector from camera1 through contour points
         self.projector = Projector(self.camera1, self.image2d.contourMesh, near=40, far=100, lineWidth=1, color=[1,1,0])
         self.camera1.add(self.projector.rayMesh)
-        self.projector.rayMesh.translate(0, 0, -50) # FIXME: Move projector to camera1 position (remove offset)
+        self.projector.rayMesh.translate(0, 0, -camera1_z) # FIXME: Move projector to camera1 position (remove offset)
         self.projector.generateCone(visibleRay=True)
 
         # # Add position markers
@@ -108,10 +100,20 @@ class MyCanvas(InputCanvas):
         # self.scene.add(posMarker2)
         ############################################
 
+        # Load 3D model
+        geometry3d = Model3dGeometry(self.model3d_path)
+        lambertMaterial = LambertMaterial(properties={"baseColor": [0.2, 0.5, 0.5]})
+        self.mesh3d = Mesh(geometry3d, lambertMaterial)
+        self.scene.add(self.mesh3d)
+
+        # Grid setup
+        grid = GridHelper(size=1024, divisions=512, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
+        grid.rotateX(-pi / 2)
+        self.scene.add(grid)
+
         # Axes helper
         axes = AxesHelper(axisLength=128, lineWidth=2)
         self.scene.add(axes)
-
         self.initialized = True
 
     def update(self):

@@ -2,19 +2,22 @@ import wx
 import numpy as np
 from core.baseInput import InputCanvas # Extend your existing BaseCanvas
 from core.baseGUI import GUIFrame
-from core_ext.renderer import Renderer
+from core_ext.rendererDual import RendererDual
 from core_ext.scene import Scene
 from core_ext.camera import Camera
 from core_ext.mesh import Mesh
 from geometry.planeGeometry import PlaneGeometry
 from geometry.model3dGeometry import Model3dGeometry
+from geometry.boxGeometry import BoxGeometry
 from core_ext.texture import Texture
 from material.textureMaterial import TextureMaterial
+from material.flatMaterial import FlatMaterial
+from material.lambertMaterial import LambertMaterial
 
 from light.ambientLight import AmbientLight
 from light.directionalLight import DirecitonalLight
 from light.pointLight import PointLight
-from material.lambertMaterial import LambertMaterial
+
 
 from extras.axesHelper import AxesHelper
 from extras.gridHelper import GridHelper
@@ -24,13 +27,11 @@ from math import pi
 
 # Extend your previous BaseCanvas instead of creating a new MyGLCanvas
 class MyCanvas(InputCanvas):
-    def __init__(self, parent):
+    def __init__(self, parent, screenSize=[1200, 900]):
         # Call the constructor of the parent BaseCanvas
-        super().__init__(parent)
+        super().__init__(parent, screenSize)
 
 
-        self.cameraIdx = 0
-        self.image2d_path = "D:/sunny/Codes/IIB_project/data/summer/JPEG0803.jpg"
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
 
@@ -39,21 +40,17 @@ class MyCanvas(InputCanvas):
         print("Initializing program...")
 
         # Initialize renderer, scene, and cameras
-        self.renderer = Renderer(glcanvas=self)
+        self.renderer = RendererDual(glcanvas=self, clearColor=[0.8, 0.8, 0.8])
         self.scene = Scene()
 
-        # Set up two cameras
-        self.camera0 = Camera(isPerspective=False, aspectRatio=800 / 600)
+        # Set up first camera: camera0 for CAD engineering viewport
+        self.camera0 = Camera(isPerspective=False, aspectRatio=600/900)
         self.rig0 = MovementRig()
         self.rig0.add(self.camera0)
         self.rig0.setPosition([10, 10, 50])
         self.scene.add(self.rig0)
 
-        self.camera1 = Camera(isPerspective=True, aspectRatio=800 / 600)
-        self.rig1 = MovementRig()
-        self.rig1.add(self.camera1)
-        self.rig1.setPosition([0, 0, 50])
-        self.scene.add(self.rig1)
+
 
         # Add lights
         ambient = AmbientLight(color=[0.1, 0.1, 0.1])
@@ -64,27 +61,45 @@ class MyCanvas(InputCanvas):
         self.scene.add(point)
 
         # Grid setup
-        grid = GridHelper(size=1024, divisions=512, gridColor=[0.8, 0.8, 0.8], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
+        grid = GridHelper(size=1024, divisions=512, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
         grid.rotateX(-pi / 2)
         self.scene.add(grid)
 
-        # Load 3D model
-        geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\summer\\fitted_otic_capsule.ply")
-        lambertMaterial = LambertMaterial(properties={"baseColor": [0.5, 0.5, 0.2]})
-        self.mesh3d = Mesh(geometry3d, lambertMaterial)
-        self.scene.add(self.mesh3d)
+        # # Load 3D model
+        # geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\summer\\fitted_otic_capsule.ply")
+        # lambertMaterial = LambertMaterial(properties={"baseColor": [0.5, 0.5, 0.2]})
+        # self.mesh3d = Mesh(geometry3d, lambertMaterial)
+        # self.scene.add(self.mesh3d)
 
-        # Load 2D texture
-        geometry2d = PlaneGeometry(64, 64, 256, 256)
-        texture2d = Texture(self.image2d_path)
-        material2d = TextureMaterial(texture2d)
-        self.image2d = Mesh(geometry2d, material2d)
-        self.image2d.translate(0, 0, -60)
-        self.camera1.add(self.image2d)
+        # # Load 2D texture
+        # texture2d = Texture(self.image2d_path)
+        # texture2d_height = texture2d.height
+        # texture2d_width = texture2d.width
+        # image2d_aspect_ratio = texture2d_width / texture2d_height
+        # material2d = TextureMaterial(texture2d)
+        # image2d_height = 64
+        # image2d_width = image2d_height * image2d_aspect_ratio
+        # geometry2d = PlaneGeometry(image2d_width, image2d_height, 256, 256)
+        # self.image2d = Mesh(geometry2d, material2d)
+
+
 
         # Axes helper
         axes = AxesHelper(axisLength=128, lineWidth=2)
         self.scene.add(axes)
+
+        geometrybox1 = BoxGeometry(10, 10, 10)
+        materialbox1 = FlatMaterial(properties={"baseColor": [0.5, 0.5, 0.2], "alpha": 0.5})
+        self.box1 = Mesh(geometrybox1, materialbox1)
+        self.scene.add(self.box1)
+        self.box1.setPosition([10,0,0])
+
+        geometrybox2 = BoxGeometry(10, 10, 10)
+        materialbox2 = FlatMaterial(properties={"baseColor": [0.5, 0.5, 0.2]})
+        self.box2 = Mesh(geometrybox2, materialbox2)
+        self.scene.add(self.box2)
+        self.box2.setPosition([-10,0,0])
+
 
         self.initialized = True
 
@@ -94,24 +109,12 @@ class MyCanvas(InputCanvas):
             self.initialize()
 
 
-        transform_matrix = self.image2d.getWorldMatrix()
-        distance = np.linalg.norm(self.camera1.getWorldPosition())
-        view_angle = self.camera1.theta
-        self.GetParent().update_tool_panel(transform_matrix, distance, view_angle)
+        self.rig0.update(self)
+        self.camera0.update(self)
 
-        """ Update the scene and toggle between cameras."""
-        if self.isKeyDown("space"):  # Toggle between cameras with spacebar
-            self.cameraIdx = (self.cameraIdx + 1) % 2
 
-        if self.cameraIdx == 0:
-            self.rig0.update(self)
-            self.camera0.update(self)
-            self.renderer.render(self.scene, self.camera0)
-        else:
-            self.rig1.update(self)
-            self.camera1.update(self)
-            self.renderer.render(self.scene, self.camera1)
-
+        self.renderer.render(self.scene, self.camera0)   
+        
         
 
 
@@ -138,7 +141,7 @@ class MyFrame(GUIFrame):
 # Main App
 class MyApp(wx.App):
     def OnInit(self):
-        self.frame = MyFrame(None, title="AR Registration", size=(800, 600))
+        self.frame = MyFrame(None, title="AR Registration", size=(1200, 900))
         self.SetTopWindow(self.frame)
         return True
 

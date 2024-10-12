@@ -24,13 +24,14 @@ class TextureMaterial(Material):
 
         fragmentShaderCode = """
             uniform vec3 baseColor;
+            uniform float alpha;
             uniform sampler2D texture;
             in vec2 UV;
             out vec4 fragColor;
             
             void main()
             {
-                vec4 color = vec4(baseColor, 1.0) * texture2D(texture, UV); // FIXME: texture2D is a GLSL 1.20 function (deprecated in 1.30)
+                vec4 color = vec4(baseColor, alpha) * texture2D(texture, UV); // FIXME: texture2D is a GLSL 1.20 function (deprecated in 1.30)
                 if (color.a < 0.1) discard;
 
                 fragColor = color;
@@ -40,6 +41,7 @@ class TextureMaterial(Material):
         super().__init__(vertexShaderCode, fragmentShaderCode)
 
         self.addUniform("vec3", "baseColor", [1.0, 1.0, 1.0])
+        self.addUniform("float", "alpha", 1.0)
         self.addUniform("sampler2D", "texture", [texture.textureRef, 1]) # texture unit 1
         self.addUniform("vec2", "reppeatUV", [1.0, 1.0]) # default value: no repetition
         self.addUniform("vec2", "offsetUV", [0.0, 0.0])

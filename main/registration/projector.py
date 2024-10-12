@@ -8,13 +8,14 @@ import numpy as np
 
 class Projector(object):
 
-    def __init__(self, camera, contourMesh, lineWidth=1, color=[1,1,0], near=20, far=100, delta=1):
+    def __init__(self, camera, contourMesh, lineWidth=1, color=[1,1,0], alpha=0.3, near=20, far=100, delta=1, ):
         
 
         self.n = near
         self.f = far
         self.delta = delta
         self.color = color
+        self.alpha = alpha
         
         """"""""""""""" create projector ray geometry"""""""""""""""
         rayGeometry = Geometry()
@@ -42,7 +43,8 @@ class Projector(object):
         """""""""""""""create projector ray material"""""""""""""""
         rayMaterial = LineMaterial({"useVertexColors":True,
                             "lineWidth":lineWidth,
-                            "lineType":"segments"})
+                            "lineType":"segments", 
+                            "alpha":self.alpha})
 
         
         """"""""""""""" intialize ray mesh """""""""""""""
@@ -69,7 +71,6 @@ class Projector(object):
             layers.append(sampled_points)
 
         layers = np.array(layers) # Shape: (numRays=numContourVertices, numSamples, 3)
-        print(layers.shape) # TODO: debug
         self.verticeInLayers = layers
         
 
@@ -84,11 +85,9 @@ class Projector(object):
                 positionData.append([layers[i][j], layers[i+1][j], layers[i][j+1]])
                 positionData.append([layers[i][j+1], layers[i+1][j], layers[i+1][j+1]])
 
-        print(len(positionData), len(positionData[0]), len(positionData[0][0])) # TODO: debug
         
         # Flatten the positionData list for easier handling
         positionData = np.array(positionData).reshape(-1, 3)
-        print(positionData.shape) # TODO: debug
         colorData = [self.color] * len(positionData)
         colorData = 0.5*np.array(colorData) 
 
@@ -103,7 +102,7 @@ class Projector(object):
         coneGeometry.addAttribute("vec3", "vertexColor", colorData)
         
         """""""""""""""create projector cone material"""""""""""""""
-        coneMaterial = SurfaceMaterial(properties={"useVertexColors":True})
+        coneMaterial = SurfaceMaterial(properties={"useVertexColors":True, "alpha":self.alpha})
         
         """"""""""""""" intialize cone mesh """""""""""""""
         self.coneMesh = Mesh(coneGeometry, coneMaterial)

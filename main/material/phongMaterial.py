@@ -99,6 +99,7 @@ class PhongMaterial(Material):
 
 
             uniform vec3 baseColor;
+            uniform float alpha;
             uniform bool useTexture;
             uniform sampler2D texture;
             in vec3 position;
@@ -107,7 +108,7 @@ class PhongMaterial(Material):
             out vec4 fragColor;
             void main()
             {
-                vec4 color = vec4(baseColor, 1.0);
+                vec4 color = vec4(baseColor, alpha);
                 if (useTexture) color *= texture2D(texture, UV);
   
                 //calculate total effect of lights on color
@@ -126,6 +127,7 @@ class PhongMaterial(Material):
         
         # add uniforms
         self.addUniform("vec3", "baseColor", [1.0, 1.0, 1.0])
+        self.addUniform("float", "alpha", 1.0)
         self.addUniform("Light", "light0", None)
         self.addUniform("Light", "light1", None)
         self.addUniform("Light", "light2", None)
