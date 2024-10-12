@@ -57,9 +57,14 @@ class GUIFrame(InputFrame):
         tool_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Create a button
-        self.button = wx.Button(self.tool_panel, label="Projection")
-        tool_sizer.Add(self.button, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
-        self.Bind(wx.EVT_BUTTON, self.on_button_click, self.button)
+        self.projection_button = wx.Button(self.tool_panel, label="Projection")
+        tool_sizer.Add(self.projection_button, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
+        self.Bind(wx.EVT_BUTTON, self.on_projection_click, self.projection_button)
+
+        # Create a button
+        self.register_button = wx.Button(self.tool_panel, label="Register")
+        tool_sizer.Add(self.register_button, 0, wx.ALL | wx.EXPAND, 10)
+        self.Bind(wx.EVT_BUTTON, self.on_register_click, self.register_button)
 
         # Create a slider
         self.slider = wx.Slider(self.tool_panel, value=50, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
@@ -147,11 +152,20 @@ class GUIFrame(InputFrame):
             
         dialog.Destroy()
 
-    def on_button_click(self, event):
+    def on_projection_click(self, event):
         print("Toggle perspective / orthographic projection")
         self.canvas.cameraIdx = (self.canvas.cameraIdx + 1) % 2
         self.canvas.update()
 
+
+    # FIXME: to be done!!!!
+    def on_register_click(self, event):
+        if self.canvas.registrator is None:
+            raise Exception("Registrator not initialized")
+        self.canvas.registrator.register(d_max=10.0, max_iterations=1)
+        self.canvas.update() #TODO: is this necessary????
+
+        
 
     def on_slider_change(self, event):
         value = self.slider.GetValue()
