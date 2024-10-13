@@ -61,14 +61,17 @@ class FlatMaterial(Material):
             uniform mat4 viewMatrix;
             uniform mat4 modelMatrix;
             in vec3 vertexPosition;
+            in vec3 vertexColor;
             in vec2 vertexUV;
             in vec3 faceNormal;
+            out vec3 color;
             out vec2 UV;
             out vec3 light;
 
             void main()
             {
                 gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1);
+                color = vertexColor;
                 UV = vertexUV;
 
                 //calculate total effect of lights on color
@@ -85,8 +88,10 @@ class FlatMaterial(Material):
         fragmentShaderCode = """
             uniform vec3 baseColor;
             uniform float alpha; //TODO: add transparency to properties
+            uniform bool useVertexColors;
             uniform bool useTexture;
             uniform sampler2D texture;
+            in vec3 color;
             in vec2 UV;
             in vec3 light;
             out vec4 fragColor;
@@ -96,6 +101,10 @@ class FlatMaterial(Material):
                 if (useTexture)
                 {
                     color *= texture2D(texture, UV);
+                }
+                if (useVertexColors)
+                {
+                    color *= vec4(color, alpha); //TODO: add transparency to properties
                 }
                 color *= vec4(light, 1.0);
                 fragColor = color;

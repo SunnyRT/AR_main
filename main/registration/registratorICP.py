@@ -35,6 +35,21 @@ class RegistratorICP(object):
         return worldVertexPos 
     
     
+    def findSameColorPoints(self, mesh2Vertices):
+        mesh1Colors = self.mesh1.geometry.attributes["vertexColor"].data
+        mesh2Colors = self.mesh2.geometry.attributes["vertexColor"].data
+        sameColorPoints = []
+
+        # Check if mesh1 only has a single color
+        if len(np.unique(mesh1Colors, axis=0)) > 1:
+            raise ValueError("Mesh1 must have a single color for ICP registration.")
+        
+        mesh1Color = mesh1Colors[0]
+        for i, color in enumerate(mesh2Colors):
+            if np.array_equal(color, mesh1Color):
+                sameColorPoints.append(mesh2Vertices[i])
+        
+        return np.array(sameColorPoints)
 
     def findClosestPoints(self, mesh1Vertices, mesh2Vertices, d_max):
         """ for each vertex in source mesh1, find the closest vertex in target mesh2 """
@@ -99,6 +114,9 @@ class RegistratorICP(object):
         mesh2Vertices = self.getMeshVertices(self.mesh2) 
         print(f"Number of vertices in mesh1: {mesh1Vertices.shape}")
         print(f"Number of vertices in mesh2: {mesh2Vertices.shape}")
+
+        mesh2Vertices = self.findSameColorPoints(mesh2Vertices)
+        print(f"Number of vertices in mesh2 with the same color as mesh1: {mesh2Vertices.shape}")
 
                                 
         # Initial transformation parameters (identity transformation)

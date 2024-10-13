@@ -46,7 +46,7 @@ class MyCanvas(InputCanvas):
         self.scene = Scene()
 
         # Set up first camera: camera0 for CAD engineering viewport
-        self.camera0 = Camera(isPerspective=True, aspectRatio=600/900)
+        self.camera0 = Camera(isPerspective=True, aspectRatio=1200/900)
         self.rig0 = MovementRig()
         self.rig0.add(self.camera0)
         self.rig0.setPosition([10, 10, 50])
@@ -62,18 +62,21 @@ class MyCanvas(InputCanvas):
         point = PointLight(color=[0.3, 0.3, 0.3], position=[20, 20, 16], attenuation=[1, 0.1, 0.1])
         self.scene.add(point)
 
-        geometrybox1 = BoxGeometry(10, 10, 10)
-        materialbox1 = FlatMaterial(properties={"baseColor": [1, 1, 0], "alpha": 0.5})
+        geometrybox1 = BoxGeometry(10, 10, 10, baseColor=[1, 0, 0])
+        materialbox1 = FlatMaterial(properties={"useVertexColor": True, "alpha": 0.5})
         self.box1 = Mesh(geometrybox1, materialbox1)
         self.scene.add(self.box1)
         self.box1.setPosition([2,2,2])
+        self.box1.rotateX(0.314, localCoord=True)
+        self.box1.rotateY(0.314, localCoord=True)
+        self.box1.rotateZ(0.314, localCoord=True)
 
-        geometrybox2 = BoxGeometry(10, 10, 10)
-        materialbox2 = FlatMaterial(properties={"baseColor": [0.5, 0.5, 0.5], "alpha": 0.5})
+        geometrybox2 = BoxGeometry(10, 10, 10, baseColor=[0, 1, 0])
+        materialbox2 = FlatMaterial(properties={"useVertexColor": True, "alpha": 0.5})
         self.box2 = Mesh(geometrybox2, materialbox2)
         self.scene.add(self.box2)
 
-
+        
 
         # Grid setup
         grid = GridHelper(size=1024, divisions=512, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)

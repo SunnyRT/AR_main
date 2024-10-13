@@ -102,7 +102,7 @@ class MyCanvas(InputCanvas):
 
         # Load 3D model
         geometry3d = Model3dGeometry(self.model3d_path)
-        lambertMaterial = LambertMaterial(properties={"baseColor": [0.2, 0.5, 0.5]})
+        lambertMaterial = LambertMaterial(properties={})
         self.mesh3d = Mesh(geometry3d, lambertMaterial)
         self.scene.add(self.mesh3d)
 
