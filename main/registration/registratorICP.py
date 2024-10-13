@@ -35,7 +35,7 @@ class RegistratorICP(object):
         return worldVertexPos 
     
     
-    def findSameColorPoints(self, mesh2Vertices):
+    def findSameColorPoints(self, mesh2Vertices, rtol=0.01):
         mesh1Colors = self.mesh1.geometry.attributes["vertexColor"].data
         mesh2Colors = self.mesh2.geometry.attributes["vertexColor"].data
         sameColorPoints = []
@@ -46,7 +46,8 @@ class RegistratorICP(object):
         
         mesh1Color = mesh1Colors[0]
         for i, color in enumerate(mesh2Colors):
-            if np.array_equal(color, mesh1Color):
+            # if np.array_equal(color, mesh1Color):
+            if np.allclose(color, mesh1Color, rtol=rtol): # Allow for small relative errors
                 sameColorPoints.append(mesh2Vertices[i])
         
         return np.array(sameColorPoints)
