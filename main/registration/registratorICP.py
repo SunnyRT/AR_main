@@ -25,13 +25,13 @@ class RegistratorICP(object):
         if meshTransform.shape != (4, 4):
             raise ValueError(f"Invalid world matrix shape{meshTransform.shape}. Expected (4, 4).")
         vertexPos = np.array(mesh.geometry.attributes["vertexPosition"].data)
-        print(f"vertexPos: {vertexPos.shape}")
+        # print(f"vertexPos: {vertexPos.shape}")
         # Apply world matrix to vertex positions
         worldVertexPos4D = np.hstack((vertexPos, np.ones((len(vertexPos), 1)))) @ meshTransform.T
-        print(f"worldVertexPos4D: {worldVertexPos4D.shape}")
+        # print(f"worldVertexPos4D: {worldVertexPos4D.shape}")
         # Convert homogeneous coordinates to 3D coordinates
         worldVertexPos = worldVertexPos4D[:, :3] / worldVertexPos4D[:, 3][:, np.newaxis]
-        print(f"worldVertexPos: {worldVertexPos.shape}")
+        # print(f"worldVertexPos: {worldVertexPos.shape}")
         return worldVertexPos 
     
     
@@ -76,7 +76,7 @@ class RegistratorICP(object):
 
         # Combined rotation matrix
         TransformMatrix = Rx @ Ry @ Rz @ Txyz
-        print(f"TransformMatrix: {TransformMatrix}")
+        # print(f"TransformMatrix: {TransformMatrix}")
         return TransformMatrix
     
     def transformMesh(self, mesh, transformMatrix):
@@ -88,7 +88,7 @@ class RegistratorICP(object):
         # apply transformation
         # and convert back to 3D coordinates
         transformedPoints = (np.hstack((points, np.ones((len(points), 1)))) @ transformMatrix.T)[:, :3]
-        print(f"points before transform: {points.shape}, after transform: {transformedPoints.shape}")
+        # print(f"points before transform: {points.shape}, after transform: {transformedPoints.shape}")
         return transformedPoints 
 
 
@@ -107,7 +107,7 @@ class RegistratorICP(object):
 
 
     # ICP Algorithm
-    def register(self, d_max, max_iterations=10, tolerance=1e-3):
+    def register(self, d_max, n_iterations=10, tolerance=1e-3):
 
         # Extract vertexPosition with world matrix applied from both meshes
         mesh1Vertices = self.getMeshVertices(self.mesh1)
@@ -117,12 +117,13 @@ class RegistratorICP(object):
 
         mesh2Vertices = self.findSameColorPoints(mesh2Vertices)
         print(f"Number of vertices in mesh2 with the same color as mesh1: {mesh2Vertices.shape}")
-
+        if len(mesh2Vertices) == 0:
+            raise ValueError("No matching color found in target mesh.")
                                 
         # Initial transformation parameters (identity transformation)
         params = np.zeros(6)  # [theta_x, theta_y, theta_z, t_x, t_y, t_z]
 
-        for i in range(max_iterations):
+        for i in range(n_iterations):
             # 1. Find closest points between mesh1 and mesh2
             closestPairs = self.findClosestPoints(mesh1Vertices, mesh2Vertices, d_max)
             if len(closestPairs) == 0:

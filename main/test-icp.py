@@ -13,6 +13,7 @@ from core_ext.texture import Texture
 from material.textureMaterial import TextureMaterial
 from material.flatMaterial import FlatMaterial
 from material.lambertMaterial import LambertMaterial
+from material.phongMaterial import PhongMaterial
 
 from light.ambientLight import AmbientLight
 from light.directionalLight import DirecitonalLight
@@ -62,8 +63,8 @@ class MyCanvas(InputCanvas):
         point = PointLight(color=[0.3, 0.3, 0.3], position=[20, 20, 16], attenuation=[1, 0.1, 0.1])
         self.scene.add(point)
 
-        geometrybox1 = BoxGeometry(10, 10, 10, baseColor=[1, 0, 0])
-        materialbox1 = FlatMaterial(properties={"useVertexColor": True, "alpha": 0.5})
+        geometrybox1 = BoxGeometry(10, 10, 10, vertexColor=[1, 0, 0])
+        materialbox1 = LambertMaterial(properties={"useVertexColors": True, "alpha": 0.5})
         self.box1 = Mesh(geometrybox1, materialbox1)
         self.scene.add(self.box1)
         self.box1.setPosition([2,2,2])
@@ -71,8 +72,8 @@ class MyCanvas(InputCanvas):
         self.box1.rotateY(0.314, localCoord=True)
         self.box1.rotateZ(0.314, localCoord=True)
 
-        geometrybox2 = BoxGeometry(10, 10, 10, baseColor=[0, 1, 0])
-        materialbox2 = FlatMaterial(properties={"useVertexColor": True, "alpha": 0.5})
+        geometrybox2 = BoxGeometry(10, 10, 10, vertexColor=[1, 0, 0])
+        materialbox2 = LambertMaterial(properties={"useVertexColors": True, "alpha": 0.5})
         self.box2 = Mesh(geometrybox2, materialbox2)
         self.scene.add(self.box2)
 
@@ -90,7 +91,7 @@ class MyCanvas(InputCanvas):
 
 
         # Setup ICP registrator
-        self.registrator = RegistratorICP(self.box1, self.box2)
+        self.registrator = RegistratorICP(self.box1, self.box2) # TODO: execution is done by GUIFrame!!!
 
         self.initialized = True
 

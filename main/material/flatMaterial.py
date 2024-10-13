@@ -97,17 +97,17 @@ class FlatMaterial(Material):
             out vec4 fragColor;
             void main()
             {
-                vec4 color = vec4(baseColor, alpha); //TODO: add transparency to properties
+                vec4 tempColor = vec4(baseColor, alpha); //TODO: add transparency to properties
                 if (useTexture)
                 {
-                    color *= texture2D(texture, UV);
+                    tempColor *= texture2D(texture, UV);
                 }
                 if (useVertexColors)
                 {
-                    color *= vec4(color, alpha); //TODO: add transparency to properties
+                    tempColor *= vec4(color, 1.0); //
                 }
-                color *= vec4(light, 1.0);
-                fragColor = color;
+                tempColor *= vec4(light, 1.0);
+                fragColor = tempColor;
             }
         """
 
@@ -116,6 +116,7 @@ class FlatMaterial(Material):
         # add uniforms
         self.addUniform("vec3", "baseColor", [1.0, 1.0, 1.0])
         self.addUniform("float", "alpha", 1.0) #TODO: add transparency to properties
+        self.addUniform("bool", "useVertexColors", False)
         self.addUniform("Light", "light0", None)
         self.addUniform("Light", "light1", None)
         self.addUniform("Light", "light2", None)

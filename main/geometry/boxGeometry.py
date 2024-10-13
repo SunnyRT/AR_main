@@ -2,7 +2,7 @@ from geometry.geometry import Geometry
 
 
 class BoxGeometry(Geometry):
-    def __init__(self, width=1, height=1, depth=1, baseColor=None):
+    def __init__(self, width=1, height=1, depth=1, vertexColor=None):
         super().__init__()
         # vertices
         p0 = [-width / 2, -height / 2, -depth / 2]
@@ -27,11 +27,11 @@ class BoxGeometry(Geometry):
                          p0, p1, p5, p0, p5, p4,
                          p4, p5, p7, p4, p7, p6,
                          p1, p0, p2, p1, p2, p3]
-        if baseColor is None:
+        if vertexColor is None:
             colorData = [c1] * 6 + [c2] * 6 + [c3] * 6 + [c4] * 6 + [c5] * 6 + [c6] * 6
 
         else:
-            colorData = [baseColor] * 36 
+            colorData = [vertexColor] * 36 
         # uvData = [t0, t1, t3, t0, t3, t2] * 6
         self.addAttribute("vec3", "vertexPosition", positionData)
         self.addAttribute("vec3", "vertexColor", colorData)

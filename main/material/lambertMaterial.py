@@ -13,9 +13,11 @@ class LambertMaterial(Material):
             uniform mat4 viewMatrix;
             uniform mat4 modelMatrix;
             in vec3 vertexPosition;
+            in vec3 vertexColor;
             in vec2 vertexUV;
             in vec3 vertexNormal;
             out vec3 position;
+            out vec3 color;
             out vec2 UV;
             out vec3 normal;
 
@@ -23,6 +25,7 @@ class LambertMaterial(Material):
             {
                 gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
                 position = vec3(modelMatrix * vec4(vertexPosition, 1.0));                
+                color = vertexColor;
                 UV = vertexUV;
                 normal = normalize(mat3(modelMatrix) * vertexNormal);
             }
@@ -80,26 +83,29 @@ class LambertMaterial(Material):
 
             uniform vec3 baseColor;
             uniform float alpha;
+            uniform bool useVertexColors;
             uniform bool useTexture;
             uniform sampler2D texture;
             in vec3 position;
+            in vec3 color;
             in vec2 UV;
             in vec3 normal;
             out vec4 fragColor;
             void main()
             {
-                vec4 color = vec4(baseColor, alpha);
-                if (useTexture) color *= texture2D(texture, UV);
+                vec4 tempColor = vec4(baseColor, alpha);
+                if (useTexture) tempColor *= texture2D(texture, UV);
+                if (useVertexColors) tempColor *= vec4(color, 1.0);
   
-                //calculate total effect of lights on color
+                //calculate total effect of lights on tempColor
                 vec3 total = vec3(0.0, 0.0, 0.0);
                 total += lightCalc(light0, position, normal);
                 total += lightCalc(light1, position, normal);
                 total += lightCalc(light2, position, normal);
                 total += lightCalc(light3, position, normal);
 
-                color *= vec4(total, 1.0);
-                fragColor = color;
+                tempColor *= vec4(total, 1.0);
+                fragColor = tempColor;
             }
         """
 
@@ -108,6 +114,7 @@ class LambertMaterial(Material):
         # add uniforms
         self.addUniform("vec3", "baseColor", [1.0, 1.0, 1.0])
         self.addUniform("float", "alpha", 1.0)
+        self.addUniform("bool", "useVertexColors", False)
         self.addUniform("Light", "light0", None)
         self.addUniform("Light", "light1", None)
         self.addUniform("Light", "light2", None)

@@ -162,7 +162,7 @@ class GUIFrame(InputFrame):
     def on_register_click(self, event):
         if self.canvas.registrator is None:
             raise Exception("Registrator not initialized")
-        self.canvas.registrator.register(d_max=10.0, max_iterations=1)
+        self.canvas.registrator.register(d_max=10.0, n_iterations=1)
         self.canvas.update() #TODO: is this necessary????
 
         
