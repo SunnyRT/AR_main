@@ -10,13 +10,14 @@ conda install pycodestyle pydocstyle pytest
 
 conda install -c conda-forge pyopengl
 conda install plyfile
+pip install open3d
 pip install glfw
 ```
 
 
 To execute the program window, type in the cmd:
 ``` 
-python main/test-display.py
+python main/test-main.py
 ```
 Note that it might be needed to change the path for desired .ply and image file 
 

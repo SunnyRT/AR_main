@@ -2,13 +2,16 @@ from core_ext.mesh import Mesh
 from geometry.geometry import Geometry
 from material.lineMaterial import LineMaterial
 from material.surfaceMaterial import SurfaceMaterial
+from material.lambertMaterial import LambertMaterial
+
 import numpy as np
 
 
 
 class Projector(object):
 
-    def __init__(self, camera, contourMesh, lineWidth=1, color=[1,1,0], alpha=0.3, near=20, far=100, delta=1, ):
+    def __init__(self, camera, contourMesh, lineWidth=1, color=[1,1,0], alpha=0.3, near=20, far=100, delta=1, 
+                 visibleRay=True, visibleCone=True):
         
 
         self.n = near
@@ -17,6 +20,18 @@ class Projector(object):
         self.color = color
         self.alpha = alpha
         
+        """"""""""""""" intialize ray mesh """""""""""""""
+        self.rayMesh = self._createRayMesh(camera, contourMesh, lineWidth)
+        self.coneMesh = self._createConeMesh()
+        self.rayMesh.add(self.coneMesh)
+        if not visibleRay:
+            self.rayMesh.visible = False
+        if not visibleCone:
+            self.coneMesh.visible = False
+        
+
+
+    def _createRayMesh(self, camera, contourMesh, lineWidth):
         """"""""""""""" create projector ray geometry"""""""""""""""
         rayGeometry = Geometry()
         positionData = []
@@ -29,90 +44,125 @@ class Projector(object):
         contourVertPos = contourMesh.geometry.attributes["vertexPosition"].data
         self.contourVertWorldPos = np.array(contourVertPos) + contourPos
         
+        cameraPos_array = np.tile(self.cameraPos, (len(self.contourVertWorldPos), 1))
+        
+        # Stack cameraPos and contourVertWorldPos alternatively
+        positionData = np.empty((len(self.contourVertWorldPos) * 2, 3), dtype=self.contourVertWorldPos.dtype)
+        positionData[0::2] = cameraPos_array  # Camera positions in even indices
+        positionData[1::2] = self.contourVertWorldPos  # Contour vertices in odd indices
 
-        for vertPos in self.contourVertWorldPos:
-            positionData.append(self.cameraPos)
-            positionData.append(vertPos)
-            colorData.append(color)
-            colorData.append(color)
+        colorData = np.tile(self.color, (len(positionData), 1)) 
+        
 
 
         rayGeometry.addAttribute("vec3", "vertexPosition", positionData)
         rayGeometry.addAttribute("vec3", "vertexColor", colorData)
-        
+    
         """""""""""""""create projector ray material"""""""""""""""
         rayMaterial = LineMaterial({"useVertexColors":True,
                             "lineWidth":lineWidth,
                             "lineType":"segments", 
                             "alpha":self.alpha})
 
-        
-        """"""""""""""" intialize ray mesh """""""""""""""
-        self.rayMesh = Mesh(rayGeometry, rayMaterial)
+        return Mesh(rayGeometry, rayMaterial)
 
 
 
 
-    def generateCone(self, visibleRay=False):
-        layers = []
-        for vertPos in self.contourVertWorldPos:
-            # Sample points along the ray and create a cone surface
-            rayDir = vertPos - self.cameraPos
-            rayDir = rayDir / rayDir[-1] # Normalize ray direction by z component
 
-            # Sample points along the ray within the near and far clipping planes
-            nearPoint = self.cameraPos - rayDir * self.n
-            farPoint = self.cameraPos - rayDir * self.f
-            
-            # Sample points between near and far points at intervals of delta
-            t_values = np.arange(0, 1, self.delta/(self.f-self.n))  # Sampling along the ray
-            sampled_points = (1 - t_values)[:, None] * nearPoint + t_values[:, None] * farPoint
-            
-            layers.append(sampled_points)
-
-        layers = np.array(layers) # Shape: (numRays=numContourVertices, numSamples, 3)
-        self.verticeInLayers = layers
-        
-
-        # Triangulate the surface
-        positionData = []
-        numRays = layers.shape[0]
-        numSamples = layers.shape[1]
-
-        for i in range(numRays-1):
-            for j in range(numSamples-1):
-                # Create 2 triangles for each quad formed by 2 consecutive layers
-                positionData.append([layers[i][j], layers[i+1][j], layers[i][j+1]])
-                positionData.append([layers[i][j+1], layers[i+1][j], layers[i+1][j+1]])
-
-        
-        # Flatten the positionData list for easier handling
-        positionData = np.array(positionData).reshape(-1, 3)
-        colorData = [self.color] * len(positionData)
-        colorData = 0.5*np.array(colorData) 
-
-
-        ##############################################
-        # FIXME: compute vertex normals!!!!!!!!!
-        ##############################################
+    def _createConeMesh(self):
 
         """"""""""""""" create projector cone geometry"""""""""""""""
+        numRays = len(self.contourVertWorldPos)
+        numSamples = int((self.f-self.n)/self.delta) #FIXME: is +1 needed?
+
+        # Calculate sampled points along each ray
+        t_values = np.linspace(0, 1, numSamples).reshape(1,-1,1)  # Sampling along the ray
+        rayDirs = self.contourVertWorldPos - self.cameraPos
+        rayDirsNormalized = rayDirs / np.linalg.norm(rayDirs, axis=1)[:, None]
+
+        nearPoints = self.cameraPos + rayDirsNormalized * self.n
+        farPoints = self.cameraPos + rayDirsNormalized * self.f
+        sampledPoints = (1 - t_values) * nearPoints[:, None] + t_values * farPoints[:, None] # Shape: (numRays, numSamples, 3)
+        vertex_positions = sampledPoints.reshape(-1, 3) # Shape: (numRays*numSamples, 3)
+
+        face_indices = self._CalcFaceIndices(numRays, numSamples)
+        print(f"numRays: {numRays}, numSamples: {numSamples}, face_indices: {np.array(face_indices).shape}")
+
+        vertex_normals= self._CalcVertexNormals(vertex_positions, face_indices)
+        print(f"before arranging, vertexpos: {np.array(vertex_positions).shape}, vertexnormal: {np.array(vertex_normals).shape}")
+
+        positionData, colorData, vnormalData = self._arrangeVertexData(vertex_positions, face_indices, vertex_normals)
+        print(f"cone vertexpos: {np.array(positionData).shape}, cone vertexcolor:{np.array(colorData).shape}, cone vertexnormal: {np.array(vnormalData).shape}")
+        
         coneGeometry = Geometry()
         coneGeometry.addAttribute("vec3", "vertexPosition", positionData)
         coneGeometry.addAttribute("vec3", "vertexColor", colorData)
+        # coneGeometry.addAttribute("vec3", "vertexNormal", vnormalData)
+        # coneGeometry.addAttribute("vec3", "faceNormal", fnormalData) # TODO: add face normals
         
         """""""""""""""create projector cone material"""""""""""""""
-        coneMaterial = SurfaceMaterial(properties={"useVertexColors":True, "alpha":self.alpha})
+        coneMaterial = LambertMaterial(properties={"useVertexColors":True, "alpha":self.alpha})
         
         """"""""""""""" intialize cone mesh """""""""""""""
-        self.coneMesh = Mesh(coneGeometry, coneMaterial)
-        self.rayMesh.add(self.coneMesh)
-        if not visibleRay:
-            self.rayMesh.visible = False
-            self.coneMesh.visible = True
+        print("projector cone mesh initialized")
+        return Mesh(coneGeometry, coneMaterial)
 
 
 # FIXME: draw near and far clipping planes!!!!!
 
 
+    # def _CalcFaceIndices(self, numRays, numSamples):
+    #     # Generate two triangles for each quad between consecutive layers
+    #     i, j = np.meshgrid(np.arange(numRays - 1), np.arange(numSamples - 1), indexing='ij')
+    #     idx0 = i * numSamples + j
+    #     idx1 = (i + 1) * numSamples + j
+    #     idx2 = idx0 + 1
+    #     idx3 = idx1 + 1
+
+    #     # Stack indices for two triangles per quad
+    #     faces = np.vstack([
+    #         np.stack([idx0, idx1, idx2], axis=1).reshape(-1, 3),
+    #         np.stack([idx2, idx1, idx3], axis=1).reshape(-1, 3)
+    #     ])
+
+    #     return faces    
+
+    def _CalcFaceIndices(self, numRays, numSamples):
+        faces = []
+        for i in range(numRays-1):
+            for j in range(numSamples-1):
+                idx0 = i * numSamples + j
+                idx1 = (i + 1) * numSamples + j
+                idx2 = idx0 + 1
+                idx3 = idx1 + 1
+                faces.append([idx0, idx1, idx2])
+                faces.append([idx2, idx1, idx3])
+        return faces
+
+                
+    def _CalcVertexNormals(self, vertex_positions, face_indices):
+
+        vertex_normals = np.zeros_like(vertex_positions)
+
+        for face in face_indices:
+            v0, v1, v2 = vertex_positions[face]
+            normal = np.cross(v1 - v0, v2 - v0)
+            norm = np.linalg.norm(normal)
+            if norm != 0:
+                normal /= norm
+            vertex_normals[face] += normal
         
+        # Normalize the accumulated normals
+        norms = np.linalg.norm(vertex_normals, axis=1, keepdims=True)
+        vertex_normals = np.divide(vertex_normals, norms, where=norms != 0)
+
+        return vertex_normals
+    
+    def _arrangeVertexData(self, vertex_positions, face_indices, vertex_normals):
+        positionData = vertex_positions[face_indices].reshape(-1, 3)
+        colorData = [self.color] * len(positionData)
+        colorData = 2* np.array(colorData) # To dim the color
+        vnormalData = vertex_normals[face_indices].reshape(-1, 3)
+
+        return positionData, colorData, vnormalData

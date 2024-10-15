@@ -41,7 +41,7 @@ class Texture(object):
         # Get image width and height
         self.width, self.height = image.size
 
-        # print("Loaded image: %s (%d x %d)" % (fileName, self.width, self.height))
+        print("Loaded image: %s (%d x %d)" % (fileName, self.width, self.height))
 
         # Convert to wx.Image for display in wxPython
         wx_image = wx.Image(image.size[0], image.size[1])
