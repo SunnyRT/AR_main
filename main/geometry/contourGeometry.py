@@ -2,7 +2,7 @@ from geometry.geometry import Geometry
 
 class ContourGeometry(Geometry):
 
-    def __init__(self, px_coords, width, height, resolution, focalLength, contourColor=[1,0,0]):
+    def __init__(self, px_coords, width, height, resolution, focalLength, contourColor=[1,0,0], flipY=False):
         super().__init__()
 
         # convert pixel coordinates (px_x, px_y, z=0) into world coordinates (x, y, z)
@@ -10,6 +10,10 @@ class ContourGeometry(Geometry):
         # offset image such that (0, 0) is at the center
         positionData[:, 0] -= width / 2
         positionData[:, 1] -= height / 2
+
+        if flipY:
+            positionData[:, 1] *= -1 # flip vertically by negating y-coordinates
+
         colorData = [contourColor] * len(px_coords)
 
         self.addAttribute

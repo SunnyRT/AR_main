@@ -61,7 +61,8 @@ class MyCanvas(InputCanvas):
         self.camera0 = Camera(isPerspective=False, aspectRatio=600/900)
         self.rig0 = MovementRig()
         self.rig0.add(self.camera0)
-        self.rig0.setPosition([10, 10, 400]) # TODO: to change
+        self.rig0.setPosition([0, 0, 250]) # TODO: to change
+
         self.scene.add(self.rig0)
 
 

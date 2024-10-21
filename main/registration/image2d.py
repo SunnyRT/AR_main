@@ -89,7 +89,7 @@ class Image2D(object):
 
     def _createImagePlane(self):
         width, height = self._getWorldDimensions()
-        geometry2d = PlaneGeometry(width, height, 4, 4)
+        geometry2d = PlaneGeometry(width, height, 4, 4, flipY=True)
         imagePlane = Mesh(geometry2d, self.material2d)
         return imagePlane
     
@@ -125,7 +125,7 @@ class Image2D(object):
 
     def _createContour(self):
         width, height = self._getWorldDimensions()
-        contourGeometry = ContourGeometry(self.px_coords, width, height, self.resolution, self.n, self.contourColor)
+        contourGeometry = ContourGeometry(self.px_coords, width, height, self.resolution, self.n, self.contourColor, flipY=True)
         contourMesh = Mesh(contourGeometry, self.contourMaterial)
 
         return contourMesh
