@@ -11,43 +11,101 @@ from extras.movementRig import MovementRig
 import numpy as np
 
 class Image2D(object):
-    def __init__(self, imagePath, resolution, focalLength, camera_z=50, alpha=0.5, cameraDisplay=True):    
+    def __init__(self, imagePath, resolution, near, far, camera_z, alpha=0.5, cameraDisplay=True,
+                 contourPath=None, contourColor = [1, 0, 0], displayStyle = 'line', contourSize = 1):    
 
         print("Initializing Image2D...")
 
-        # Load 2D texture plane mesh from image file
+        # 0. Initialize parameters
         texture2d = Texture(imagePath)
-        pxWidth = texture2d.width
-        pxHeight = texture2d.height
+        self.pxWidth = texture2d.width
+        self.pxHeight = texture2d.height
         self.resolution = resolution
-        self.focalLength = focalLength
-        self.width = pxWidth * resolution * focalLength
-        self.height = pxHeight * resolution * focalLength
-        self.aspectRatio = pxWidth / pxHeight
-        material2d = TextureMaterial(texture2d, {"alpha": alpha})
-        geometry2d = PlaneGeometry(self.width, self.height, 4, 4)
-        self.imagePlane = Mesh(geometry2d, material2d)
+        self.n = near # near clipping plane = focal length (i.e. distance between camera and image plane)
+        self.f = far # far clipping plane
+        self.aspectRatio = self.pxWidth / self.pxHeight
+
+        # 1. Add movementRig and microscopic camera 
+        self.rig = MovementRig()
+
+        # 2. Add microscopic camera
+        camera_theta = self._calcCameraTheta()
+        self.camera = Camera(isPerspective=True, angleOfView=camera_theta, aspectRatio=self.aspectRatio, renderBox=cameraDisplay)
         
 
-        # Add microscopic camera and movementRig attached to imagePlane
-        camera_theta = 2 * np.arctan((self.height / 2) / focalLength) / np.pi * 180
-        self.camera = Camera(isPerspective=True, angleOfView=camera_theta, aspectRatio=self.aspectRatio, renderBox=cameraDisplay)
-        self.rig = MovementRig()
+        # 3. Load 2D texture plane mesh from image file
+        self.material2d = TextureMaterial(texture2d, {"alpha": alpha})
+        self.imagePlane = self._createImagePlane()
+
+
+        # 4. Load contourMesh from sw contour file
+        self.contourColor = contourColor
+        if contourPath is not None:
+            self._loadContourInfo(contourPath, contourColor, displayStyle, contourSize)
+            self.contourMesh = self._createContour()
+        else:
+            self.contourMesh = None
+
+
         
-        # Parent relationship and positioning
-        # rig -> camera -> imagePlane
+        # 5. Parent relationship 
+        # rig -> camera -> imagePlane -> contourMesh
         self.rig.add(self.camera)
-        self.rig.setPosition([0, 0, camera_z])
         self.camera.add(self.imagePlane)
-        self.imagePlane.translate(0, 0, -focalLength)
+        if self.contourMesh is not None:
+            self.imagePlane.add(self.contourMesh)
+        
+        # 6. initial positioning
+        self.rig.setPosition([0, 0, camera_z])
+        self.imagePlane.translate(0, 0, -self.n)
+        self.contourMesh.translate(0, 0, 0.1) # TODO: Move contour slightly above imagePlane
+
+
+        self.projectorObject = None
 
         print("Image2D initialized")
 
 
-    def insertContour(self, sw_path, contourColor = [1, 0, 0], displayStyle = 'line', contourSize = 1):
+
+
+
+
+
+
+
+
+
+    def _calcCameraTheta(self):
+        width, height = self._getWorldDimensions()
+        theta = 2 * np.arctan((height / 2) / self.n) / np.pi * 180
+        return theta
+    
+    def _getWorldDimensions(self):
+        width = self.pxWidth * self.resolution * self.n
+        height = self.pxHeight * self.resolution * self.n
+        return width, height
+
+
+
+    def _createImagePlane(self):
+        width, height = self._getWorldDimensions()
+        geometry2d = PlaneGeometry(width, height, 4, 4)
+        imagePlane = Mesh(geometry2d, self.material2d)
+        return imagePlane
+    
+    
+    def _updateImagePlane(self):
+        if self.imagePlane in self.camera.children:
+            self.camera.remove(self.imagePlane)
+        self.imagePlane = self._createImagePlane()
+        self.camera.add(self.imagePlane)
+        self.imagePlane.translate(0, 0, -self.n)
+    
+
+
+    def _loadContourInfo(self, sw_path, contourColor, displayStyle, contourSize):
         with open(sw_path, 'r') as f:
             lines = f.readlines()
-        
         
         for line in lines:
             if line.startswith('CONT'):
@@ -57,14 +115,84 @@ class Image2D(object):
                 px_coords = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
                 break
 
-        
-        
-        contourGeometry = ContourGeometry(px_coords, self.width, self.height, self.resolution, self.focalLength, contourColor)
+        self.px_coords = px_coords
         if displayStyle == 'point':
-            contourMaterial = PointMaterial({"pointSize": contourSize, "baseColor": contourColor, "roundedPoints": True})
+            self.contourMaterial = PointMaterial({"pointSize": contourSize, "baseColor": contourColor, "roundedPoints": True})
         elif displayStyle == 'line':
-            contourMaterial = LineMaterial({"lineWidth": contourSize, "baseColor": contourColor, "lineType": "connected"})
+            self.contourMaterial = LineMaterial({"lineWidth": contourSize, "baseColor": contourColor, "lineType": "connected"})
 
-        self.contourMesh = Mesh(contourGeometry, contourMaterial)
-        self.imagePlane.add(self.contourMesh) # rig -> camera -> imagePlane -> contourMesh
-        self.contourMesh.translate(0, 0, 0.1) # TODO: Move contour slightly above imagePlane
+
+
+    def _createContour(self):
+        width, height = self._getWorldDimensions()
+        contourGeometry = ContourGeometry(self.px_coords, width, height, self.resolution, self.n, self.contourColor)
+        contourMesh = Mesh(contourGeometry, self.contourMaterial)
+
+        return contourMesh
+
+    def _updateContour(self):
+        if self.contourMesh in self.imagePlane.children:
+            self.imagePlane.remove(self.contourMesh)
+        self.contourMesh = self._createContour()
+        self.imagePlane.add(self.contourMesh)
+        self.contourMesh.translate(0, 0, 0.1)
+
+
+
+
+
+
+
+
+
+    def update(self, inputObject):
+
+        # Handle shift and ctrl + mouse scroll to manipulate near and far clipping planes
+        shiftMouseScroll = inputObject.getShiftMouseScroll()
+        ctrlMouseScroll = inputObject.getCtrlMouseScroll()
+        if shiftMouseScroll != 0:
+            self.n += 10*shiftMouseScroll
+
+            # update projectorObject coneMesh with new near plane
+            if self.projectorObject is not None:
+                self.projectorObject.n = self.n
+                self.projectorObject._updateConeMesh()
+            # print(f"shiftMouseScroll: {shiftMouseScroll}, near: {self.n}")
+
+            # update imagePlane
+            self._updateImagePlane()
+
+            # update contourMesh
+            if self.contourMesh is not None:
+                self._updateContour()
+
+        if ctrlMouseScroll != 0:
+            self.f += 10*ctrlMouseScroll
+
+            # update projectorObject coneMesh with new far plane
+            if self.projectorObject is not None:
+                self.projectorObject.f = self.f
+                self.projectorObject._updateConeMesh()
+            # print(f"ctrlMouseScroll: {ctrlMouseScroll}, far: {self.f}")
+
+    
+    
+        # Handle alt + mouse scroll to move camera (rig) while keeping the near and far clipping planes at the same distance
+        altSroll = inputObject.getAltMouseScroll()
+        if altSroll != 0:
+            print(f"altSroll: {altSroll}")
+            if self.projectorObject is not None:
+                self.rig.translate(0, 0, -altSroll * 10, localCoord=True)
+                self.n -= altSroll * 10
+                self.f -= altSroll * 10
+                self.projectorObject.n -= altSroll * 10
+                self.projectorObject.f -= altSroll * 10
+                # self.camera.theta = self._calcCameraTheta() # theta would not be affected by camera movement
+
+                self.projectorObject._updateConeMesh()
+                self._updateImagePlane()
+                if self.contourMesh is not None:
+                    self._updateContour()
+                print(f"near: {self.projectorObject.n}, far: {self.projectorObject.f}, camera moved: {altSroll * 10}")
+            else:
+                print("MovementRig.update() error: projectorObject is None")

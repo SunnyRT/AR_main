@@ -41,6 +41,11 @@ class MyCanvas(InputCanvas):
         self.image2d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
         self.contour_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
+        self.color_pinna = [0.90588235, 0.72156863, 0.09411765]
+        self.color_incus = [1, 0, 0] # TODO: to change
+        self.n = 200
+        self.f = 300
+        self.camera1_z = 250
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
 
@@ -56,7 +61,7 @@ class MyCanvas(InputCanvas):
         self.camera0 = Camera(isPerspective=False, aspectRatio=600/900)
         self.rig0 = MovementRig()
         self.rig0.add(self.camera0)
-        self.rig0.setPosition([10, 10, 500])
+        self.rig0.setPosition([10, 10, 400]) # TODO: to change
         self.scene.add(self.rig0)
 
 
@@ -77,24 +82,22 @@ class MyCanvas(InputCanvas):
 
 
         # Load 2D texture image
-        camera1_z = 300 # TODO: to change 
-        self.image2d = Image2D(self.image2d_path, resolution=0.0003, focalLength=100, camera_z=camera1_z, alpha=0.5)
+
+        self.image2d = Image2D(self.image2d_path, resolution=0.0003, near = self.n, far = self.f, camera_z=self.camera1_z, alpha=0.5,
+                               contourPath=self.contour_path, contourColor=self.color_pinna, displayStyle='line', contourSize=3)
         self.camera1 = self.image2d.camera
         self.rig1 = self.image2d.rig
-        self.scene.add(self.rig1)
-        # add contour to image2d
-        self.image2d.insertContour(self.contour_path, contourColor=[1,0,0], displayStyle='line', contourSize=3)
-        # self.image2d.imagePlane.rotateX(pi)
-        # self.image2d.imagePlane.rotateZ(pi/2)
+        self.scene.add(self.rig1) # Add rig1, and hence the entire image2d object to scene
 
 
 
         ############################################
         # Add projector from camera1 through contour points
-        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=100, far=140, delta=10, lineWidth=1, color=[0.90588235, 0.72156863, 0.09411765],
+        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=10, lineWidth=1, color=self.color_pinna,
                                    visibleRay=False, visibleCone=True)
         self.camera1.add(self.projector.rayMesh)
-        self.projector.rayMesh.translate(0, 0, -camera1_z) # FIXME: Move projector to camera1 position (remove offset)
+        self.projector.rayMesh.translate(0, 0, -self.camera1_z) # FIXME: Move projector to camera1 position (remove offset)
+        self.image2d.projectorObject = self.projector # establish link between projector and image2d (for movement of camera1 while keeping projector fixed)
         self.rig1.projectorObject = self.projector # establish link between projector and rig1 (for movement of camera1 while keeping projector fixed)
 
         # # Add position markers
@@ -129,7 +132,6 @@ class MyCanvas(InputCanvas):
         if not self.initialized:
             self.initialize()
 
-        self.projector.update(self)
 
         # Update information displayed in the tool panel
         transform_matrix = self.image2d.imagePlane.getWorldMatrix()
@@ -147,6 +149,8 @@ class MyCanvas(InputCanvas):
         else:
             self.rig1.update(self)
             self.camera1.update(self)
+
+        self.image2d.update(self)
 
         
 

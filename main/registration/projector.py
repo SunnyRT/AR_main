@@ -10,7 +10,7 @@ import numpy as np
 
 class Projector(object):
 
-    def __init__(self, camera, contourMesh, lineWidth=1, color=[1,1,0], alpha=0.3, near=20, far=100, delta=1, 
+    def __init__(self, camera, contourMesh, lineWidth=1, color=[1,1,0], alpha=0.3, near=500, far=750, delta=1, 
                  visibleRay=True, visibleCone=True):
         
 
@@ -153,22 +153,22 @@ class Projector(object):
 
 
 
-    # manipulate projector coneMesh: change near and far planes
-    def update(self, inputObject, imagePlaneMesh, deltaTime=None): 
-        if inputObject is None:
-            print("Projector.update() error: inputObject is None")
-            return
+    # # manipulate projector coneMesh: change near and far planes
+    # def update(self, inputObject, deltaTime=None): 
+    #     if inputObject is None:
+    #         print("Projector.update() error: inputObject is None")
+    #         return
         
-        shiftMouseScroll = inputObject.getShiftMouseScroll()
-        ctrlMouseScroll = inputObject.getCtrlMouseScroll()
-        if shiftMouseScroll != 0:
-            self.n += 10*shiftMouseScroll
-            self._updateConeMesh()
-            # print(f"shiftMouseScroll: {shiftMouseScroll}, near: {self.n}")
-        if ctrlMouseScroll != 0:
-            self.f += 10*ctrlMouseScroll
-            self._updateConeMesh()
-            # print(f"ctrlMouseScroll: {ctrlMouseScroll}, far: {self.f}")
+    #     shiftMouseScroll = inputObject.getShiftMouseScroll()
+    #     ctrlMouseScroll = inputObject.getCtrlMouseScroll()
+    #     if shiftMouseScroll != 0:
+    #         self.n += 10*shiftMouseScroll
+    #         self._updateConeMesh()
+    #         # print(f"shiftMouseScroll: {shiftMouseScroll}, near: {self.n}")
+    #     if ctrlMouseScroll != 0:
+    #         self.f += 10*ctrlMouseScroll
+    #         self._updateConeMesh()
+    #         # print(f"ctrlMouseScroll: {ctrlMouseScroll}, far: {self.f}")
 
             
     
