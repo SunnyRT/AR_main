@@ -12,7 +12,7 @@ from extras.gridHelper import GridHelper
 from extras.axesHelper import AxesHelper
 from extras.movementRig import MovementRig
 from math import pi
-from core.baseInput import InputCanvas, InputFrame  
+from main.core.InputCanvas import InputCanvas, InputFrame  
 
 
 class TestCanvas(InputCanvas):  # Extend the existing BaseCanvas

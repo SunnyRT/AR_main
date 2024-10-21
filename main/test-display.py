@@ -1,7 +1,7 @@
 import wx
 import numpy as np
-from core.baseInput import InputCanvas # Extend your existing BaseCanvas
-from core.baseGUI import GUIFrame
+from main.core.InputCanvas import InputCanvas # Extend your existing BaseCanvas
+from main.core.guiFrame import GUIFrame
 from core_ext.rendererDual import RendererDual
 from core_ext.scene import Scene
 from core_ext.camera import Camera

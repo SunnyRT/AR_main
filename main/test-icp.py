@@ -1,7 +1,7 @@
 import wx
 import numpy as np
-from core.baseInput import InputCanvas # Extend your existing BaseCanvas
-from core.baseGUI import GUIFrame
+from main.core.InputCanvas import InputCanvas # Extend your existing BaseCanvas
+from main.core.guiFrame import GUIFrame
 from core_ext.rendererDual import RendererDual
 from core_ext.scene import Scene
 from core_ext.camera import Camera
@@ -68,9 +68,9 @@ class MyCanvas(InputCanvas):
         self.box1 = Mesh(geometrybox1, materialbox1)
         self.scene.add(self.box1)
         self.box1.setPosition([2,2,2])
-        self.box1.rotateX(0.314, localCoord=True)
-        self.box1.rotateY(0.314, localCoord=True)
-        self.box1.rotateZ(0.314, localCoord=True)
+        self.box1.rotateX(0.314, localCoord=False)
+        self.box1.rotateY(0.314, localCoord=False)
+        self.box1.rotateZ(0.314, localCoord=False)
 
         geometrybox2 = BoxGeometry(10, 10, 10, vertexColor=[1, 0, 0])
         materialbox2 = LambertMaterial(properties={"useVertexColors": True, "alpha": 0.5})
