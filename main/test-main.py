@@ -1,7 +1,7 @@
 import wx
 import numpy as np
-from main.core.InputCanvas import InputCanvas # Extend your existing BaseCanvas
-from main.core.guiFrame import GUIFrame
+from core.InputCanvas import InputCanvas # Extend your existing BaseCanvas
+from core.guiFrame import GUIFrame
 from core_ext.rendererDual import RendererDual
 from core_ext.scene import Scene
 from core_ext.camera import Camera
@@ -91,10 +91,11 @@ class MyCanvas(InputCanvas):
 
         ############################################
         # Add projector from camera1 through contour points
-        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=40, far=100, delta=10, lineWidth=1, color=[0.90588235, 0.72156863, 0.09411765],
-                                   visibleRay=True, visibleCone=True)
+        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=100, far=140, delta=10, lineWidth=1, color=[0.90588235, 0.72156863, 0.09411765],
+                                   visibleRay=False, visibleCone=True)
         self.camera1.add(self.projector.rayMesh)
         self.projector.rayMesh.translate(0, 0, -camera1_z) # FIXME: Move projector to camera1 position (remove offset)
+        self.rig1.projectorObject = self.projector # establish link between projector and rig1 (for movement of camera1 while keeping projector fixed)
 
         # # Add position markers
         # posMarker1 = PosMarker([0, 0, camera1_z], color=[0, 1, 1], size=10)
@@ -123,9 +124,12 @@ class MyCanvas(InputCanvas):
 
     def update(self):
 
+        
+
         if not self.initialized:
             self.initialize()
 
+        self.projector.update(self)
 
         # Update information displayed in the tool panel
         transform_matrix = self.image2d.imagePlane.getWorldMatrix()
@@ -144,6 +148,7 @@ class MyCanvas(InputCanvas):
             self.rig1.update(self)
             self.camera1.update(self)
 
+        
 
         self.renderer.render(self.scene, self.camera0, viewportSplit="left")   
         self.renderer.render(self.scene, self.camera1, clearColor = False,viewportSplit="right")

@@ -75,6 +75,7 @@ class Projector(object):
         """"""""""""""" create projector cone geometry"""""""""""""""
         numRays = len(self.contourVertWorldPos)
         numSamples = int((self.f-self.n)/self.delta) #FIXME: is +1 needed?
+        print(f"nearPlane: {self.n}, farPlane: {self.f}, numSamples: {numSamples}")
 
         # Calculate sampled points along each ray
         t_values = np.linspace(0, 1, numSamples).reshape(1,-1,1)  # Sampling along the ray
@@ -86,14 +87,14 @@ class Projector(object):
         sampledPoints = (1 - t_values) * nearPoints[:, None] + t_values * farPoints[:, None] # Shape: (numRays, numSamples, 3)
         vertex_positions = sampledPoints.reshape(-1, 3) # Shape: (numRays*numSamples, 3)
 
-        face_indices = self._CalcFaceIndices(numRays, numSamples)
-        print(f"numRays: {numRays}, numSamples: {numSamples}, face_indices: {np.array(face_indices).shape}")
+        face_indices = self._calcFaceIndices(numRays, numSamples)
+        # print(f"numRays: {numRays}, numSamples: {numSamples}, face_indices: {np.array(face_indices).shape}")
 
-        vertex_normals= self._CalcVertexNormals(vertex_positions, face_indices)
-        print(f"before arranging, vertexpos: {np.array(vertex_positions).shape}, vertexnormal: {np.array(vertex_normals).shape}")
+        vertex_normals= self._calcVertexNormals(vertex_positions, face_indices)
+        # print(f"before arranging, vertexpos: {np.array(vertex_positions).shape}, vertexnormal: {np.array(vertex_normals).shape}")
 
         positionData, colorData, vnormalData = self._arrangeVertexData(vertex_positions, face_indices, vertex_normals)
-        print(f"cone vertexpos: {np.array(positionData).shape}, cone vertexcolor:{np.array(colorData).shape}, cone vertexnormal: {np.array(vnormalData).shape}")
+        # print(f"cone vertexpos: {np.array(positionData).shape}, cone vertexcolor:{np.array(colorData).shape}, cone vertexnormal: {np.array(vnormalData).shape}")
         
         coneGeometry = Geometry()
         coneGeometry.addAttribute("vec3", "vertexPosition", positionData)
@@ -105,30 +106,11 @@ class Projector(object):
         coneMaterial = LambertMaterial(properties={"useVertexColors":True, "alpha":self.alpha})
         
         """"""""""""""" intialize cone mesh """""""""""""""
-        print("projector cone mesh initialized")
+        # print("projector cone mesh initialized")
         return Mesh(coneGeometry, coneMaterial)
 
 
-# FIXME: draw near and far clipping planes!!!!!
-
-
-    # def _CalcFaceIndices(self, numRays, numSamples):
-    #     # Generate two triangles for each quad between consecutive layers
-    #     i, j = np.meshgrid(np.arange(numRays - 1), np.arange(numSamples - 1), indexing='ij')
-    #     idx0 = i * numSamples + j
-    #     idx1 = (i + 1) * numSamples + j
-    #     idx2 = idx0 + 1
-    #     idx3 = idx1 + 1
-
-    #     # Stack indices for two triangles per quad
-    #     faces = np.vstack([
-    #         np.stack([idx0, idx1, idx2], axis=1).reshape(-1, 3),
-    #         np.stack([idx2, idx1, idx3], axis=1).reshape(-1, 3)
-    #     ])
-
-    #     return faces    
-
-    def _CalcFaceIndices(self, numRays, numSamples):
+    def _calcFaceIndices(self, numRays, numSamples):
         faces = []
         for i in range(numRays-1):
             for j in range(numSamples-1):
@@ -141,7 +123,7 @@ class Projector(object):
         return faces
 
                 
-    def _CalcVertexNormals(self, vertex_positions, face_indices):
+    def _calcVertexNormals(self, vertex_positions, face_indices):
 
         vertex_normals = np.zeros_like(vertex_positions)
 
@@ -166,3 +148,35 @@ class Projector(object):
         vnormalData = vertex_normals[face_indices].reshape(-1, 3)
 
         return positionData, colorData, vnormalData
+    
+
+
+
+
+    # manipulate projector coneMesh: change near and far planes
+    def update(self, inputObject, imagePlaneMesh, deltaTime=None): 
+        if inputObject is None:
+            print("Projector.update() error: inputObject is None")
+            return
+        
+        shiftMouseScroll = inputObject.getShiftMouseScroll()
+        ctrlMouseScroll = inputObject.getCtrlMouseScroll()
+        if shiftMouseScroll != 0:
+            self.n += 10*shiftMouseScroll
+            self._updateConeMesh()
+            # print(f"shiftMouseScroll: {shiftMouseScroll}, near: {self.n}")
+        if ctrlMouseScroll != 0:
+            self.f += 10*ctrlMouseScroll
+            self._updateConeMesh()
+            # print(f"ctrlMouseScroll: {ctrlMouseScroll}, far: {self.f}")
+
+            
+    
+    def _updateConeMesh(self):
+        """ update cone mesh with new near and far planes """
+        if self.coneMesh in self.rayMesh.children:
+            self.rayMesh.remove(self.coneMesh)
+        self.coneMesh = self._createConeMesh()
+        self.rayMesh.add(self.coneMesh)
+
+        

@@ -17,6 +17,9 @@ class InputCanvas(BaseCanvas):
         self.mousePos = wx.GetMousePosition()
         self.mouseDelta = (0, 0)
         self.mouseScroll = 0
+        self.shiftMouseScroll = 0
+        self.ctrlMouseScroll = 0
+        self.altMouseScroll = 0
 
         # Bind additional input events
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
@@ -29,12 +32,20 @@ class InputCanvas(BaseCanvas):
         self.Bind(wx.EVT_RIGHT_UP, self.on_mouse_up)
         self.Bind(wx.EVT_MOUSEWHEEL, self.on_mouse_scroll)
 
+
+        # initialize two variables (near and far clipping planes)
+        self.n = None
+        self.f = None
+
     def update_input(self):
 
         self.keysDownList = []
         self.keysUpList = []
         self.mouseDelta = (0, 0)
         self.mouseScroll = 0
+        self.shiftMouseScroll = 0
+        self.ctrlMouseScroll = 0
+        self.altMouseScroll = 0
 
         # Calculate mouse delta (movement)
         newMousePos = wx.GetMousePosition()
@@ -81,12 +92,16 @@ class InputCanvas(BaseCanvas):
 
     def on_mouse_scroll(self, event):
         scroll = event.GetWheelRotation()
-        if scroll > 0:
-            self.mouseScroll = 1  # Scroll up
-            # print("Scroll up")
-        elif scroll < 0:
-            self.mouseScroll = -1  # Scroll down
-            # print("Scroll down")   
+        scroll_dir = 1 if scroll > 0 else -1
+
+        if event.ShiftDown():
+            self.shiftMouseScroll = scroll_dir
+        elif event.ControlDown():
+            self.ctrlMouseScroll = scroll_dir
+        elif event.AltDown():
+            self.altMouseScroll = scroll_dir
+        else:
+            self.mouseScroll = scroll_dir  
         self.Refresh()  # Force a paint event
 
     # Function to check key states
@@ -117,6 +132,15 @@ class InputCanvas(BaseCanvas):
 
     def getMouseScroll(self):
         return self.mouseScroll
+    
+    def getShiftMouseScroll(self):
+        return self.shiftMouseScroll
+
+    def getCtrlMouseScroll(self):
+        return self.ctrlMouseScroll
+    
+    def getAltMouseScroll(self):
+        return self.altMouseScroll
 
     def get_key_name(self, keyCode):
         """ Translate the wx key code into a string representation """

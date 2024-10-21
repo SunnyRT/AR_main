@@ -1,6 +1,6 @@
 import wx
 import numpy as np
-from main.core.InputCanvas import InputFrame, InputCanvas
+from core.InputCanvas import InputFrame, InputCanvas
 
 from core_ext.texture import Texture
 from material.textureMaterial import TextureMaterial

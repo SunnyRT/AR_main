@@ -14,31 +14,31 @@ class Camera(Object3D):
                     near=0.1,
                     far=1000,
                     renderBox=False, boxDimensions=[5, 5, 10], boxColor=[0.5, 0.5, 0.5]):
-            super().__init__()
+        super().__init__()
 
-            self.isPerspective = isPerspective
-            self.theta = angleOfView
-            self.r = aspectRatio
-            self.d = distance
-            self.n = near
-            self.f = far
+        self.isPerspective = isPerspective
+        self.theta = angleOfView
+        self.r = aspectRatio
+        self.d = distance
+        self.n = near
+        self.f = far
 
-            self.zoom = 1.0
+        self.zoom = 1.0
 
 
-            if self.isPerspective:
-                self.setPerspective()
-            else:
-                self.setOrthographic()
+        if self.isPerspective:
+            self.setPerspective()
+        else:
+            self.setOrthographic()
 
-            self.viewMatrix = Matrix.makeIdentity()
+        self.viewMatrix = Matrix.makeIdentity()
 
-            if renderBox:
-                cameraGeometry = BoxGeometry(boxDimensions[0], boxDimensions[1], boxDimensions[2])
-                cameraMaterial = LambertMaterial(properties={"baseColor": boxColor})
-                cameraBox = Mesh(cameraGeometry, cameraMaterial)
-                self.add(cameraBox)
-                cameraBox.translate(0, 0, boxDimensions[2] / 2)
+        if renderBox:
+            cameraGeometry = BoxGeometry(boxDimensions[0], boxDimensions[1], boxDimensions[2])
+            cameraMaterial = LambertMaterial(properties={"baseColor": boxColor})
+            cameraBox = Mesh(cameraGeometry, cameraMaterial)
+            self.add(cameraBox)
+            cameraBox.translate(0, 0, boxDimensions[2] / 2)
 
     def updateViewMatrix(self):
         self.viewMatrix = inv(self.getWorldMatrix())

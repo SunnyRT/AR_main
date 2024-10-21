@@ -1,4 +1,4 @@
-from main.core.InputCanvas import InputCanvas, InputFrame
+from core.InputCanvas import InputCanvas, InputFrame
 import wx
 
 # Check input with basic debugging

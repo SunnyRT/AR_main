@@ -15,6 +15,8 @@ class MovementRig(Object3D):
         self.children = [self.lookAttachment]
         self.lookAttachment.parent = self
 
+        self.projectorObject = None
+
         # control rate of movement
         self.unitsPerSecond = unitsPerSecond
         self.degreesPerSecond = degreesPerSecond
@@ -94,6 +96,21 @@ class MovementRig(Object3D):
         mouseScroll = inputObject.getMouseScroll()
         if mouseScroll != 0:
             self.translate(0, 0, -mouseScroll * moveAmount)
+
+        # Handle alt + mouse scroll to move camera while keeping the near and far clipping planes at the same distance
+        
+        altSroll = inputObject.getAltMouseScroll()
+        if altSroll != 0:
+            print(f"altSroll: {altSroll}")
+            if self.projectorObject is not None:
+                self.translate(0, 0, -altSroll * 10, localCoord=True)
+                self.projectorObject.n += altSroll * 10
+                self.projectorObject.f += altSroll * 10
+                print(f"near: {self.projectorObject.n}, far: {self.projectorObject.f}, camera moved: {altSroll * 10}")
+            else:
+                print("MovementRig.update() error: projectorObject is None")
+
+
 
         
         
