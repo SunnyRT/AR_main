@@ -152,14 +152,13 @@ class MyCanvas(InputCanvas):
             self.camera1.update(self)
 
         """ Rest CAD viewport camera0 to align with camera1 """
-        if self.isKeyDown("i"): # FIXME:!!!!???????
+        if self.isKeyDown("i"): 
             self.rig0.setWorldPosition(self.rig1.getWorldPosition())
             self.rig0.setWorldRotation(self.rig1.getWorldRotationMatrix())
             self.rig0.lookAttachment.setWorldRotation(self.rig1.lookAttachment.getWorldRotationMatrix())
-            print(f"beforereset: {self.camera0.zoom}")
             self.camera0.zoom = 0.5 # reset zoom
             self.camera0.setOrthographic()
-            print(f"afterreset: {self.camera0.zoom}")
+
            
 
 

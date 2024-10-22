@@ -115,6 +115,19 @@ class Image2D(object):
                 px_coords = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
                 break
 
+        """FIXME: For now, only load the first contour line!!!!!!!!"""
+        # self.all_px_coords = []
+        # for line in lines:
+        #     if line.startswith('CONT'):
+        #         parts = line.strip().split()[4:]  # TODO: Skip the first 4 elements: "CONT 0 0 1"
+
+        #         # Extract pairs of (px_x, px_y) pixel coordinates and convert to 3D numpy array
+        #         px_coords = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
+        #         print("added one line of contour")
+        #         self.all_px_coords.append(px_coords)
+
+        # print(f"Number of contour lines: {len(self.all_px_coords)}")
+
         self.px_coords = px_coords
         if displayStyle == 'point':
             self.contourMaterial = PointMaterial({"pointSize": contourSize, "baseColor": contourColor, "roundedPoints": True})
