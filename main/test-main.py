@@ -58,11 +58,11 @@ class MyCanvas(InputCanvas):
         self.scene = Scene()
 
         # Set up first camera: camera0 for CAD engineering viewport
-        self.camera0 = Camera(isPerspective=False, aspectRatio=600/900)
+        self.camera0 = Camera(isPerspective=False, aspectRatio=600/900, zoom=0.5)
         self.rig0 = MovementRig()
         self.rig0.add(self.camera0)
-        self.rig0.setPosition([0, 0, 250]) # TODO: to change
-
+        self.rig0.setPosition([-100, 50, 500]) # TODO: to change
+        self.rig0.lookAt([0, 0, 0])
         self.scene.add(self.rig0)
 
 
@@ -134,7 +134,7 @@ class MyCanvas(InputCanvas):
             self.initialize()
 
 
-        # Update information displayed in the tool panel
+        """ Update information displayed in the tool panel"""
         transform_matrix = self.image2d.imagePlane.getWorldMatrix()
         distance = np.linalg.norm(self.camera1.getWorldPosition())
         view_angle = self.camera1.theta
@@ -151,7 +151,22 @@ class MyCanvas(InputCanvas):
             self.rig1.update(self)
             self.camera1.update(self)
 
-        self.image2d.update(self)
+        """ Rest CAD viewport camera0 to align with camera1 """
+        if self.isKeyDown("i"): # FIXME:!!!!???????
+            self.rig0.setWorldPosition(self.rig1.getWorldPosition())
+            self.rig0.setWorldRotation(self.rig1.getWorldRotationMatrix())
+            self.rig0.lookAttachment.setWorldRotation(self.rig1.lookAttachment.getWorldRotationMatrix())
+            print(f"beforereset: {self.camera0.zoom}")
+            self.camera0.zoom = 0.5 # reset zoom
+            self.camera0.setOrthographic()
+            print(f"afterreset: {self.camera0.zoom}")
+           
+
+
+        """ Update image2d object """ 
+        # - shift / ctrl + mousescroll to move near and far planes for projector conemseh
+        # - alt + mousescroll to move camera1 along its local z-axis w/o moving projector
+        self.image2d.update(self) 
 
         
 

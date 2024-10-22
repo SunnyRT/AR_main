@@ -116,6 +116,14 @@ class Object3D(object):
         self.transform[1, 3] = position[1]
         self.transform[2, 3] = position[2]
 
+    def setWorldPosition(self, position):
+        currentWorldPosition = self.getWorldPosition()
+        translation = [position[0] - currentWorldPosition[0],
+                       position[1] - currentWorldPosition[1],
+                       position[2] - currentWorldPosition[2]]
+        self.translate(translation[0], translation[1], translation[2], localCoord=False)
+
+        
     def lookAt(self, targetPosition):
         self.transform = Matrix.makeLookAt(self.getWorldPosition(), targetPosition)
 
@@ -125,16 +133,51 @@ class Object3D(object):
                             self.transform[1][0:3],
                             self.transform[2][0:3]])
     
+    def getWorldRotationMatrix(self):
+        worldTransform = self.getWorldMatrix()
+        return numpy.array([worldTransform[0][0:3],
+                            worldTransform[1][0:3],
+                            worldTransform[2][0:3]])
+    
+
+    def setRotation(self, rotationMatrix):
+        assert rotationMatrix.shape == (3, 3), "rotationMatrix must be a 3x3 matrix"
+        self.transform[0:3, 0:3] = rotationMatrix
+
+    def setWorldRotation(self, rotationMatrix):
+        assert rotationMatrix.shape == (3, 3), "rotationMatrix must be a 3x3 matrix"
+
+        if self.parent is None:
+            parentWorldMatrix = Matrix.makeIdentity()
+        else:
+            parentWorldMatrix = self.parent.getWorldRotationMatrix()
+
+        parentRotationInverse = numpy.linalg.inv(parentWorldMatrix)
+        localRotationMatrix = parentRotationInverse @ rotationMatrix
+        self.setRotation(localRotationMatrix)
+
+
+
+
+
     def getDirection(self):
         forward = numpy.array([0, 0, -1])
         return list(self.getRotationMatrix() @ forward)
     
-    def setDirection(self, direction):
-        position = self.getPosition()
+    def setDirection(self, direction, localCoord=True):
+        if localCoord:
+            position = self.getPosition() # TODO: double check if world or local position
+        else:
+            position = self.getWorldPosition()
         targetPosition = [position[0] + direction[0],
                           position[1] + direction[1],
                           position[2] + direction[2]]
-        self.lookAt(targetPosition)
+        
+        if localCoord:
+            self.lookAt(targetPosition)
+        else: # TODO: check if this is correct
+            rotationMatrix = Matrix.makeLookAt(position, targetPosition)
+            self.transform[0:3, 0:3] = rotationMatrix[0:3, 0:3] # set new rotation
 
         
 

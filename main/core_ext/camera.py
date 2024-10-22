@@ -13,6 +13,7 @@ class Camera(Object3D):
                     distance=20, # FIXME: to find a better way to match perspective and orthographic projection????
                     near=0.1,
                     far=1000,
+                    zoom=1.0,
                     renderBox=False, boxDimensions=[5, 5, 10], boxColor=[0.5, 0.5, 0.5]):
         super().__init__()
 
@@ -23,7 +24,7 @@ class Camera(Object3D):
         self.n = near
         self.f = far
 
-        self.zoom = 1.0
+        self.zoom = zoom
 
 
         if self.isPerspective:

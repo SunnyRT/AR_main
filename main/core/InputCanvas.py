@@ -160,6 +160,7 @@ class InputCanvas(BaseCanvas):
             ord('F'): "f",
             ord('T'): "t",
             ord('G'): "g",
+            ord('I'): "i",
         }
         return keyMap.get(keyCode, f"key_{keyCode}")
     
