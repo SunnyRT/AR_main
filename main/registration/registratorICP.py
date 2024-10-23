@@ -99,6 +99,7 @@ class RegistratorICP(object):
         # FIXME: how to optimize the process of finding closest points??
         # Currently, used vertices are directly removed!!!!!
         availableMesh2Vertices = self.mesh2Vertices.copy()
+        usedIdx = set()
 
 
         for v1 in self.mesh1Vertices:
@@ -112,11 +113,17 @@ class RegistratorICP(object):
             min_idx = np.argmin(distances)
             min_dist = distances[min_idx]
 
+            # if min_dist < self.d_max:
+            #     closestPoints.append((v1, availableMesh2Vertices[min_idx]))
+            #     print(f"Matched vertex: {availableMesh2Vertices[min_idx]} with distance: {min_dist}")
+            #     availableMesh2Vertices = np.delete(availableMesh2Vertices, min_idx, axis=0)
+            #     print(f"Remaining available vertices in mesh2: {len(availableMesh2Vertices)}")
+            
+            # if min_dist < self.d_max and min_idx not in usedIdx:
             if min_dist < self.d_max:
                 closestPoints.append((v1, availableMesh2Vertices[min_idx]))
-                print(f"Matched vertex: {availableMesh2Vertices[min_idx]} with distance: {min_dist}")
-                availableMesh2Vertices = np.delete(availableMesh2Vertices, min_idx, axis=0)
-                print(f"Remaining available vertices in mesh2: {len(availableMesh2Vertices)}")
+                usedIdx.add(min_idx)
+                # print(f"Matched vertex: {availableMesh2Vertices[min_idx]} with distance: {min_dist}")
 
         self.closestPairs = closestPoints
         if len(self.closestPairs) == 0:
