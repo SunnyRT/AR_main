@@ -66,10 +66,39 @@ class GUIFrame(InputFrame):
         tool_sizer.Add(self.register_button, 0, wx.ALL | wx.EXPAND, 10)
         self.Bind(wx.EVT_BUTTON, self.on_register_click, self.register_button)
 
-        # Create a slider
-        self.slider = wx.Slider(self.tool_panel, value=50, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
-        tool_sizer.Add(self.slider, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
-        self.Bind(wx.EVT_SLIDER, self.on_slider_change, self.slider)
+
+
+        """ Create a slider"""
+        slider_sizer = wx.BoxSizer(wx.VERTICAL)
+        dmax_label = wx.StaticText(self.tool_panel, label="d_max:")
+        slider_sizer.Add(dmax_label, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5) 
+        slider_with_labels_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        # Minimum value label
+        min_label = wx.StaticText(self.tool_panel, label="0")
+        slider_with_labels_sizer.Add(min_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        # Slider itself
+        try:
+            self.dmax_slider = wx.Slider(self.tool_panel, value=self.canvas.registrator.d_max, minValue=0, maxValue=20, style=wx.SL_HORIZONTAL)
+        except:
+            self.dmax_slider = wx.Slider(self.tool_panel, value=10, minValue=0, maxValue=20, style=wx.SL_HORIZONTAL)
+        slider_with_labels_sizer.Add(self.dmax_slider, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
+        
+        # Maximum value label
+        max_label = wx.StaticText(self.tool_panel, label="20")
+        slider_with_labels_sizer.Add(max_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        # Add the slider with labels sizer to the main slider sizer
+        slider_sizer.Add(slider_with_labels_sizer, 0, wx.ALL | wx.EXPAND, 5)
+        # Add the slider_sizer to the main tool panel sizer
+        tool_sizer.Add(slider_sizer, 0, wx.ALL | wx.EXPAND, 10)
+
+        # Bind the slider event
+        self.Bind(wx.EVT_SLIDER, self.on_dmax_slider_change, self.dmax_slider)
+        """ End of slider creation """
+
+
 
         # Create a text box
         self.textbox = wx.TextCtrl(self.tool_panel, style=wx.TE_PROCESS_ENTER)
@@ -162,13 +191,16 @@ class GUIFrame(InputFrame):
     def on_register_click(self, event):
         if self.canvas.registrator is None:
             raise Exception("Registrator not initialized")
-        self.canvas.registrator.register(d_max=10.0, n_iterations=1)
+        self.canvas.registrator.register(n_iterations=1)
         self.canvas.update() #TODO: is this necessary????
 
         
 
-    def on_slider_change(self, event):
-        value = self.slider.GetValue()
+    def on_dmax_slider_change(self, event):
+        value = self.dmax_slider.GetValue()
+        self.canvas.registrator.d_max = value
+        self.canvas.registrator.findClosestPoints()
+        self.canvas.registrator.createMatchMesh()
         print(f"Slider value changed to: {value}")
 
     def on_text_enter(self, event):

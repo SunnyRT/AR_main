@@ -3,7 +3,9 @@ import logging
 from scipy.optimize import least_squares
 
 from geometry.boxGeometry import BoxGeometry
+from geometry.matchGeometry import MatchGeometry
 from material.surfaceMaterial import SurfaceMaterial
+from material.lineMaterial import LineMaterial
 from core_ext.mesh import Mesh
 from core.matrix import Matrix
 
@@ -16,9 +18,42 @@ class RegistratorICP(object):
         By using Levenberg–Marquardt optimization. """
     
 
-    def __init__(self, mesh1, mesh2):
+    def __init__(self, mesh1, mesh2, sceneObject, d_max=10.0):
         self.mesh1 = mesh1
         self.mesh2 = mesh2
+        self.sceneObject = sceneObject
+        self.d_max = d_max
+        self.matchMesh = None
+
+
+
+        # 0. Extract vertexPosition with world matrix applied from both meshes
+        mesh1Vertices = self.getMeshVertices(self.mesh1)
+        mesh2Vertices = self.getMeshVertices(self.mesh2) 
+        print(f"Number of vertices in mesh1: {mesh1Vertices.shape}")
+        print(f"Number of vertices in mesh2: {mesh2Vertices.shape}")
+
+        # 1. Filter out vertices in mesh2 with the same color as mesh1
+        self.mesh1Vertices = mesh1Vertices
+        self.mesh2Vertices = self.findSameColorPoints(mesh2Vertices)
+        print(f"Number of vertices in mesh2 with the same color as mesh1: {mesh2Vertices.shape}")
+        if len(mesh2Vertices) == 0:
+            raise ValueError("No matching color found in target mesh.")
+                                
+
+        # 2. Find closest points between mesh1 and mesh2
+        self.closestPairs = None
+        self.findClosestPoints()
+
+        if len(self.closestPairs) == 0:
+            print("No matches found within max distance.")
+        else:
+            self.createMatchMesh()
+            
+
+
+
+
 
     def getMeshVertices(self, mesh):
         meshTransform = mesh.getWorldMatrix()
@@ -52,21 +87,58 @@ class RegistratorICP(object):
         
         return np.array(sameColorPoints)
 
-    def findClosestPoints(self, mesh1Vertices, mesh2Vertices, d_max):
+    def findClosestPoints(self):
         """ for each vertex in source mesh1, find the closest vertex in target mesh2 """
-        if mesh1Vertices.shape[1] != 3 or mesh2Vertices.shape[1] != 3:
+        if self.mesh1Vertices.shape[1] != 3 or self.mesh2Vertices.shape[1] != 3:
             raise ValueError("Input vertices must be 3D coordinates.")
+        
+        # mesh1Vertices = self.removeDuiplicateVertices(self.mesh1Vertices)
+        # mesh2Vertices = self.removeDuiplicateVertices(self.mesh2Vertices)
+
         closestPoints = []
-        for v1 in mesh1Vertices:
+        # FIXME: how to optimize the process of finding closest points??
+        # Currently, used vertices are directly removed!!!!!
+        availableMesh2Vertices = self.mesh2Vertices.copy()
+
+
+        for v1 in self.mesh1Vertices:
+            if len(availableMesh2Vertices) == 0:
+                break # stop if no more vertices in mesh2
+
             # Compute the Euclidean distances from vertex v1 to all vertices in mesh2
-            distances = np.linalg.norm(mesh2Vertices - v1, axis=1)
+            distances = np.linalg.norm(availableMesh2Vertices - v1, axis=1)
 
             # Find the closest vertex within max distance d_max
-            min_dist = np.min(distances)
-            if min_dist < d_max:
-                closestPoints.append((v1, mesh2Vertices[np.argmin(distances)]))
+            min_idx = np.argmin(distances)
+            min_dist = distances[min_idx]
 
-        return closestPoints
+            if min_dist < self.d_max:
+                closestPoints.append((v1, availableMesh2Vertices[min_idx]))
+                print(f"Matched vertex: {availableMesh2Vertices[min_idx]} with distance: {min_dist}")
+                availableMesh2Vertices = np.delete(availableMesh2Vertices, min_idx, axis=0)
+                print(f"Remaining available vertices in mesh2: {len(availableMesh2Vertices)}")
+
+        self.closestPairs = closestPoints
+        if len(self.closestPairs) == 0:
+            raise ValueError("No matching points found within max distance.")
+
+
+    # FIXME: is duplicate vertices removal necessary?
+    # def removeDuiplicateVertices(self, vertices, rtol=1e-5):
+    #     """ Remove duplicate vertices in the list of vertices """
+    #     uniqueVertices = np.unique(vertices, axis=0)
+    #     if len(vertices) != len(uniqueVertices):
+    #         logging.warning(f"Removed {len(vertices) - len(uniqueVertices)} duplicate vertices.")
+    #     return uniqueVertices
+
+    def createMatchMesh(self):
+        matchGeo = MatchGeometry(self.closestPairs)
+        matchMat = LineMaterial({"lineType": "segments", "lineWidth": 1})
+        matchMesh = Mesh(matchGeo, matchMat)
+        if self.matchMesh in self.sceneObject.children:
+            self.sceneObject.remove(self.matchMesh)
+        self.matchMesh = matchMesh
+        self.sceneObject.add(self.matchMesh)        
 
     def makeTransformMatrix(self, theta_x, theta_y, theta_z, t_x, t_y, t_z):
         # Rotation matrices around each axis
@@ -108,48 +180,48 @@ class RegistratorICP(object):
 
 
     # ICP Algorithm
-    def register(self, d_max, n_iterations=10, tolerance=1e-3):
+    def register(self, n_iterations=1, tolerance=1e-3):
 
-        # Extract vertexPosition with world matrix applied from both meshes
-        mesh1Vertices = self.getMeshVertices(self.mesh1)
-        mesh2Vertices = self.getMeshVertices(self.mesh2) 
-        print(f"Number of vertices in mesh1: {mesh1Vertices.shape}")
-        print(f"Number of vertices in mesh2: {mesh2Vertices.shape}")
-
-        mesh2Vertices = self.findSameColorPoints(mesh2Vertices)
-        print(f"Number of vertices in mesh2 with the same color as mesh1: {mesh2Vertices.shape}")
-        if len(mesh2Vertices) == 0:
-            raise ValueError("No matching color found in target mesh.")
-                                
-        # Initial transformation parameters (identity transformation)
-        params = np.zeros(6)  # [theta_x, theta_y, theta_z, t_x, t_y, t_z]
 
         for i in range(n_iterations):
-            # 1. Find closest points between mesh1 and mesh2
-            closestPairs = self.findClosestPoints(mesh1Vertices, mesh2Vertices, d_max)
-            if len(closestPairs) == 0:
-                print("No matches found within max distance.")
-                break
 
-            source_points, target_points = zip(*closestPairs)
+            source_points, target_points = zip(*self.closestPairs)
             source_points = np.array(source_points)
             target_points = np.array(target_points)
 
 
-            # 2. Optimize transformation using Levenberg–Marquardt
+            # FIXME: put this in as global variable to track all transformations
+            # Initial transformation parameters (identity transformation)
+            params = np.zeros(6)  # [theta_x, theta_y, theta_z, t_x, t_y, t_z]
+
+            # 3. Optimize transformation using Levenberg–Marquardt
             result = least_squares(self.objectiveFunction, params, args=(source_points, target_points))
             paramsPrev = params
             params = result.x # Update the transformation parameters
 
 
-            # 3. Apply the new transformation to mesh1 vertices and update the vertex positions in mesh1
+            # 4. Apply the new transformation to mesh1 vertices and update the vertex positions in mesh1
             transformMatrix = self.makeTransformMatrix(*params)
             self.transformMesh(self.mesh1, transformMatrix)
-            mesh1Vertices = self.getMeshVertices(self.mesh1)
+            self.mesh1Vertices = self.getMeshVertices(self.mesh1)
             
             print(f"Iteration {i + 1}: Optimized parameters {params}")
 
-            # 4. Check for convergence
+
+
+            """ prepare for next iteration """
+            # 2. Find closest points between mesh1 and mesh2
+            self.findClosestPoints()
+            # visualize the closest pairs
+            self.createMatchMesh()
+            
+            if len(self.closestPairs) == 0:
+                print("No matches found within max distance.")
+                break
+            """ end of iteration """
+
+
+            # 5. Check for convergence
             if np.linalg.norm(params - paramsPrev) < tolerance:
                 break
 

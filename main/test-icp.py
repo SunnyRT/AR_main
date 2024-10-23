@@ -91,7 +91,7 @@ class MyCanvas(InputCanvas):
 
 
         # Setup ICP registrator
-        self.registrator = RegistratorICP(self.box1, self.box2) # TODO: execution is done by GUIFrame!!!
+        self.registrator = RegistratorICP(self.box1, self.box2, self.scene) # TODO: execution is done by GUIFrame!!!
 
         self.initialized = True
 
