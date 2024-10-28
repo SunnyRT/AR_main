@@ -94,7 +94,7 @@ class MyCanvas(InputCanvas):
 
         ############################################
         # Add projector from camera1 through contour points
-        self.projector = Projector(self.camera1, self.image2d, near=self.n, far=self.f, delta=10, lineWidth=1, color=self.color_pinna,
+        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=10, lineWidth=1, color=self.color_pinna,
                                    visibleRay=False, visibleCone=True)
         self.camera1.add(self.projector.rayMesh)
         self.projector.rayMesh.translate(0, 0, -self.camera1_z) # FIXME: Move projector to camera1 position (remove offset)

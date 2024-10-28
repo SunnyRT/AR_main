@@ -10,7 +10,7 @@ import numpy as np
 
 class Projector(object):
 
-    def __init__(self, camera, image2dObject, lineWidth=1, color=[1,1,0], alpha=0.3, near=500, far=750, delta=1, 
+    def __init__(self, camera, contourMesh, lineWidth=1, color=[1,1,0], alpha=0.3, near=500, far=750, delta=1, 
                  visibleRay=True, visibleCone=True):
         
 
@@ -22,7 +22,7 @@ class Projector(object):
 
         
         """"""""""""""" intialize ray mesh """""""""""""""
-        self.rayMesh = self._createRayMesh(camera, image2dObject, lineWidth)
+        self.rayMesh = self._createRayMesh(camera, contourMesh, lineWidth)
         self.coneMesh = self._createConeMesh()
         self.rayMesh.add(self.coneMesh)
         if not visibleRay:
@@ -32,32 +32,27 @@ class Projector(object):
         
 
 
-    def _createRayMesh(self, camera, image2dObject, lineWidth):
+    def _createRayMesh(self, camera, contourMesh, lineWidth):
         """"""""""""""" create projector ray geometry"""""""""""""""
         rayGeometry = Geometry()
         positionData = []
         colorData = []
 
-        contourMesh = image2dObject.contourMesh
         self.cameraPos= camera.getWorldPosition()
         contourPos = contourMesh.getWorldPosition()
 
         # extract vertices positions from contourMesh
         # FIXME: need to change data structure of contour vertices!!!!!!!!
         # contourVertPos = contourMesh.geometry.attributes["vertexPositionRef"].data # FIXME: list vs array
-        contourVertPx_all = image2dObject.all_px_coords 
-        # convert each segment data into array, convert from px to world coordinates
-        resCoeff = image2dObject.resolution * image2dObject.n
-        contourVertPos_all = [np.array(segment) * resCoeff for segment in contourVertPx_all]
+        contourVertPos_segments = contourMesh.geometry.positionData_segments
         # displace each vertex by the contour position
-        contourVertWorldPos_all = [segment + contourPos for segment in contourVertPos_all]
-        self.contourVertWorldPos_all = contourVertWorldPos_all # store for later use
+        contourVertWorldPos_segments = [segment + contourPos for segment in contourVertPos_segments]
+        self.contourVertWorldPos_segments = contourVertWorldPos_segments # store for later use
 
-        # contourVertPos_flatten = np.concatenate(contourVertPos_all, axis=0) # flatten the list of arrays
 
         """"""""""""""" FIXME: TO BE TESTED """""""""""""""
         
-        contourVertWorldPos_flatten = np.concatenate(contourVertWorldPos_all, axis=0) # flatten the list of arrays
+        contourVertWorldPos_flatten = np.concatenate(contourVertWorldPos_segments, axis=0) # flatten the list of arrays
         cameraPos_array = np.tile(self.cameraPos, (len(contourVertWorldPos_flatten), 1))
     
         # Stack cameraPos and contourVertWorldPos alternatively
@@ -92,10 +87,10 @@ class Projector(object):
         print(f"nearPlane: {self.n}, farPlane: {self.f}, numSamples: {numSamples}")
 
 
-        positionData_all = []
-        colorData_all = []
+        positionData_segments = []
+        colorData_segments = []
 
-        for i, contourVertWorldPos in enumerate(self.contourVertWorldPos_all):
+        for i, contourVertWorldPos in enumerate(self.contourVertWorldPos_segments):
             numRays = len(contourVertWorldPos)
             
 
@@ -117,15 +112,15 @@ class Projector(object):
 
             positionData, colorData, vnormalData = self._arrangeVertexData(vertex_positions, face_indices, vertex_normals)
             # print(f"cone vertexpos: {np.array(positionData).shape}, cone vertexcolor:{np.array(colorData).shape}, cone vertexnormal: {np.array(vnormalData).shape}")
-            positionData_all.append(positionData)
-            colorData_all.append(colorData)
+            positionData_segments.append(positionData)
+            colorData_segments.append(colorData)
         
-        positionData_all = np.concatenate(positionData_all, axis=0)
-        colorData_all = np.concatenate(colorData_all, axis=0)
+        positionData_segments = np.concatenate(positionData_segments, axis=0)
+        colorData_segments = np.concatenate(colorData_segments, axis=0)
 
         coneGeometry = Geometry()
-        coneGeometry.addAttribute("vec3", "vertexPosition", positionData_all)
-        coneGeometry.addAttribute("vec3", "vertexColor", colorData_all)
+        coneGeometry.addAttribute("vec3", "vertexPosition", positionData_segments)
+        coneGeometry.addAttribute("vec3", "vertexColor", colorData_segments)
         # coneGeometry.addAttribute("vec3", "vertexNormal", vnormalData)
         # coneGeometry.addAttribute("vec3", "faceNormal", fnormalData) # TODO: add face normals
         

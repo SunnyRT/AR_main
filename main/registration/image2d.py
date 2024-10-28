@@ -116,29 +116,29 @@ class Image2D(object):
         #         break
 
         """FIXME: load multiple contour line!!!!!!!!"""
-        self.all_px_coords = []
-        self.all_px_coords_segments = np.empty((0,3))
+        self.all_px_coords_segments = [] # irregular list of (M,3) arrays, where each array is a contour line segment
+        self.all_px_coords = np.empty((0,3)) # (N,3) array, where N is the total number of contour vertices (for all segments)
 
         for line in lines:
             if line.startswith('CONT'):
                 parts = line.strip().split()[4:]  # TODO: Skip the first 4 elements: "CONT 0 0 1"
 
                 # Extract pairs of (px_x, px_y) pixel coordinates and convert to 3D numpy array
-                px_coords = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
-                self.all_px_coords.append(px_coords) # TODO: list of (M,3) arrays, where each array is a contour line segment
+                px_coords_segment = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
+                self.all_px_coords_segments.append(px_coords_segment) # TODO: list of (M,3) arrays, where each array is a contour line segment
 
-                # Modify px_coords data structure to repeat intermediate points (to form segments)
-                px_coords_segments = np.empty((0,3))
-                for i in range(len(px_coords)-1):
-                    px_coords_segments = np.vstack([px_coords_segments, px_coords[i], px_coords[i+1]])
+                # Modify px_coords_segment data structure to repeat intermediate points (to form segments)
+                px_coords = np.empty((0,3))
+                for i in range(len(px_coords_segment)-1):
+                    px_coords = np.vstack([px_coords, px_coords_segment[i], px_coords_segment[i+1]])
 
-                print(f"added one line of contour with shape {px_coords_segments.shape}")
-                self.all_px_coords_segments = np.vstack([self.all_px_coords_segments, px_coords_segments]) if len(self.all_px_coords_segments) > 0 else px_coords_segments
+                print(f"added one line of contour with shape {px_coords.shape}")
+                self.all_px_coords = np.vstack([self.all_px_coords, px_coords]) if len(px_coords) > 0 else self.all_px_coords
                 
 
 
-        print(f"final contour segments array shape: {self.all_px_coords_segments.shape}")
-        print(f"final contour lists shape: {len(self.all_px_coords)}, {[len(segment) for segment in self.all_px_coords]}")
+        print(f"final contour segments array shape: {self.all_px_coords.shape}")
+        print(f"final contour lists shape: {len(self.all_px_coords_segments)}, {[segment.shape for segment in self.all_px_coords_segments]}")
 
         # if displayStyle == 'point':
         #     self.contourMaterial = PointMaterial({"pointSize": contourSize, "baseColor": contourColor, "roundedPoints": True})
@@ -149,7 +149,7 @@ class Image2D(object):
 
     def _createContour(self):
         width, height = self._getWorldDimensions()
-        contourGeometry = ContourGeometry(self.all_px_coords_segments, width, height, self.resolution, self.n, self.contourColor, flipY=True)
+        contourGeometry = ContourGeometry(self.all_px_coords, self.all_px_coords_segments, width, height, self.resolution, self.n, self.contourColor, flipY=True)
         contourMesh = Mesh(contourGeometry, self.contourMaterial)
 
         return contourMesh
