@@ -107,38 +107,49 @@ class Image2D(object):
         with open(sw_path, 'r') as f:
             lines = f.readlines()
         
-        for line in lines:
-            if line.startswith('CONT'):
-                parts = line.strip().split()[4:]  # TODO: Skip the first 4 elements: "CONT 0 0 1"
-
-                # Extract pairs of (px_x, px_y) pixel coordinates and convert to 3D numpy array
-                px_coords = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
-                break
-
-        """FIXME: For now, only load the first contour line!!!!!!!!"""
-        # self.all_px_coords = []
         # for line in lines:
         #     if line.startswith('CONT'):
         #         parts = line.strip().split()[4:]  # TODO: Skip the first 4 elements: "CONT 0 0 1"
 
         #         # Extract pairs of (px_x, px_y) pixel coordinates and convert to 3D numpy array
         #         px_coords = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
-        #         print("added one line of contour")
-        #         self.all_px_coords.append(px_coords)
+        #         break
 
-        # print(f"Number of contour lines: {len(self.all_px_coords)}")
+        """FIXME: load multiple contour line!!!!!!!!"""
+        self.all_px_coords = []
+        self.all_px_coords_segments = np.empty((0,3))
 
-        self.px_coords = px_coords
-        if displayStyle == 'point':
-            self.contourMaterial = PointMaterial({"pointSize": contourSize, "baseColor": contourColor, "roundedPoints": True})
-        elif displayStyle == 'line':
-            self.contourMaterial = LineMaterial({"lineWidth": contourSize, "baseColor": contourColor, "lineType": "connected"})
+        for line in lines:
+            if line.startswith('CONT'):
+                parts = line.strip().split()[4:]  # TODO: Skip the first 4 elements: "CONT 0 0 1"
+
+                # Extract pairs of (px_x, px_y) pixel coordinates and convert to 3D numpy array
+                px_coords = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
+                self.all_px_coords.append(px_coords) # TODO: list of (M,3) arrays, where each array is a contour line segment
+
+                # Modify px_coords data structure to repeat intermediate points (to form segments)
+                px_coords_segments = np.empty((0,3))
+                for i in range(len(px_coords)-1):
+                    px_coords_segments = np.vstack([px_coords_segments, px_coords[i], px_coords[i+1]])
+
+                print(f"added one line of contour with shape {px_coords_segments.shape}")
+                self.all_px_coords_segments = np.vstack([self.all_px_coords_segments, px_coords_segments]) if len(self.all_px_coords_segments) > 0 else px_coords_segments
+                
+
+
+        print(f"final contour segments array shape: {self.all_px_coords_segments.shape}")
+        print(f"final contour lists shape: {len(self.all_px_coords)}, {[len(segment) for segment in self.all_px_coords]}")
+
+        # if displayStyle == 'point':
+        #     self.contourMaterial = PointMaterial({"pointSize": contourSize, "baseColor": contourColor, "roundedPoints": True})
+        # elif displayStyle == 'line':
+        self.contourMaterial = LineMaterial({"lineWidth": contourSize, "baseColor": contourColor, "lineType": "segments"})
 
 
 
     def _createContour(self):
         width, height = self._getWorldDimensions()
-        contourGeometry = ContourGeometry(self.px_coords, width, height, self.resolution, self.n, self.contourColor, flipY=True)
+        contourGeometry = ContourGeometry(self.all_px_coords_segments, width, height, self.resolution, self.n, self.contourColor, flipY=True)
         contourMesh = Mesh(contourGeometry, self.contourMaterial)
 
         return contourMesh
