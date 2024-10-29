@@ -190,7 +190,7 @@ class Image2D(object):
 
             # update registratorObject with new coneMesh(mesh1)
             if registratorObject is not None:
-                registratorObject.initialize(self.projectorObject.coneMesh)
+                registratorObject.updateMesh1(self.projectorObject.coneMesh)
 
             # update imagePlane
             self._updateImagePlane()
@@ -211,7 +211,7 @@ class Image2D(object):
 
             # update registratorObject with new coneMesh(mesh1)
             if registratorObject is not None:
-                registratorObject.initialize(self.projectorObject.coneMesh)
+                registratorObject.updateMesh1(self.projectorObject.coneMesh)
     
     
         # Handle alt + mouse scroll to move camera (rig) while keeping the near and far clipping planes at the same distance
@@ -236,6 +236,6 @@ class Image2D(object):
         
             # update registratorObject with new coneMesh(mesh1)
             if registratorObject is not None:
-                registratorObject.initialize(self.projectorObject.coneMesh)
+                registratorObject.updateMesh1(self.projectorObject.coneMesh)
 
         

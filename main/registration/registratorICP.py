@@ -20,19 +20,12 @@ class RegistratorICP(object):
     
 
     def __init__(self, mesh1, mesh2, sceneObject, d_max=10.0):
-        # self.mesh1 = mesh1
+        self.mesh1 = mesh1
         self.mesh2 = mesh2
         self.sceneObject = sceneObject
         self.d_max = d_max
         self.closestPairs = None
         self.matchMesh = None
-        # self.initialized = False
-        self.initialize(mesh1)
-
-    # FIXME:!!!!! need to reinitialize the registrator with new mesh1!!!!!!
-    def initialize(self, mesh1=None):
-        if mesh1 is not None:
-            self.mesh1 = mesh1
 
         print("Initializing ICP registrator...")
         # 0. Extract vertexPosition with world matrix applied from both meshes
@@ -48,9 +41,16 @@ class RegistratorICP(object):
         if len(mesh2Vertices) == 0:
             raise ValueError("No matching color found in target mesh.")
                                 
-
         # 2. Find closest points between mesh1 and mesh2, and visualize mathcing pairs
         self.updateMatch()  
+
+    # FIXME:!!!!! need to reinitialize the registrator with new mesh1!!!!!!
+    def updateMesh1(self, mesh1=None):
+        print("Updating ICP registrator with new mesh1...")
+        if mesh1 is not None:
+            self.mesh1 = mesh1
+        self.updateMatch(updateMesh1Vertices=True)
+
 
     def updateMatch(self, updateMesh1Vertices=False):
         # print("Updating ICP registrator...")
