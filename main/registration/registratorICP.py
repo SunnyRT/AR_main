@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 from scipy.optimize import least_squares
+from scipy.spatial import KDTree
 
 from geometry.boxGeometry import BoxGeometry
 from geometry.matchGeometry import MatchGeometry
@@ -19,14 +20,21 @@ class RegistratorICP(object):
     
 
     def __init__(self, mesh1, mesh2, sceneObject, d_max=10.0):
-        self.mesh1 = mesh1
+        # self.mesh1 = mesh1
         self.mesh2 = mesh2
         self.sceneObject = sceneObject
         self.d_max = d_max
+        self.closestPairs = None
         self.matchMesh = None
+        # self.initialized = False
+        self.initialize(mesh1)
 
+    # FIXME:!!!!! need to reinitialize the registrator with new mesh1!!!!!!
+    def initialize(self, mesh1=None):
+        if mesh1 is not None:
+            self.mesh1 = mesh1
 
-
+        print("Initializing ICP registrator...")
         # 0. Extract vertexPosition with world matrix applied from both meshes
         mesh1Vertices = self.getMeshVertices(self.mesh1)
         mesh2Vertices = self.getMeshVertices(self.mesh2) 
@@ -36,20 +44,20 @@ class RegistratorICP(object):
         # 1. Filter out vertices in mesh2 with the same color as mesh1
         self.mesh1Vertices = mesh1Vertices
         self.mesh2Vertices = self.findSameColorPoints(mesh2Vertices)
-        print(f"Number of vertices in mesh2 with the same color as mesh1: {mesh2Vertices.shape}")
+        print(f"Number of vertices in mesh2 with the same color as mesh1: {self.mesh2Vertices.shape}")
         if len(mesh2Vertices) == 0:
             raise ValueError("No matching color found in target mesh.")
                                 
 
-        # 2. Find closest points between mesh1 and mesh2
-        self.closestPairs = None
-        self.findClosestPoints()
+        # 2. Find closest points between mesh1 and mesh2, and visualize mathcing pairs
+        self.updateMatch()  
 
-        if len(self.closestPairs) == 0:
-            print("No matches found within max distance.")
-        else:
-            self.createMatchMesh()
-            
+    def updateMatch(self, updateMesh1Vertices=False):
+        # print("Updating ICP registrator...")
+        if updateMesh1Vertices:
+            self.mesh1Vertices = self.getMeshVertices(self.mesh1)
+        self.findClosestPoints()
+        self.createMatchMesh()            
 
 
 
@@ -70,7 +78,7 @@ class RegistratorICP(object):
         return worldVertexPos 
     
     
-    def findSameColorPoints(self, mesh2Vertices, rtol=0.01):
+    def findSameColorPoints(self, mesh2Vertices, rtol=0.1):
         mesh1Colors = self.mesh1.geometry.attributes["vertexColor"].data
         mesh2Colors = self.mesh2.geometry.attributes["vertexColor"].data
         sameColorPoints = []
@@ -80,6 +88,14 @@ class RegistratorICP(object):
             raise ValueError("Mesh1 must have a single color for ICP registration.")
         
         mesh1Color = mesh1Colors[0]
+        # print(f"mesh1Color: {mesh1Color}")
+        # ##################################
+        # # debugging: print all unique colors in mesh2
+        # mesh2uniqueColors = np.unique(mesh2Colors, axis=0)
+        # for i, color in enumerate(mesh2uniqueColors):
+        #     print(f"mesh2Color #{i}: {color}")
+        # ##################################
+
         for i, color in enumerate(mesh2Colors):
             # if np.array_equal(color, mesh1Color):
             if np.allclose(color, mesh1Color, rtol=rtol): # Allow for small relative errors
@@ -95,37 +111,23 @@ class RegistratorICP(object):
         # mesh1Vertices = self.removeDuiplicateVertices(self.mesh1Vertices)
         # mesh2Vertices = self.removeDuiplicateVertices(self.mesh2Vertices)
 
+        # Construct a KDTree for mesh2 vertices
+        kdTree= KDTree(self.mesh2Vertices)
         closestPoints = []
-        # FIXME: how to optimize the process of finding closest points??
-        # Currently, used vertices are directly removed!!!!!
-        availableMesh2Vertices = self.mesh2Vertices.copy()
-        usedIdx = set()
+
+        # # if no vertices in mesh2 can be used twice
+        # availableMesh2Vertices = self.mesh2Vertices.copy()
+        # usedIdx = set()
 
 
         for v1 in self.mesh1Vertices:
-            if len(availableMesh2Vertices) == 0:
-                break # stop if no more vertices in mesh2
 
-            # Compute the Euclidean distances from vertex v1 to all vertices in mesh2
-            distances = np.linalg.norm(availableMesh2Vertices - v1, axis=1)
-
-            # Find the closest vertex within max distance d_max
-            min_idx = np.argmin(distances)
-            min_dist = distances[min_idx]
-
-            # if min_dist < self.d_max:
-            #     closestPoints.append((v1, availableMesh2Vertices[min_idx]))
-            #     print(f"Matched vertex: {availableMesh2Vertices[min_idx]} with distance: {min_dist}")
-            #     availableMesh2Vertices = np.delete(availableMesh2Vertices, min_idx, axis=0)
-            #     print(f"Remaining available vertices in mesh2: {len(availableMesh2Vertices)}")
-            
-            # if min_dist < self.d_max and min_idx not in usedIdx:
-            if min_dist < self.d_max:
-                closestPoints.append((v1, availableMesh2Vertices[min_idx]))
-                usedIdx.add(min_idx)
-                # print(f"Matched vertex: {availableMesh2Vertices[min_idx]} with distance: {min_dist}")
-
+            dist, idx = kdTree.query(v1, distance_upper_bound=self.d_max)
+            if dist < self.d_max:
+                closestPoints.append((v1, self.mesh2Vertices[idx]))
+                
         self.closestPairs = closestPoints
+        # print(f"Number of closest pairs found: {len(self.closestPairs)}")
         if len(self.closestPairs) == 0:
             raise ValueError("No matching points found within max distance.")
 
@@ -139,11 +141,14 @@ class RegistratorICP(object):
     #     return uniqueVertices
 
     def createMatchMesh(self):
+        if self.closestPairs is None or len(self.closestPairs) == 0:
+            raise ValueError("No matching points found within max distance.")
         matchGeo = MatchGeometry(self.closestPairs)
         matchMat = LineMaterial({"lineType": "segments", "lineWidth": 1})
         matchMesh = Mesh(matchGeo, matchMat)
         if self.matchMesh in self.sceneObject.children:
             self.sceneObject.remove(self.matchMesh)
+            del self.matchMesh # TODO: is this necessary????
         self.matchMesh = matchMesh
         self.sceneObject.add(self.matchMesh)        
 
@@ -218,9 +223,7 @@ class RegistratorICP(object):
 
             """ prepare for next iteration """
             # 2. Find closest points between mesh1 and mesh2
-            self.findClosestPoints()
-            # visualize the closest pairs
-            self.createMatchMesh()
+            self.updateMatch()
             
             if len(self.closestPairs) == 0:
                 print("No matches found within max distance.")
@@ -233,3 +236,10 @@ class RegistratorICP(object):
                 break
 
         return params  # Final transformation parameters
+
+
+
+
+    
+
+        

@@ -26,8 +26,7 @@ from extras.axesHelper import AxesHelper
 from extras.gridHelper import GridHelper
 from extras.movementRig import MovementRig
 from registration.projector import Projector
-from registration.registratorICP import RegistratorICP
-# from extras.posMarker import PosMarker
+from extras.posMarker import PosMarker
 from math import pi
 
 
@@ -42,7 +41,7 @@ class MyCanvas(InputCanvas):
         self.image2d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
         self.contour_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
-        self.color_pinna = [1.0, 0.64705882, 0.29803922]
+        self.color_pinna = [0.90588235, 0.72156863, 0.09411765]
         self.color_incus = [1, 0, 0] # TODO: to change
         self.n = 200
         self.f = 300
@@ -84,6 +83,7 @@ class MyCanvas(InputCanvas):
 
 
         # Load 2D texture image
+
         self.image2d = Image2D(self.image2d_path, resolution=0.0003, near = self.n, far = self.f, camera_z=self.camera1_z, alpha=0.5,
                                contourPath=self.contour_path, contourColor=self.color_pinna, displayStyle='line', contourSize=3)
         self.camera1 = self.image2d.camera
@@ -91,16 +91,22 @@ class MyCanvas(InputCanvas):
         self.scene.add(self.rig1) # Add rig1, and hence the entire image2d object to scene
 
 
+
+        ############################################
         # Add projector from camera1 through contour points
         self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=10, lineWidth=1, color=self.color_pinna,
                                    visibleRay=False, visibleCone=True)
         self.camera1.add(self.projector.rayMesh)
-        self.projector.rayMesh.translate(0, 0, -self.camera1_z) # Move projector to camera1 position (remove offset)
+        self.projector.rayMesh.translate(0, 0, -self.camera1_z) # FIXME: Move projector to camera1 position (remove offset)
         self.image2d.projectorObject = self.projector # establish link between projector and image2d (for movement of camera1 while keeping projector fixed)
         self.rig1.projectorObject = self.projector # establish link between projector and rig1 (for movement of camera1 while keeping projector fixed)
 
-
-        
+        # # Add position markers
+        # posMarker1 = PosMarker([0, 0, camera1_z], color=[0, 1, 1], size=10)
+        # self.scene.add(posMarker1)
+        # posMarker2 = PosMarker([0, 0, camera1_z-camera1_d], color=[1, 0, 1], size=10)
+        # self.scene.add(posMarker2)
+        ############################################
 
 
         # Load 3D model
@@ -120,13 +126,10 @@ class MyCanvas(InputCanvas):
         self.scene.add(axes)
         self.initialized = True
 
-
-        # Setup ICP registrator
-        self.registrator = RegistratorICP(self.projector.coneMesh, self.mesh3d, self.scene) # TODO: execution is done by GUIFrame!!!
-
     def update(self):
 
         
+
         if not self.initialized:
             self.initialize()
 
@@ -147,7 +150,6 @@ class MyCanvas(InputCanvas):
         else:
             self.rig1.update(self)
             self.camera1.update(self)
-            self.registrator.updateMatch(updateMesh1Vertices=True) # update mesh1 vertices as projector coneMesh pos has changed
 
         """ Rest CAD viewport camera0 to align with camera1 """
         if self.isKeyDown("i"): 
@@ -163,9 +165,9 @@ class MyCanvas(InputCanvas):
         """ Update image2d object """ 
         # - shift / ctrl + mousescroll to move near and far planes for projector conemseh
         # - alt + mousescroll to move camera1 along its local z-axis w/o moving projector
-        self.image2d.update(self, self.registrator) 
-        # image2d.update() triggers registrator.intialize() and thus registrator.updateMatch() when coneMesh get updated
+        self.image2d.update(self) 
 
+        
 
         self.renderer.render(self.scene, self.camera0, viewportSplit="left")   
         self.renderer.render(self.scene, self.camera1, clearColor = False,viewportSplit="right")
@@ -178,7 +180,7 @@ class MyFrame(GUIFrame):
         wx.Frame.__init__(self, parent, title=title, size=size)
 
         # override default InputCanvas with MyCanvas
-        self.canvas = MyCanvas(self) # allow canvas to receive key events even when it doesn't have focus
+        self.canvas = MyCanvas(self)
         
         self.create_menu_bar()
         self.create_tool_panel()

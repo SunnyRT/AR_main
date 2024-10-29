@@ -157,6 +157,7 @@ class Image2D(object):
     def _updateContour(self):
         if self.contourMesh in self.imagePlane.children:
             self.imagePlane.remove(self.contourMesh)
+            del self.contourMesh
         self.contourMesh = self._createContour()
         self.imagePlane.add(self.contourMesh)
         self.contourMesh.translate(0, 0, 0.1)
@@ -169,7 +170,11 @@ class Image2D(object):
 
 
 
-    def update(self, inputObject):
+
+
+
+
+    def update(self, inputObject, registratorObject=None):
 
         # Handle shift and ctrl + mouse scroll to manipulate near and far clipping planes
         shiftMouseScroll = inputObject.getShiftMouseScroll()
@@ -183,12 +188,17 @@ class Image2D(object):
                 self.projectorObject._updateConeMesh()
             # print(f"shiftMouseScroll: {shiftMouseScroll}, near: {self.n}")
 
+            # update registratorObject with new coneMesh(mesh1)
+            if registratorObject is not None:
+                registratorObject.initialize(self.projectorObject.coneMesh)
+
             # update imagePlane
             self._updateImagePlane()
 
             # update contourMesh
             if self.contourMesh is not None:
                 self._updateContour()
+
 
         if ctrlMouseScroll != 0:
             self.f += 10*ctrlMouseScroll
@@ -199,6 +209,9 @@ class Image2D(object):
                 self.projectorObject._updateConeMesh()
             # print(f"ctrlMouseScroll: {ctrlMouseScroll}, far: {self.f}")
 
+            # update registratorObject with new coneMesh(mesh1)
+            if registratorObject is not None:
+                registratorObject.initialize(self.projectorObject.coneMesh)
     
     
         # Handle alt + mouse scroll to move camera (rig) while keeping the near and far clipping planes at the same distance
@@ -220,3 +233,9 @@ class Image2D(object):
                 print(f"near: {self.projectorObject.n}, far: {self.projectorObject.f}, camera moved: {altSroll * 10}")
             else:
                 print("MovementRig.update() error: projectorObject is None")
+        
+            # update registratorObject with new coneMesh(mesh1)
+            if registratorObject is not None:
+                registratorObject.initialize(self.projectorObject.coneMesh)
+
+        

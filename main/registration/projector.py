@@ -42,9 +42,7 @@ class Projector(object):
         contourPos = contourMesh.getWorldPosition()
 
         # extract vertices positions from contourMesh
-        # FIXME: need to change data structure of contour vertices!!!!!!!!
-        # contourVertPos = contourMesh.geometry.attributes["vertexPositionRef"].data # FIXME: list vs array
-        contourVertPos_segments = contourMesh.geometry.positionData_segments
+        contourVertPos_segments = contourMesh.geometry.positionData_segments # list of arrays for each segment
         # displace each vertex by the contour position
         contourVertWorldPos_segments = [segment + contourPos for segment in contourVertPos_segments]
         self.contourVertWorldPos_segments = contourVertWorldPos_segments # store for later use
@@ -79,7 +77,7 @@ class Projector(object):
 
 
 
-    """"""""""""""" FIXME: TO BE CHANGED """""""""""""""
+    
     def _createConeMesh(self):
 
         """"""""""""""" create projector cone geometry, iterate for each contour segment!!! """""""""""""""
@@ -166,7 +164,7 @@ class Projector(object):
     def _arrangeVertexData(self, vertex_positions, face_indices, vertex_normals):
         positionData = vertex_positions[face_indices].reshape(-1, 3)
         colorData = [self.color] * len(positionData)
-        colorData = 2* np.array(colorData) # To dim the color
+        colorData = np.array(colorData) 
         vnormalData = vertex_normals[face_indices].reshape(-1, 3)
 
         return positionData, colorData, vnormalData
@@ -198,6 +196,7 @@ class Projector(object):
         """ update cone mesh with new near and far planes """
         if self.coneMesh in self.rayMesh.children:
             self.rayMesh.remove(self.coneMesh)
+            del self.coneMesh
         self.coneMesh = self._createConeMesh()
         self.rayMesh.add(self.coneMesh)
 

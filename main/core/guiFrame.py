@@ -167,6 +167,7 @@ class GUIFrame(InputFrame):
             wx.MessageBox("wxPython OpenGL Example with Menu Bar", "About", wx.OK | wx.ICON_INFORMATION)
         elif event_id == wx.ID_OPEN:
             self.on_open_file()
+        self.canvas.SetFocus()  # Set focus back to the canvas    
 
     def on_open_file(self):
         """ Open a file dialog to select a file to open."""
@@ -180,11 +181,13 @@ class GUIFrame(InputFrame):
             print(f"Selected file: {image2d_path}")
             
         dialog.Destroy()
+        self.canvas.SetFocus()  # Set focus back to the canvas
 
     def on_projection_click(self, event):
         print("Toggle perspective / orthographic projection")
         self.canvas.cameraIdx = (self.canvas.cameraIdx + 1) % 2
         self.canvas.update()
+        self.canvas.SetFocus()  # Set focus back to the canvas
 
 
     # FIXME: to be done!!!!
@@ -193,19 +196,21 @@ class GUIFrame(InputFrame):
             raise Exception("Registrator not initialized")
         self.canvas.registrator.register(n_iterations=1)
         self.canvas.update() #TODO: is this necessary????
+        self.canvas.SetFocus()  # Set focus back to the canvas
 
         
 
     def on_dmax_slider_change(self, event):
         value = self.dmax_slider.GetValue()
         self.canvas.registrator.d_max = value
-        self.canvas.registrator.findClosestPoints()
-        self.canvas.registrator.createMatchMesh()
+        self.canvas.registrator.updateMatch()
         print(f"Slider value changed to: {value}")
+        self.canvas.SetFocus()  # Set focus back to the canvas
 
     def on_text_enter(self, event):
         text = self.textbox.GetValue()
         print(f"Text entered: {text}")
+        self.canvas.SetFocus()  # Set focus back to the canvas
 
     def on_exit_click(self, event):
         self.Close()
