@@ -64,6 +64,15 @@ class RendererDual(object):
             if not mesh.visible:
                 # print("skipping invisible object")
                 continue
+            
+            # FIXME: handle transparency!!!
+            if mesh.material.uniforms["alpha"].data != 1.0:
+                glEnable(GL_BLEND)
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                glDepthMask(GL_FALSE)
+            else:
+                glDisable(GL_BLEND)
+                glDepthMask(GL_TRUE)
 
             glUseProgram(mesh.material.programRef)
 
