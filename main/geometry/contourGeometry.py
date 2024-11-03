@@ -9,7 +9,7 @@ class ContourGeometry(Geometry):
         # convert pixel coordinates (px_x, px_y, z=0) into world coordinates (x, y, z)
         positionData = px_coords * resolution * focalLength 
         positionData_segments = [segment * resolution * focalLength for segment in px_coords_segments] 
-        print(f"shape for each segment: {[segment.shape for segment in positionData_segments]}")
+        # print(f"shape for each segment: {[segment.shape for segment in positionData_segments]}")
 
         # offset image such that (0, 0) is at the center
         positionData[:, 0] -= width / 2

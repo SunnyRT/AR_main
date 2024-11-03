@@ -19,24 +19,30 @@ class RegistratorICP(object):
         By using Levenberg–Marquardt optimization. """
     
 
-    def __init__(self, mesh1, mesh2, sceneObject, d_max=10.0):
-        self.mesh1 = mesh1
+    def __init__(self, mesh1, mesh2, sceneObject, mesh1Parent=None, d_max=10.0):
+        self.mesh1 = mesh1 # projector coneMesh
         self.mesh2 = mesh2
         self.sceneObject = sceneObject
+        self.mesh1Parent = mesh1Parent
         self.d_max = d_max
-        self.closestPairs = None
+        self.closestPairsPerRay = None
         self.matchMesh = None
 
         print("Initializing ICP registrator...")
         # 0. Extract vertexPosition with world matrix applied from both meshes
-        mesh1Vertices = self.getMeshVertices(self.mesh1)
-        mesh2Vertices = self.getMeshVertices(self.mesh2) 
-        print(f"Number of vertices in mesh1: {mesh1Vertices.shape}")
-        print(f"Number of vertices in mesh2: {mesh2Vertices.shape}")
+        mesh1Vertices, mesh1VertNorm = self.getMeshVertData(self.mesh1)
+        mesh2Vertices, mesh2VertNorm = self.getMeshVertData(self.mesh2) 
+        # print(f"Number of vertices in mesh1: {mesh1Vertices.shape}")
+        # print(f"Number of vertices in mesh2: {mesh2Vertices.shape}")
+        # print(f"shape of mesh1VertNorm: {mesh1VertNorm.shape}")
+        # print(f"shape of mesh2VertNorm: {mesh2VertNorm.shape}")
+        self.mesh1VertRay = self.mesh1.geometry.attributes["vertexRay"].data # Record which ray each vertex in mesh1 lies on
+        # print(f"rayData shape in mesh1: {self.mesh1VertRay.shape}")
 
         # 1. Filter out vertices in mesh2 with the same color as mesh1
         self.mesh1Vertices = mesh1Vertices
-        self.mesh2Vertices = self.findSameColorPoints(mesh2Vertices)
+        self.mesh1VertNorm = mesh1VertNorm
+        self.mesh2Vertices, self.mesh2VertNorm = self.findSameColorPoints(mesh2Vertices, mesh2VertNorm)
         print(f"Number of vertices in mesh2 with the same color as mesh1: {self.mesh2Vertices.shape}")
         if len(mesh2Vertices) == 0:
             raise ValueError("No matching color found in target mesh.")
@@ -44,7 +50,7 @@ class RegistratorICP(object):
         # 2. Find closest points between mesh1 and mesh2, and visualize mathcing pairs
         self.updateMatch()  
 
-    # FIXME:!!!!! need to reinitialize the registrator with new mesh1!!!!!!
+    # need to reinitialize the registrator with new mesh1
     def updateMesh1(self, mesh1=None):
         print("Updating ICP registrator with new mesh1...")
         if mesh1 is not None:
@@ -55,33 +61,44 @@ class RegistratorICP(object):
     def updateMatch(self, updateMesh1Vertices=False):
         # print("Updating ICP registrator...")
         if updateMesh1Vertices:
-            self.mesh1Vertices = self.getMeshVertices(self.mesh1)
-        self.findClosestPoints()
+            self.mesh1Vertices, self.mesh1VertNorm = self.getMeshVertData(self.mesh1)
+        closestPoints, closestPairsRay, closestPairsNormDist = self.findClosestPoints()
+        self.findClosestPointsPerRay(closestPoints, closestPairsRay, closestPairsNormDist)
         self.createMatchMesh()            
 
 
 
 
 
-    def getMeshVertices(self, mesh):
+    def getMeshVertData(self, mesh):
         meshTransform = mesh.getWorldMatrix()
         if meshTransform.shape != (4, 4):
             raise ValueError(f"Invalid world matrix shape{meshTransform.shape}. Expected (4, 4).")
-        vertexPos = np.array(mesh.geometry.attributes["vertexPosition"].data)
+        meshRotation = meshTransform[:3, :3]
+        vertexPos = np.array(mesh.geometry.attributes["vertexPosition"].data) # FIXME: vertexPosition have duplicated vertices with triangulated arrangements
+        vertexNorm = np.array(mesh.geometry.attributes["vertexNormal"].data)
         # print(f"vertexPos: {vertexPos.shape}")
         # Apply world matrix to vertex positions
         worldVertexPos4D = np.hstack((vertexPos, np.ones((len(vertexPos), 1)))) @ meshTransform.T
         # print(f"worldVertexPos4D: {worldVertexPos4D.shape}")
         # Convert homogeneous coordinates to 3D coordinates
         worldVertexPos = worldVertexPos4D[:, :3] / worldVertexPos4D[:, 3][:, np.newaxis]
+        
+        # Normalize normals
+        worldVertexNorm = vertexNorm @ meshRotation.T
+        epsilon = 1e-6
+        norms = np.linalg.norm(worldVertexNorm, axis=1, keepdims=True)
+        norms[norms < epsilon] = 1.0
+        worldVertexNorm /= norms
         # print(f"worldVertexPos: {worldVertexPos.shape}")
-        return worldVertexPos 
+        return worldVertexPos, worldVertexNorm
     
     
-    def findSameColorPoints(self, mesh2Vertices, rtol=0.1):
+    def findSameColorPoints(self, mesh2Vertices, mesh2VertNorm, rtol=0.1):
         mesh1Colors = self.mesh1.geometry.attributes["vertexColor"].data
         mesh2Colors = self.mesh2.geometry.attributes["vertexColor"].data
         sameColorPoints = []
+        sameColorPointsNorm = []
 
         # Check if mesh1 only has a single color
         if len(np.unique(mesh1Colors, axis=0)) > 1:
@@ -100,8 +117,9 @@ class RegistratorICP(object):
             # if np.array_equal(color, mesh1Color):
             if np.allclose(color, mesh1Color, rtol=rtol): # Allow for small relative errors
                 sameColorPoints.append(mesh2Vertices[i])
+                sameColorPointsNorm.append(mesh2VertNorm[i])
         
-        return np.array(sameColorPoints)
+        return np.array(sameColorPoints), np.array(sameColorPointsNorm)
 
     def findClosestPoints(self):
         """ for each vertex in source mesh1, find the closest vertex in target mesh2 """
@@ -114,22 +132,32 @@ class RegistratorICP(object):
         # Construct a KDTree for mesh2 vertices
         kdTree= KDTree(self.mesh2Vertices)
         closestPoints = []
+        closestPointsNorm = []
+        closestPointsRay = []
 
         # # if no vertices in mesh2 can be used twice
         # availableMesh2Vertices = self.mesh2Vertices.copy()
         # usedIdx = set()
 
 
-        for v1 in self.mesh1Vertices:
+        for i, v1 in enumerate(self.mesh1Vertices):
 
             dist, idx = kdTree.query(v1, distance_upper_bound=self.d_max)
             if dist < self.d_max:
                 closestPoints.append((v1, self.mesh2Vertices[idx]))
+                closestPointsNorm.append((self.mesh1VertNorm[i], self.mesh2VertNorm[idx]))
+                closestPointsRay.append(self.mesh1VertRay[i])
                 
-        self.closestPairs = closestPoints
-        # print(f"Number of closest pairs found: {len(self.closestPairs)}")
-        if len(self.closestPairs) == 0:
+                
+        
+        # print(f"Number of closest pairs found: {len(closestPoints)}")
+        if len(closestPoints) == 0:
             raise ValueError("No matching points found within max distance.")
+
+        closestPairsNormDist = [np.dot(norm1, norm2) for norm1, norm2 in closestPointsNorm] # FIXME: assume normal data is normalized to unit length
+        closestPairsRay = closestPointsRay
+
+        return closestPoints, closestPairsRay, closestPairsNormDist
 
 
     # FIXME: is duplicate vertices removal necessary?
@@ -140,10 +168,51 @@ class RegistratorICP(object):
     #         logging.warning(f"Removed {len(vertices) - len(uniqueVertices)} duplicate vertices.")
     #     return uniqueVertices
 
-    def createMatchMesh(self):
-        if self.closestPairs is None or len(self.closestPairs) == 0:
+
+    # FIXME:!!!!!!! to be completed!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    def findClosestPointsPerRay(self, closestPairs, closestPairsRay, closestPairsNormDist):
+        """ sort the closest points by ray
+            within each ray, identify the match pair with max normal similarlity """
+        
+        if closestPairs is None or len(closestPairs) == 0:
             raise ValueError("No matching points found within max distance.")
-        matchGeo = MatchGeometry(self.closestPairs)
+
+        if len(closestPairs) != len(closestPairsRay) or len(closestPairs) != len(closestPairsNormDist):
+            raise ValueError("Input closestpPoints arrays must have the same length.")
+        
+        # closestPairs = self.closestPairs
+        # closestPairsRay = self.closestPairsRay
+        # closestPairsNormDist = self.closestPairsNormDist
+        closestPairsByRay = {}
+        closestPairsNormDistByRay = {}
+        for i, ray in enumerate(closestPairsRay):
+            ray = int(ray)
+            if ray not in closestPairsByRay:
+                closestPairsByRay[ray] = []
+                closestPairsNormDistByRay[ray] = []
+            closestPairsByRay[ray].append(closestPairs[i])
+            closestPairsNormDistByRay[ray].append(closestPairsNormDist[i])
+            
+        
+        # print(f"Number of rays: {len(closestPairsByRay)}")
+        # print(f"Number of closest pairs per ray: {len(closestPairsByRay[0])}")
+        # print(f"Number of closest pairs per ray: {len(closestPairsByRay[1])}")
+        # print(f"Number of closest pairs per ray: {len(closestPairsByRay[2])}")
+        # print(f"Number of closest pairs per ray: {len(closestPairsByRay[3])}")
+
+        # for each ray, find the pair with max normal similarity
+        closestPairsPerRay = []
+        for ray, pairs in closestPairsByRay.items():
+            maxIdx = np.argmax(closestPairsNormDistByRay[ray])
+            closestPairsPerRay.append(pairs[maxIdx])
+
+        self.closestPairsPerRay = closestPairsPerRay # FIXME:!!!!!!! 
+        
+
+    def createMatchMesh(self):
+        if self.closestPairsPerRay is None or len(self.closestPairsPerRay) == 0:
+            raise ValueError("No matching points found within max distance.")
+        matchGeo = MatchGeometry(self.closestPairsPerRay)
         matchMat = LineMaterial({"lineType": "segments", "lineWidth": 1})
         matchMesh = Mesh(matchGeo, matchMat)
         if self.matchMesh in self.sceneObject.children:
@@ -197,7 +266,7 @@ class RegistratorICP(object):
 
         for i in range(n_iterations):
 
-            source_points, target_points = zip(*self.closestPairs)
+            source_points, target_points = zip(*self.closestPairsPerRay)
             source_points = np.array(source_points)
             target_points = np.array(target_points)
 
@@ -214,8 +283,11 @@ class RegistratorICP(object):
 
             # 4. Apply the new transformation to mesh1 vertices and update the vertex positions in mesh1
             transformMatrix = self.makeTransformMatrix(*params)
-            self.transformMesh(self.mesh1, transformMatrix)
-            self.mesh1Vertices = self.getMeshVertices(self.mesh1)
+            if self.mesh1Parent is not None:
+                self.transformMesh(self.mesh1Parent, transformMatrix) # FIXME: updated
+            else:
+                self.transformMesh(self.mesh1, transformMatrix)
+            self.mesh1Vertices, self.mesh1VertNorm = self.getMeshVertData(self.mesh1)
             
             print(f"Iteration {i + 1}: Optimized parameters {params}")
 
@@ -225,7 +297,7 @@ class RegistratorICP(object):
             # 2. Find closest points between mesh1 and mesh2
             self.updateMatch()
             
-            if len(self.closestPairs) == 0:
+            if len(self.closestPairsPerRay) == 0:
                 print("No matches found within max distance.")
                 break
             """ end of iteration """

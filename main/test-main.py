@@ -45,7 +45,8 @@ class MyCanvas(InputCanvas):
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
         self.color_incus = [1, 0, 0] # TODO: to change
         self.n = 200
-        self.f = 300
+        self.f = 250
+        self.delta = 2
         self.camera1_z = 250
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
@@ -92,7 +93,7 @@ class MyCanvas(InputCanvas):
 
 
         # Add projector from camera1 through contour points
-        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=10, lineWidth=1, color=self.color_pinna,
+        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=self.delta, lineWidth=1, color=self.color_pinna,
                                    visibleRay=False, visibleCone=True)
         self.camera1.add(self.projector.rayMesh)
         self.projector.rayMesh.translate(0, 0, -self.camera1_z) # Move projector to camera1 position (remove offset)
@@ -122,7 +123,7 @@ class MyCanvas(InputCanvas):
 
 
         # Setup ICP registrator
-        self.registrator = RegistratorICP(self.projector.coneMesh, self.mesh3d, self.scene) # TODO: execution is done by GUIFrame!!!
+        self.registrator = RegistratorICP(self.projector.coneMesh, self.mesh3d, self.scene, self.rig1) # TODO: execution is done by GUIFrame!!!
 
     def update(self):
 

@@ -132,12 +132,12 @@ class Image2D(object):
                 for i in range(len(px_coords_segment)-1):
                     px_coords = np.vstack([px_coords, px_coords_segment[i], px_coords_segment[i+1]])
 
-                print(f"added one line of contour with shape {px_coords.shape}")
+                # print(f"added one line of contour with shape {px_coords.shape}")
                 self.all_px_coords = np.vstack([self.all_px_coords, px_coords]) if len(px_coords) > 0 else self.all_px_coords
                 
 
 
-        print(f"final contour segments array shape: {self.all_px_coords.shape}")
+        # print(f"final contour segments array shape: {self.all_px_coords.shape}")
         print(f"final contour lists shape: {len(self.all_px_coords_segments)}, {[segment.shape for segment in self.all_px_coords_segments]}")
 
         # if displayStyle == 'point':

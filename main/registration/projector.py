@@ -5,6 +5,8 @@ from material.surfaceMaterial import SurfaceMaterial
 from material.lambertMaterial import LambertMaterial
 
 import numpy as np
+import open3d as o3d
+import pdb
 
 
 
@@ -47,8 +49,6 @@ class Projector(object):
         contourVertWorldPos_segments = [segment + contourPos for segment in contourVertPos_segments]
         self.contourVertWorldPos_segments = contourVertWorldPos_segments # store for later use
 
-
-        """"""""""""""" FIXME: TO BE TESTED """""""""""""""
         
         contourVertWorldPos_flatten = np.concatenate(contourVertWorldPos_segments, axis=0) # flatten the list of arrays
         cameraPos_array = np.tile(self.cameraPos, (len(contourVertWorldPos_flatten), 1))
@@ -87,6 +87,10 @@ class Projector(object):
 
         positionData_segments = []
         colorData_segments = []
+        normalData_segments = []
+        rayData_segments = []
+
+
 
         for i, contourVertWorldPos in enumerate(self.contourVertWorldPos_segments):
             numRays = len(contourVertWorldPos)
@@ -102,7 +106,7 @@ class Projector(object):
             sampledPoints = (1 - t_values) * nearPoints[:, None] + t_values * farPoints[:, None] # Shape: (numRays, numSamples, 3)
             vertex_positions = sampledPoints.reshape(-1, 3) # Shape: (numRays*numSamples, 3)
 
-            face_indices = self._calcFaceIndices(numRays, numSamples)
+            face_indices, ray_indices = self._calcFaceAndRayIndices(numRays, numSamples)
             # print(f"numRays: {numRays}, numSamples: {numSamples}, face_indices: {np.array(face_indices).shape}")
 
             vertex_normals= self._calcVertexNormals(vertex_positions, face_indices)
@@ -112,14 +116,27 @@ class Projector(object):
             # print(f"cone vertexpos: {np.array(positionData).shape}, cone vertexcolor:{np.array(colorData).shape}, cone vertexnormal: {np.array(vnormalData).shape}")
             positionData_segments.append(positionData)
             colorData_segments.append(colorData)
-        
+            normalData_segments.append(vnormalData)
+            rayData_segments.append(ray_indices)
+
+            # FIXME: debug
+            # coneMeshNormal = self._createConeNormalMesh(vertex_positions, vertex_normals)
+            # self.rayMesh.add(coneMeshNormal)
+
+
+
         positionData_segments = np.concatenate(positionData_segments, axis=0)
         colorData_segments = np.concatenate(colorData_segments, axis=0)
+        normalData_segments = np.concatenate(normalData_segments, axis=0)
+        rayData_segments = np.concatenate(rayData_segments, axis=0)
+        # Debugging print
+        print(f"positionData_segments: {positionData_segments.shape}, colorData_segments: {colorData_segments.shape}, rayData_segments: {rayData_segments.shape}")
 
         coneGeometry = Geometry()
         coneGeometry.addAttribute("vec3", "vertexPosition", positionData_segments)
         coneGeometry.addAttribute("vec3", "vertexColor", colorData_segments)
-        # coneGeometry.addAttribute("vec3", "vertexNormal", vnormalData)
+        coneGeometry.addAttribute("vec3", "vertexNormal", normalData_segments)
+        coneGeometry.addAttribute("int", "vertexRay", rayData_segments)
         # coneGeometry.addAttribute("vec3", "faceNormal", fnormalData) # TODO: add face normals
         
         """""""""""""""create projector cone material"""""""""""""""
@@ -130,17 +147,20 @@ class Projector(object):
         return Mesh(coneGeometry, coneMaterial)
 
 
-    def _calcFaceIndices(self, numRays, numSamples):
+    def _calcFaceAndRayIndices(self, numRays, numSamples):
         faces = []
+        rays = []
         for i in range(numRays-1):
             for j in range(numSamples-1):
-                idx0 = i * numSamples + j
-                idx1 = (i + 1) * numSamples + j
-                idx2 = idx0 + 1
-                idx3 = idx1 + 1
+                idx0 = i * numSamples + j       #(i,j)
+                idx1 = (i + 1) * numSamples + j #(i+1,j)
+                idx2 = idx0 + 1                 #(i,j+1)
+                idx3 = idx1 + 1                 #(i+1,j+1)
                 faces.append([idx0, idx1, idx2])
                 faces.append([idx2, idx1, idx3])
-        return faces
+                rays.extend([i, i+1, i])
+                rays.extend([i, i+1, i+1])
+        return faces, rays
 
                 
     def _calcVertexNormals(self, vertex_positions, face_indices):
@@ -153,11 +173,14 @@ class Projector(object):
             norm = np.linalg.norm(normal)
             if norm != 0:
                 normal /= norm
+            else:
+                print(norm, v0, v1, v2)
             vertex_normals[face] += normal
         
         # Normalize the accumulated normals
         norms = np.linalg.norm(vertex_normals, axis=1, keepdims=True)
-        vertex_normals = np.divide(vertex_normals, norms, where=norms != 0)
+        epsilon = 1e-8
+        vertex_normals = np.divide(vertex_normals, norms + epsilon, where=norms != 0)
 
         return vertex_normals
     
@@ -199,5 +222,26 @@ class Projector(object):
             del self.coneMesh
         self.coneMesh = self._createConeMesh()
         self.rayMesh.add(self.coneMesh)
+
+
+
+    # FIXME: DEBUG:
+    def _createConeNormalMesh(self, vertex_positions, vertex_normals):
+        vertex_p1 = vertex_positions
+        vertex_p2 = vertex_positions + 5*vertex_normals
+        positionData = np.vstack([vertex_p1, vertex_p2]).reshape(-1, 3)
+        colorData = np.tile([1, 0, 0], (positionData.shape[0], 1)) 
+        normalGeometry = Geometry()
+        normalGeometry.addAttribute("vec3", "vertexPosition", positionData)
+        normalGeometry.addAttribute("vec3", "vertexColor", colorData)
+    
+        """""""""""""""create projector ray material"""""""""""""""
+        normalMaterial = LineMaterial({"useVertexColors":True,
+                            "lineWidth":2,
+                            "lineType":"segments", 
+                            "alpha":self.alpha})
+
+        return Mesh(normalGeometry, normalMaterial)
+        
 
         
