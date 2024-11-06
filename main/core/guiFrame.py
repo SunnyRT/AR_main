@@ -111,13 +111,13 @@ class GUIFrame(InputFrame):
 
         # Slider itself
         try:
-            self.delta_slider = wx.Slider(self.tool_panel, value=self.canvas.projector.delta, minValue=0, maxValue=20, style=wx.SL_HORIZONTAL)
+            self.delta_slider = wx.Slider(self.tool_panel, value=self.canvas.projector.delta, minValue=0, maxValue=10, style=wx.SL_HORIZONTAL)
         except:
-            self.delta_slider = wx.Slider(self.tool_panel, value=10, minValue=0, maxValue=20, style=wx.SL_HORIZONTAL)
+            self.delta_slider = wx.Slider(self.tool_panel, value=2, minValue=0, maxValue=10, style=wx.SL_HORIZONTAL)
         slider_with_labels_sizer.Add(self.delta_slider, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
         
         # Maximum value label
-        max_label = wx.StaticText(self.tool_panel, label="2")
+        max_label = wx.StaticText(self.tool_panel, label="10")
         slider_with_labels_sizer.Add(max_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
         # Add the slider with labels sizer to the main slider sizer
@@ -264,8 +264,8 @@ class GUIFrame(InputFrame):
     def on_delta_slider_change(self, event):
         value = self.delta_slider.GetValue()
         self.canvas.projector.delta = value
-        self.canvas.projector._updateConeMesh
-        self.canvas.registrator.updateMatch()
+        self.canvas.projector._updateConeMesh()
+        self.canvas.registrator.updateMesh1(mesh1=self.canvas.projector.coneMesh)
         print(f"Projector coneMesh z-resolution: {value}")
         self.canvas.SetFocus()  # Set focus back to the canvas
 

@@ -68,6 +68,7 @@ class RegistratorICP(object):
         # print("Updating ICP registrator...")
         if updateMesh1Vertices:
             self.mesh1Vertices, self.mesh1VertNorm = self.getMeshVertData(self.mesh1)
+            self.mesh1VertRay = self.mesh1.geometry.attributes["vertexRay"].data # Record which ray each vertex in mesh1 lies on
         closestPoints, closestPairsRay, closestPairsNormDist = self.findClosestPoints()
         self.findClosestPointsPerRay(closestPoints, closestPairsRay, closestPairsNormDist)
         self.createMatchMesh()            
@@ -152,7 +153,7 @@ class RegistratorICP(object):
             if dist < self.d_max:
                 closestPoints.append((v1, self.mesh2Vertices[idx]))
                 closestPointsNorm.append((self.mesh1VertNorm[i], self.mesh2VertNorm[idx]))
-                closestPointsRay.append(self.mesh1VertRay[i])
+                closestPointsRay.append(self.mesh1VertRay[i]) # FIXME: error!!!!!!!!! IndexError: index 8609 is out of bounds for axis 0 with size 8496
                 
                 
         

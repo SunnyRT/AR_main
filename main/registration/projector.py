@@ -80,7 +80,9 @@ class Projector(object):
     
     def _createConeMesh(self):
 
+        
         """"""""""""""" create projector cone geometry, iterate for each contour segment!!! """""""""""""""
+        print(f"delta in createConeMesh: {self.delta}")
         numSamples = int((self.f-self.n)/self.delta) #FIXME: is +1 needed?
         print(f"nearPlane: {self.n}, farPlane: {self.f}, numSamples: {numSamples}")
 
@@ -121,9 +123,9 @@ class Projector(object):
             normalData_segments.append(vnormalData)
             rayData_segments.append(ray_indices)
 
-            # FIXME: debug
-            coneMeshNormal = self._createConeNormalMesh(vertex_positions, vertex_normals)
-            self.rayMesh.add(coneMeshNormal)
+            # # FIXME: debug
+            # coneMeshNormal = self._createConeNormalMesh(vertex_positions, vertex_normals)
+            # self.rayMesh.add(coneMeshNormal)
 
 
 
