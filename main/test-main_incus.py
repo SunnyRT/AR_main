@@ -39,15 +39,17 @@ class MyCanvas(InputCanvas):
 
 
         self.cameraIdx = 0
-        self.image2d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
-        self.contour_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
+        self.image2d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.png"
+        self.contour_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.sw"
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
-        self.color_incus = [1, 0, 0] # TODO: to change
-        self.n = 200
-        self.f = 250
-        self.delta = 2
+        self.color_incus = [0.1372549,  0.69803922, 0.        ]
+        self.resolution=0.00015
+        self.n = 250
+        self.f = 260
+        self.delta = 0.2
         self.camera1_z = 250
+
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
 
@@ -85,15 +87,15 @@ class MyCanvas(InputCanvas):
 
 
         # Load 2D texture image
-        self.image2d = Image2D(self.image2d_path, resolution=0.0003, near = self.n, far = self.f, camera_z=self.camera1_z, alpha=0.5,
-                               contourPath=self.contour_path, contourColor=self.color_pinna, displayStyle='line', contourSize=3)
+        self.image2d = Image2D(self.image2d_path, self.resolution, near = self.n, far = self.f, camera_z=self.camera1_z, alpha=0.5,
+                               contourPath=self.contour_path, contourColor=self.color_incus, displayStyle='line', contourSize=3)
         self.camera1 = self.image2d.camera
         self.rig1 = self.image2d.rig
         self.scene.add(self.rig1) # Add rig1, and hence the entire image2d object to scene
 
 
         # Add projector from camera1 through contour points
-        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=self.delta, lineWidth=1, color=self.color_pinna,
+        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=self.delta, lineWidth=1, color=self.color_incus,
                                    visibleRay=False, visibleCone=True)
         self.camera1.add(self.projector.rayMesh)
         self.projector.rayMesh.translate(0, 0, -self.camera1_z) # Move projector to camera1 position (remove offset)
@@ -106,7 +108,7 @@ class MyCanvas(InputCanvas):
 
         # Load 3D model
         geometry3d = Model3dGeometry(self.model3d_path)
-        lambertMaterial = LambertMaterial(properties={"useVertexColors": True})
+        lambertMaterial = LambertMaterial(properties={"useVertexColors": True, "alpha": 0.5})
         self.mesh3d = Mesh(geometry3d, lambertMaterial)
         self.scene.add(self.mesh3d)
         self.mesh3d.rotateY(pi/2)
@@ -136,7 +138,12 @@ class MyCanvas(InputCanvas):
         transform_matrix = self.image2d.imagePlane.getWorldMatrix()
         distance = np.linalg.norm(self.camera1.getWorldPosition())
         view_angle = self.camera1.theta
-        self.GetParent().update_tool_panel(transform_matrix, distance, view_angle)
+        match_count = self.registrator.matchCount
+        mean_error = self.registrator.meanError
+        mean_norm_measure = self.registrator.meanNormMeasure
+        
+        self.GetParent().update_tool_panel(transform_matrix, distance, view_angle, 
+                                           match_count, mean_error, mean_norm_measure)
 
         """ Update the scene and toggle between cameras."""
         if self.isKeyDown("space"):  # Toggle between cameras with spacebar

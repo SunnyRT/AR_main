@@ -90,6 +90,8 @@ class Projector(object):
         normalData_segments = []
         rayData_segments = []
 
+        rayIdOffset = 0
+
 
 
         for i, contourVertWorldPos in enumerate(self.contourVertWorldPos_segments):
@@ -106,9 +108,9 @@ class Projector(object):
             sampledPoints = (1 - t_values) * nearPoints[:, None] + t_values * farPoints[:, None] # Shape: (numRays, numSamples, 3)
             vertex_positions = sampledPoints.reshape(-1, 3) # Shape: (numRays*numSamples, 3)
 
-            face_indices, ray_indices = self._calcFaceAndRayIndices(numRays, numSamples)
+            face_indices, ray_indices, rayIdOffset = self._calcFaceAndRayIndices(numRays, numSamples, rayIdOffset)
             # print(f"numRays: {numRays}, numSamples: {numSamples}, face_indices: {np.array(face_indices).shape}")
-
+            # print(f"ray_indices values: {np.unique(ray_indices)}")
             vertex_normals= self._calcVertexNormals(vertex_positions, face_indices)
             # print(f"before arranging, vertexpos: {np.array(vertex_positions).shape}, vertexnormal: {np.array(vertex_normals).shape}")
 
@@ -120,8 +122,8 @@ class Projector(object):
             rayData_segments.append(ray_indices)
 
             # FIXME: debug
-            # coneMeshNormal = self._createConeNormalMesh(vertex_positions, vertex_normals)
-            # self.rayMesh.add(coneMeshNormal)
+            coneMeshNormal = self._createConeNormalMesh(vertex_positions, vertex_normals)
+            self.rayMesh.add(coneMeshNormal)
 
 
 
@@ -129,8 +131,11 @@ class Projector(object):
         colorData_segments = np.concatenate(colorData_segments, axis=0)
         normalData_segments = np.concatenate(normalData_segments, axis=0)
         rayData_segments = np.concatenate(rayData_segments, axis=0)
+        
         # Debugging print
-        print(f"positionData_segments: {positionData_segments.shape}, colorData_segments: {colorData_segments.shape}, rayData_segments: {rayData_segments.shape}")
+        # print(f"rayData_segments values: {np.unique(rayData_segments)}")
+        # print(f"positionData_segments: {positionData_segments.shape}, colorData_segments: {colorData_segments.shape}, rayData_segments: {rayData_segments.shape}")
+
 
         coneGeometry = Geometry()
         coneGeometry.addAttribute("vec3", "vertexPosition", positionData_segments)
@@ -147,9 +152,11 @@ class Projector(object):
         return Mesh(coneGeometry, coneMaterial)
 
 
-    def _calcFaceAndRayIndices(self, numRays, numSamples):
+    def _calcFaceAndRayIndices(self, numRays, numSamples, rayIdOffset):
         faces = []
         rays = []
+        # print(f"numRays: {numRays}")
+        # print(f"rayidoffset: {rayIdOffset}")
         for i in range(numRays-1):
             for j in range(numSamples-1):
                 idx0 = i * numSamples + j       #(i,j)
@@ -160,7 +167,10 @@ class Projector(object):
                 faces.append([idx2, idx1, idx3])
                 rays.extend([i, i+1, i])
                 rays.extend([i, i+1, i+1])
-        return faces, rays
+
+        rays = np.array(rays) + rayIdOffset
+        rayIdOffset += numRays
+        return faces, rays, rayIdOffset
 
                 
     def _calcVertexNormals(self, vertex_positions, face_indices):
@@ -177,10 +187,9 @@ class Projector(object):
                 print(norm, v0, v1, v2)
             vertex_normals[face] += normal
         
-        # Normalize the accumulated normals
+        # Normalize the accumulated normals, setting almost-zero norms to [0, 0, 0]
         norms = np.linalg.norm(vertex_normals, axis=1, keepdims=True)
-        epsilon = 1e-8
-        vertex_normals = np.divide(vertex_normals, norms + epsilon, where=norms != 0)
+        vertex_normals = np.where(norms > 1e-8, vertex_normals / norms, 0)
 
         return vertex_normals
     
@@ -216,7 +225,7 @@ class Projector(object):
             
     
     def _updateConeMesh(self):
-        """ update cone mesh with new near and far planes """
+        """ update cone mesh with new near and/or far planes, or new delta (called in image2d, or in guiFrame) """
         if self.coneMesh in self.rayMesh.children:
             self.rayMesh.remove(self.coneMesh)
             del self.coneMesh
@@ -227,9 +236,14 @@ class Projector(object):
 
     # FIXME: DEBUG:
     def _createConeNormalMesh(self, vertex_positions, vertex_normals):
+        if vertex_positions.shape[0] != vertex_normals.shape[0]:
+            raise ValueError("vertex_positions and vertex_normals must have the same number of vertices")
         vertex_p1 = vertex_positions
         vertex_p2 = vertex_positions + 5*vertex_normals
-        positionData = np.vstack([vertex_p1, vertex_p2]).reshape(-1, 3)
+        # Interleave vertex_p1 and vertex_p2
+        positionData = np.empty((2 * len(vertex_p1), 3), dtype=vertex_p1.dtype)
+        positionData[0::2] = vertex_p1  # Even indices: start points
+        positionData[1::2] = vertex_p2  # Odd indices: end points
         colorData = np.tile([1, 0, 0], (positionData.shape[0], 1)) 
         normalGeometry = Geometry()
         normalGeometry.addAttribute("vec3", "vertexPosition", positionData)
@@ -239,7 +253,8 @@ class Projector(object):
         normalMaterial = LineMaterial({"useVertexColors":True,
                             "lineWidth":2,
                             "lineType":"segments", 
-                            "alpha":self.alpha})
+                            "alpha":1})
+                            
 
         return Mesh(normalGeometry, normalMaterial)
         

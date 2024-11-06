@@ -68,7 +68,7 @@ class GUIFrame(InputFrame):
 
 
 
-        """ Create a slider"""
+        """ Create dmax slider"""
         slider_sizer = wx.BoxSizer(wx.VERTICAL)
         dmax_label = wx.StaticText(self.tool_panel, label="d_max:")
         slider_sizer.Add(dmax_label, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5) 
@@ -96,16 +96,45 @@ class GUIFrame(InputFrame):
 
         # Bind the slider event
         self.Bind(wx.EVT_SLIDER, self.on_dmax_slider_change, self.dmax_slider)
+        """ End of dmax slider creation """
+
+
+        """ Create delta slider (conMesh resolution along optical-axis)"""
+        slider_sizer = wx.BoxSizer(wx.VERTICAL)
+        delta_label = wx.StaticText(self.tool_panel, label="delta:")
+        slider_sizer.Add(delta_label, 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5) 
+        slider_with_labels_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        # Minimum value label
+        min_label = wx.StaticText(self.tool_panel, label="0")
+        slider_with_labels_sizer.Add(min_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        # Slider itself
+        try:
+            self.delta_slider = wx.Slider(self.tool_panel, value=self.canvas.projector.delta, minValue=0, maxValue=20, style=wx.SL_HORIZONTAL)
+        except:
+            self.delta_slider = wx.Slider(self.tool_panel, value=10, minValue=0, maxValue=20, style=wx.SL_HORIZONTAL)
+        slider_with_labels_sizer.Add(self.delta_slider, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
+        
+        # Maximum value label
+        max_label = wx.StaticText(self.tool_panel, label="2")
+        slider_with_labels_sizer.Add(max_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+
+        # Add the slider with labels sizer to the main slider sizer
+        slider_sizer.Add(slider_with_labels_sizer, 0, wx.ALL | wx.EXPAND, 5)
+        # Add the slider_sizer to the main tool panel sizer
+        tool_sizer.Add(slider_sizer, 0, wx.ALL | wx.EXPAND, 10)
+
+        # Bind the slider event
+        self.Bind(wx.EVT_SLIDER, self.on_delta_slider_change, self.delta_slider)
         """ End of slider creation """
 
+        # # Create a text box
+        # self.textbox = wx.TextCtrl(self.tool_panel, style=wx.TE_PROCESS_ENTER)
+        # tool_sizer.Add(self.textbox, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
+        # self.Bind(wx.EVT_TEXT_ENTER, self.on_text_enter, self.textbox)
 
-
-        # Create a text box
-        self.textbox = wx.TextCtrl(self.tool_panel, style=wx.TE_PROCESS_ENTER)
-        tool_sizer.Add(self.textbox, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
-        self.Bind(wx.EVT_TEXT_ENTER, self.on_text_enter, self.textbox)
-
-        tool_sizer.AddSpacer(10)
+        # tool_sizer.AddSpacer(10)
 
         # Create another button
         self.exit_button = wx.Button(self.tool_panel, label="Exit")
@@ -123,14 +152,14 @@ class GUIFrame(InputFrame):
         )
         tool_sizer.Add(self.transform_matrix_text, 0, wx.ALL | wx.EXPAND, 10)
 
-        self.distance_text = wx.StaticText(
-            self.tool_panel,
-            label="Distance to Origin: 0.0",
-            style=wx.ALIGN_LEFT
-        )
-        tool_sizer.Add(self.distance_text, 0, wx.ALL | wx.EXPAND, 10)
+        # self.distance_text = wx.StaticText(
+        #     self.tool_panel,
+        #     label="Distance to Origin: 0.0",
+        #     style=wx.ALIGN_LEFT
+        # )
+        # tool_sizer.Add(self.distance_text, 0, wx.ALL | wx.EXPAND, 10)
 
-        tool_sizer.AddSpacer(10)
+        # tool_sizer.AddSpacer(10)
 
         self.view_angle_text = wx.StaticText(
             self.tool_panel,
@@ -139,14 +168,39 @@ class GUIFrame(InputFrame):
         )
         tool_sizer.Add(self.view_angle_text, 0, wx.ALL | wx.EXPAND, 10)
 
+        self.match_count_text = wx.StaticText(
+            self.tool_panel,
+            label="Number of Matches: 0",
+            style=wx.ALIGN_LEFT
+        )
+        tool_sizer.Add(self.match_count_text, 0, wx.ALL | wx.EXPAND, 10)
+
+        self.mean_error_text = wx.StaticText(
+            self.tool_panel,
+            label="Mean Error: 0.0",
+            style=wx.ALIGN_LEFT
+        )
+        tool_sizer.Add(self.mean_error_text, 0, wx.ALL | wx.EXPAND, 10)
+
+        self.mean_norm_meausre_text = wx.StaticText(
+            self.tool_panel,
+            label="Mean Normal Similarity Measure: 0.0",
+            style=wx.ALIGN_LEFT
+        )
+        tool_sizer.Add(self.mean_norm_meausre_text, 0, wx.ALL | wx.EXPAND, 10)
+
         # Set sizer for the tool panel
         self.tool_panel.SetSizer(tool_sizer)
 
 
-    def update_tool_panel(self, transform_matrix, distance, view_angle):
+    def update_tool_panel(self, transform_matrix, distance, view_angle, match_count, mean_error, mean_norm_measure):
+        """ Update the text in the tool panel."""
         self.transform_matrix_text.SetLabel("Transformation Matrix:\n"+self.format_matrix(transform_matrix))
-        self.distance_text.SetLabel(f"Distance to Origin:\n {distance:.2f}")
+        # self.distance_text.SetLabel(f"Distance to Origin:\n {distance:.2f}")
         self.view_angle_text.SetLabel(f"View Angle:\n {view_angle:.2f}")
+        self.match_count_text.SetLabel(f"Number of Matches:\n {match_count}")
+        self.mean_error_text.SetLabel(f"Mean Error:\n {mean_error:.2f}")
+        self.mean_norm_meausre_text.SetLabel(f"Mean Normal Similarity Measure:\n {mean_norm_measure:.2f}")
 
     def format_matrix(self, matrix):
         """ Format the matrix as a string for display."""
@@ -204,13 +258,21 @@ class GUIFrame(InputFrame):
         value = self.dmax_slider.GetValue()
         self.canvas.registrator.d_max = value
         self.canvas.registrator.updateMatch()
-        print(f"Slider value changed to: {value}")
+        print(f"Maximum match pair distance dmax: {value}")
         self.canvas.SetFocus()  # Set focus back to the canvas
 
-    def on_text_enter(self, event):
-        text = self.textbox.GetValue()
-        print(f"Text entered: {text}")
+    def on_delta_slider_change(self, event):
+        value = self.delta_slider.GetValue()
+        self.canvas.projector.delta = value
+        self.canvas.projector._updateConeMesh
+        self.canvas.registrator.updateMatch()
+        print(f"Projector coneMesh z-resolution: {value}")
         self.canvas.SetFocus()  # Set focus back to the canvas
+
+    # def on_text_enter(self, event):
+    #     text = self.textbox.GetValue()
+    #     print(f"Text entered: {text}")
+    #     self.canvas.SetFocus()  # Set focus back to the canvas
 
     def on_exit_click(self, event):
         self.Close()

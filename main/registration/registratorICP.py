@@ -28,6 +28,11 @@ class RegistratorICP(object):
         self.closestPairsPerRay = None
         self.matchMesh = None
 
+        # Debugging output
+        self.matchCount = 0
+        self.meanError = float('inf')
+        self.meanNormMeasure = 0
+
         print("Initializing ICP registrator...")
         # 0. Extract vertexPosition with world matrix applied from both meshes
         mesh1Vertices, mesh1VertNorm = self.getMeshVertData(self.mesh1)
@@ -37,6 +42,7 @@ class RegistratorICP(object):
         # print(f"shape of mesh1VertNorm: {mesh1VertNorm.shape}")
         # print(f"shape of mesh2VertNorm: {mesh2VertNorm.shape}")
         self.mesh1VertRay = self.mesh1.geometry.attributes["vertexRay"].data # Record which ray each vertex in mesh1 lies on
+        print(f"Number of rays in mesh1: {len(np.unique(self.mesh1VertRay))}")
         # print(f"rayData shape in mesh1: {self.mesh1VertRay.shape}")
 
         # 1. Filter out vertices in mesh2 with the same color as mesh1
@@ -150,9 +156,11 @@ class RegistratorICP(object):
                 
                 
         
-        # print(f"Number of closest pairs found: {len(closestPoints)}")
+        print(f"Number of closest pairs found: {len(closestPoints)}")
         if len(closestPoints) == 0:
-            raise ValueError("No matching points found within max distance.")
+            # raise ValueError("No matching points found within max distance.")
+            print("No matching points found within max distance.")
+            return [], [], []
 
         closestPairsNormDist = [np.dot(norm1, norm2) for norm1, norm2 in closestPointsNorm] # FIXME: assume normal data is normalized to unit length
         closestPairsRay = closestPointsRay
@@ -169,13 +177,16 @@ class RegistratorICP(object):
     #     return uniqueVertices
 
 
-    # FIXME:!!!!!!! to be completed!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
     def findClosestPointsPerRay(self, closestPairs, closestPairsRay, closestPairsNormDist):
         """ sort the closest points by ray
             within each ray, identify the match pair with max normal similarlity """
         
         if closestPairs is None or len(closestPairs) == 0:
-            raise ValueError("No matching points found within max distance.")
+            # raise ValueError("No matching points found within max distance.")
+            # print("No matching points found within max distance.")
+            return
+            
 
         if len(closestPairs) != len(closestPairsRay) or len(closestPairs) != len(closestPairsNormDist):
             raise ValueError("Input closestpPoints arrays must have the same length.")
@@ -183,6 +194,8 @@ class RegistratorICP(object):
         # closestPairs = self.closestPairs
         # closestPairsRay = self.closestPairsRay
         # closestPairsNormDist = self.closestPairsNormDist
+
+        # arrange the closest pairs into dictionary by ray
         closestPairsByRay = {}
         closestPairsNormDistByRay = {}
         for i, ray in enumerate(closestPairsRay):
@@ -195,23 +208,42 @@ class RegistratorICP(object):
             
         
         # print(f"Number of rays: {len(closestPairsByRay)}")
-        # print(f"Number of closest pairs per ray: {len(closestPairsByRay[0])}")
-        # print(f"Number of closest pairs per ray: {len(closestPairsByRay[1])}")
-        # print(f"Number of closest pairs per ray: {len(closestPairsByRay[2])}")
-        # print(f"Number of closest pairs per ray: {len(closestPairsByRay[3])}")
+        # print(f"Number of closest pairs per ray: {[len(pairs) for pairs in closestPairsByRay.values()]}")
 
         # for each ray, find the pair with max normal similarity
         closestPairsPerRay = []
+        closestPairsNormDistPerRay = []
         for ray, pairs in closestPairsByRay.items():
             maxIdx = np.argmax(closestPairsNormDistByRay[ray])
             closestPairsPerRay.append(pairs[maxIdx])
+            closestPairsNormDistPerRay.append(closestPairsNormDistByRay[ray][maxIdx]) # record the max normal similarity of each closest pair selected
 
-        self.closestPairsPerRay = closestPairsPerRay # FIXME:!!!!!!! 
+        self.closestPairsPerRay = closestPairsPerRay 
+        self.closestPairsNormDist = closestPairsNormDistPerRay
+
+        self.calcMatchInfo() # calc and display match information for debugging!!!
         
+    def calcMatchInfo(self):
+        self.matchCount = len(self.closestPairsPerRay)
+        # print(f"Number of closest pairs (1 per ray) within dmax: {len(self.closestPairsPerRay)}")
+        
+        # compute mean absolute distance between matching points
+        sourcePoints, targetPoints = zip(*self.closestPairsPerRay)
+        sourcePoints = np.array(sourcePoints)
+        targetPoints = np.array(targetPoints)
+        self.meanError = np.mean(np.linalg.norm(sourcePoints - targetPoints, axis=1))
+        # print(f"Mean distance between matching points: {meanError}")
+
+        # compute mean normal similarity between matching points
+        self.meanNormMeasure = np.mean(self.closestPairsNormDist)
+        # print(f"Mean normal similarity between matching points: {meanNormMeasure}")
+
 
     def createMatchMesh(self):
         if self.closestPairsPerRay is None or len(self.closestPairsPerRay) == 0:
-            raise ValueError("No matching points found within max distance.")
+            # raise ValueError("No matching points found within max distance.")
+            # print("No matching points found within max distance.")
+            return
         matchGeo = MatchGeometry(self.closestPairsPerRay)
         matchMat = LineMaterial({"lineType": "segments", "lineWidth": 1})
         matchMesh = Mesh(matchGeo, matchMat)
