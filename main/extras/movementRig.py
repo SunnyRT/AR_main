@@ -45,6 +45,11 @@ class MovementRig(Object3D):
 
     
     def update(self, inputObject, deltaTime=None):
+
+        # TODO: track changes in camera parameters (microscopic camera1)
+        self.isUpdated = False
+        prevTransform = self.getWorldMatrix()
+
         if inputObject is None:
             print("MovementRig.update() error: inputObject is None")
             return  # Exit if inputObject is not passed correctly
@@ -77,11 +82,19 @@ class MovementRig(Object3D):
             self.lookAttachment.rotateX(-rotateAmount)
 
 
-        # Handle mouse-based rotation when left mouse button is held down
+        # # Handle mouse-based rotation when left mouse button is held down
+        # rotate about global origin
         if inputObject.isMouseLeftDown():
             mouseDelta = inputObject.getMouseDelta()
-            self.rotateY(-mouseDelta[0] * rotateAmount)
-            self.lookAttachment.rotateX(-mouseDelta[1] * rotateAmount)
+            self.rotateY(mouseDelta[0] * rotateAmount, localCoord=False)
+            self.rotateX(-mouseDelta[1] * rotateAmount, localCoord=False)
+            # # reset rig up/down rotation to 0, lookattachment up/down rotation to target angle
+            # pitch = self.getRotationMatrix()[0]
+            # self.rotateX(-pitch, localCoord=True)
+            # self.lookAttachment.rotateX(pitch, localCoord=True)
+
+
+
 
         # Handle mouse-based panning when right mouse button is held down
         if inputObject.isMouseRightDown():
@@ -96,6 +109,12 @@ class MovementRig(Object3D):
         mouseScroll = inputObject.getMouseScroll()
         if mouseScroll != 0:
             self.translate(0, 0, -mouseScroll * moveAmount)
+
+        # super().update(inputObject, deltaTime) # propagate update to children
+        currTransform = self.getWorldMatrix()
+        if not (prevTransform == currTransform).all():
+            self.isUpdated = True
+        
 
 
 

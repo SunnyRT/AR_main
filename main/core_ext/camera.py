@@ -72,14 +72,18 @@ class Camera(Object3D):
         # if inputObject.isKeyDown('space'):
         #     self.toggleProjection()
         
+        # TODO: track changes in camera parameters (microscopic camera1)
+        self.isUpdated = False
         
         if self.isPerspective:
             if inputObject.isKeyPressed('up'):
                 self.theta -= 0.1
                 self.setPerspective()
+                self.isUpdated = True
             if inputObject.isKeyPressed('down'):
                 self.theta += 0.1
                 self.setPerspective()
+                self.isUpdated = True
         else:
             if inputObject.isKeyPressed('w'):
                 self.zoom += 0.01
@@ -91,3 +95,5 @@ class Camera(Object3D):
             if mouseScroll != 0:
                 self.zoom += mouseScroll * 0.01
                 self.setOrthographic()
+
+        # super.update(inputObject, deltaTime) # Propagate update to children

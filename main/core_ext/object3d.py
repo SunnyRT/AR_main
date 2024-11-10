@@ -43,6 +43,11 @@ class Object3D(object):
         return descendants
     
 
+    # # TODO:!!!!!
+    # def update(self, *args, **kwargs):
+    #     for child in self.children:
+    #         child.update(*args, **kwargs) # recursively propagates update in children
+
 
     # apply geometric transformation to model matrix of this Object3D
     def applyMatrix(self, matrix, localCoord=True):
@@ -71,33 +76,8 @@ class Object3D(object):
         m = Matrix.makeScale(s)
         self.applyMatrix(m, localCoord)
 
-
-    # TODO: (New method) Rotate around the X-axis but relative to the global origin
-    def rotateXorigin(self, angle):
-        # Step 1: Translate to global origin
-        position = self.getPosition()
-        self.translate(-position[0], -position[1], -position[2], localCoord=False)
-
-        # Step 2: Rotate around the X-axis in local coordinates
-        self.rotateX(angle, localCoord=True)
-
-        # Step 3: Translate back to original position
-        self.translate(position[0], position[1], position[2], localCoord=False)
-
-    # TODO: (New method) Rotate around the Y-axis but relative to the global origin
-    def rotateYorigin(self, angle):
-        # Step 1: Translate to global origin
-        position = self.getPosition()
-        self.translate(-position[0], -position[1], -position[2], localCoord=False)
-
-        # Step 2: Rotate around the Y-axis in local coordinates
-        self.rotateY(angle, localCoord=True)
-
-        # Step 3: Translate back to original position
-        self.translate(position[0], position[1], position[2], localCoord=False)
-
-
     
+
     # get/set position components of transform
     def getPosition(self):
         return [self.transform.item((0, 3)), self.transform.item((1, 3)), self.transform.item((2, 3))]
