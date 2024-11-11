@@ -103,14 +103,27 @@ class MyCanvas(InputCanvas):
         # Set up image2d object, include: imagePlane, contour
         self.image2d = Image2D(texture2d=texture2d, rig=self.rig1, camera=self.camera1, resolution=self.resolution, near=self.n, far=self.f, alpha=0.5,
                                contourPath=self.contour_path, contourColor=self.color_pinna, displayStyle='line', contourSize=3)
-
+        self.image2d.imagePlane.translate(0,0,-0.01) # Move imagePlane slightly above the camera1 viewplane
 
 
         # Add projector from camera1 through contour points
         self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=self.delta, lineWidth=1, color=self.color_pinna,
-                                   visibleRay=False, visibleCone=True)
+                                   alpha=0.8, visibleRay=True, visibleCone=True)
+        print(f"camera1 position: {self.camera1.getWorldPosition()}")
         self.camera1.add(self.projector.rayMesh)
-        self.projector.rayMesh.translate(0, 0, -self.camera1_z) # Move projector to camera1 position (remove offset)
+
+        # Correct projector position and orientation
+        camera1_transform = self.camera1.getWorldMatrix()
+        camera1_pos = self.camera1.getWorldPosition()
+        camera1_inv = np.linalg.inv(camera1_transform)
+        projector_transform = self.projector.rayMesh.getWorldMatrix()
+        projector_transform = camera1_inv @ projector_transform
+        self.projector.rayMesh.setWorldRotation(np.array([projector_transform[0][0:3],
+                                                            projector_transform[1][0:3],
+                                                            projector_transform[2][0:3]]))
+        self.projector.rayMesh.translate(-camera1_pos[0], -camera1_pos[1], -camera1_pos[2])
+
+        # self.projector.rayMesh.translate(0, 0, -self.camera1_z) # Move projector to camera1 position (remove offset)
         self.image2d.projectorObject = self.projector # establish link between projector and image2d (for movement of camera1 while keeping projector fixed)
         self.rig1.projectorObject = self.projector # establish link between projector and rig1 (for movement of camera1 while keeping projector fixed)
 
@@ -167,7 +180,7 @@ class MyCanvas(InputCanvas):
         else:
             self.rig1.update(self)
             self.camera1.update(self)
-            # TODO: update projector coneMesh vertices when only camera1 moves
+            # update projector coneMesh vertices when only camera1 moves
             if self.rig1.isUpdated or self.camera1.isUpdated:
                 # print("Camera1 moved")
                 self.registrator.updateMatch(updateMesh1Vertices=True) 
@@ -186,8 +199,7 @@ class MyCanvas(InputCanvas):
         """ Update image2d object """ 
         # - shift / ctrl + mousescroll to move near and far planes for projector conemseh
         # - alt + mousescroll to move camera1 along its local z-axis w/o moving projector
-        self.image2d.update(self, self.registrator) 
-        # image2d.update() triggers registrator.intialize() and thus registrator.updateMatch() when coneMesh get updated
+        self.image2d.update(self, self.registrator) # --> image2d.update() triggers registrator.intialize() and thus registrator.updateMatch() when coneMesh get updated
 
 
         self.renderer.render(self.scene, self.camera0, viewportSplit="left")   

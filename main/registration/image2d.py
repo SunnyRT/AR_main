@@ -51,7 +51,7 @@ class Image2D(object):
         
         # 6. initial positioning
         self.imagePlane.translate(0, 0, -self.n)
-        self.contourMesh.translate(0, 0, 0.1) # TODO: Move contour slightly above imagePlane
+        # self.contourMesh.translate(0, 0, 0.1) # TODO: Move contour slightly above imagePlane
 
 
         self.projectorObject = None

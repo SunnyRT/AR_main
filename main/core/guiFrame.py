@@ -252,7 +252,7 @@ class GUIFrame(InputFrame):
         """
         
         dialog = wx.FileDialog(self, "Load registration result", 
-                               wildcard="Text files (*.txt)|*.txt", style=wx.FD_LOAD | wx.FD_FILE_MUST_EXIST)
+                               wildcard="Text files (*.txt)|*.txt", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         
         if dialog.ShowModal() == wx.ID_OK:
             load_path = dialog.GetPath()
@@ -274,11 +274,12 @@ class GUIFrame(InputFrame):
                                 matrix_lines.append(matrix_row)
                             if len(matrix_lines) == 4:
                                 self.canvas.init_registration = np.array(matrix_lines)
+                                self.canvas.camera1_z = self.canvas.init_registration[2][3]
                                 reading_matrix = False
 
                         # Parse additional parameters
                         elif line.startswith("Resolution:"):
-                            self.resolution = int(line.split(":")[1].strip())
+                            self.resolution = float(line.split(":")[1].strip())
                         elif line.startswith("Near plane (n):"):
                             self.n = float(line.split(":")[1].strip())
                         elif line.startswith("Far plane (f):"):
@@ -288,7 +289,7 @@ class GUIFrame(InputFrame):
                 wx.MessageBox(f"Registration result loaded from {load_path}", "Load Successful", wx.OK | wx.ICON_INFORMATION)
                 self.canvas.initialized = False
             except Exception as e:
-                wx.MessageBox(f"Failed to load file: {e}","Error", wx.ok | wx.ICON_ERROR)
+                wx.MessageBox(f"Failed to load file: {e}","Error", wx.OK | wx.ICON_ERROR)
             
         dialog.Destroy() 
         self.canvas.SetFocus()  # Set focus back to the canvas
@@ -316,10 +317,10 @@ class GUIFrame(InputFrame):
                     file.write("\n")
                     
                     # Write additional parameters
-                    file.write(f"Resolution: {self.resolution}\n")
-                    file.write(f"Near plane (n): {self.n}\n")
-                    file.write(f"Far plane (f): {self.f}\n")
-                    file.write(f"Delta: {self.delta}\n")
+                    file.write(f"Resolution: {self.canvas.resolution}\n")
+                    file.write(f"Near plane (n): {self.canvas.n}\n")
+                    file.write(f"Far plane (f): {self.canvas.f}\n")
+                    file.write(f"Delta: {self.canvas.delta}\n")
                     
                     wx.MessageBox(f"Registration result saved to {save_path}", "Save Successful", wx.OK | wx.ICON_INFORMATION)
             except Exception as e:

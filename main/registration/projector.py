@@ -41,12 +41,17 @@ class Projector(object):
         colorData = []
 
         self.cameraPos= camera.getWorldPosition()
+        print(f"cameraPos in createRayMesh: {self.cameraPos}")
         contourPos = contourMesh.getWorldPosition()
+        contourRot = contourMesh.getWorldRotationMatrix() # TODO:
 
         # extract vertices positions from contourMesh
         contourVertPos_segments = contourMesh.geometry.positionData_segments # list of arrays for each segment
         # displace each vertex by the contour position
-        contourVertWorldPos_segments = [segment + contourPos for segment in contourVertPos_segments]
+        for i, segment in enumerate(contourVertPos_segments): # TODO:
+            # Apply the transformation to each vertex in the segment
+            contourVertPos_segments[i] = np.array([contourRot @ vertex + contourPos for vertex in segment])
+        contourVertWorldPos_segments = contourVertPos_segments # store for later use
         self.contourVertWorldPos_segments = contourVertWorldPos_segments # store for later use
 
         
@@ -92,6 +97,11 @@ class Projector(object):
         normalData_segments = []
         rayData_segments = []
 
+        vertex_positions_segments = []
+        vertex_colors_segments = []
+        vertex_normals_segments = []
+        vertex_rays_segments = []
+
         rayIdOffset = 0
 
 
@@ -109,10 +119,12 @@ class Projector(object):
             farPoints = self.cameraPos + rayDirsNormalized * self.f
             sampledPoints = (1 - t_values) * nearPoints[:, None] + t_values * farPoints[:, None] # Shape: (numRays, numSamples, 3)
             vertex_positions = sampledPoints.reshape(-1, 3) # Shape: (numRays*numSamples, 3)
+            vertex_rays = np.repeat(np.arange(numRays), numSamples)
+            vertex_colors = [self.color] * len(vertex_positions)
 
-            face_indices, ray_indices, rayIdOffset = self._calcFaceAndRayIndices(numRays, numSamples, rayIdOffset)
+            face_indices, rayData, rayIdOffset = self._calcFaceAndRayIndices(numRays, numSamples, rayIdOffset)
             # print(f"numRays: {numRays}, numSamples: {numSamples}, face_indices: {np.array(face_indices).shape}")
-            # print(f"ray_indices values: {np.unique(ray_indices)}")
+            # print(f"rayData values: {np.unique(rayData)}")
             vertex_normals= self._calcVertexNormals(vertex_positions, face_indices)
             # print(f"before arranging, vertexpos: {np.array(vertex_positions).shape}, vertexnormal: {np.array(vertex_normals).shape}")
 
@@ -121,7 +133,13 @@ class Projector(object):
             positionData_segments.append(positionData)
             colorData_segments.append(colorData)
             normalData_segments.append(vnormalData)
-            rayData_segments.append(ray_indices)
+            rayData_segments.append(rayData)
+
+            vertex_positions_segments.append(vertex_positions)
+            vertex_colors_segments.append(vertex_colors)
+            vertex_normals_segments.append(vertex_normals)
+            vertex_rays_segments.append(vertex_rays)
+
 
             # # FIXME: debug
             # coneMeshNormal = self._createConeNormalMesh(vertex_positions, vertex_normals)
@@ -133,6 +151,11 @@ class Projector(object):
         colorData_segments = np.concatenate(colorData_segments, axis=0)
         normalData_segments = np.concatenate(normalData_segments, axis=0)
         rayData_segments = np.concatenate(rayData_segments, axis=0)
+
+        vertex_positions_segments = np.concatenate(vertex_positions_segments, axis=0)
+        vertex_colors_segments = np.concatenate(vertex_colors_segments, axis=0)
+        vertex_normals_segments = np.concatenate(vertex_normals_segments, axis=0)
+        vertex_rays_segments = np.concatenate(vertex_rays_segments, axis=0)
         
         # Debugging print
         # print(f"rayData_segments values: {np.unique(rayData_segments)}")
@@ -140,11 +163,19 @@ class Projector(object):
 
 
         coneGeometry = Geometry()
+        # Add triangulated attributes to the geometry object for shading
         coneGeometry.addAttribute("vec3", "vertexPosition", positionData_segments)
         coneGeometry.addAttribute("vec3", "vertexColor", colorData_segments)
         coneGeometry.addAttribute("vec3", "vertexNormal", normalData_segments)
         coneGeometry.addAttribute("int", "vertexRay", rayData_segments)
         # coneGeometry.addAttribute("vec3", "faceNormal", fnormalData) # TODO: add face normals
+
+        # Add non-duplicated attributes to the geometry object for ICP computation
+        coneGeometry.addAttribute("vec3", "uniqueVertexPosition", vertex_positions_segments)
+        coneGeometry.addAttribute("vec3", "uniqueVertexColor", vertex_colors_segments)
+        coneGeometry.addAttribute("vec3", "uniqueVertexNormal", vertex_normals_segments)
+        coneGeometry.addAttribute("int", "uniqueVertexRay", vertex_rays_segments)
+        
         
         """""""""""""""create projector cone material"""""""""""""""
         coneMaterial = LambertMaterial(properties={"useVertexColors":True, "alpha":self.alpha})

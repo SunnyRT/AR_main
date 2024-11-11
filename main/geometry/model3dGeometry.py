@@ -65,6 +65,11 @@ class Model3dGeometry(Geometry):
         self.addAttribute("vec3", "vertexPosition", positionData)
         self.addAttribute("vec3", "vertexColor", colorData)
         self.addAttribute("vec3", "vertexNormal", vnormalData)
+
+        # add non-triangulated (i.e. non-duplicated) vertex positions, colors and normals
+        self.addAttribute("vec3", "uniqueVertexPosition", vertex_positions)
+        self.addAttribute("vec3", "uniqueVertexColor", vertex_colors)
+        self.addAttribute("vec3", "uniqueVertexNormal", vertex_normals)
         # self.addAttribute("vec3", "faceNormal", fnormalData)
 
 

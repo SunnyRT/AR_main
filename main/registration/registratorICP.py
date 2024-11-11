@@ -41,7 +41,8 @@ class RegistratorICP(object):
         # print(f"Number of vertices in mesh2: {mesh2Vertices.shape}")
         # print(f"shape of mesh1VertNorm: {mesh1VertNorm.shape}")
         # print(f"shape of mesh2VertNorm: {mesh2VertNorm.shape}")
-        self.mesh1VertRay = self.mesh1.geometry.attributes["vertexRay"].data # Record which ray each vertex in mesh1 lies on
+        self.mesh1VertRay = self.mesh1.geometry.attributes["uniqueVertexRay"].data # Record which ray each vertex in mesh1 lies on
+
         print(f"Number of rays in mesh1: {len(np.unique(self.mesh1VertRay))}")
         # print(f"rayData shape in mesh1: {self.mesh1VertRay.shape}")
 
@@ -68,7 +69,7 @@ class RegistratorICP(object):
         # print("Updating ICP registrator...")
         if updateMesh1Vertices:
             self.mesh1Vertices, self.mesh1VertNorm = self.getMeshVertData(self.mesh1)
-            self.mesh1VertRay = self.mesh1.geometry.attributes["vertexRay"].data # Record which ray each vertex in mesh1 lies on
+            self.mesh1VertRay = self.mesh1.geometry.attributes["uniqueVertexRay"].data # Record which ray each vertex in mesh1 lies on
         closestPoints, closestPairsRay, closestPairsNormDist = self.findClosestPoints()
         self.findClosestPointsPerRay(closestPoints, closestPairsRay, closestPairsNormDist)
         self.createMatchMesh()            
@@ -77,13 +78,13 @@ class RegistratorICP(object):
 
 
 
-    def getMeshVertData(self, mesh):
+    def getMeshVertData(self, mesh, removeDuplicate=True):
         meshTransform = mesh.getWorldMatrix()
         if meshTransform.shape != (4, 4):
             raise ValueError(f"Invalid world matrix shape{meshTransform.shape}. Expected (4, 4).")
         meshRotation = meshTransform[:3, :3]
-        vertexPos = np.array(mesh.geometry.attributes["vertexPosition"].data) # FIXME: vertexPosition have duplicated vertices with triangulated arrangements
-        vertexNorm = np.array(mesh.geometry.attributes["vertexNormal"].data)
+        vertexPos = np.array(mesh.geometry.attributes["uniqueVertexPosition"].data) # FIXME: vertexPosition have duplicated vertices with triangulated arrangements
+        vertexNorm = np.array(mesh.geometry.attributes["uniqueVertexNormal"].data)
         # print(f"vertexPos: {vertexPos.shape}")
         # Apply world matrix to vertex positions
         worldVertexPos4D = np.hstack((vertexPos, np.ones((len(vertexPos), 1)))) @ meshTransform.T
@@ -102,8 +103,8 @@ class RegistratorICP(object):
     
     
     def findSameColorPoints(self, mesh2Vertices, mesh2VertNorm, rtol=0.1):
-        mesh1Colors = self.mesh1.geometry.attributes["vertexColor"].data
-        mesh2Colors = self.mesh2.geometry.attributes["vertexColor"].data
+        mesh1Colors = self.mesh1.geometry.attributes["uniqueVertexColor"].data
+        mesh2Colors = self.mesh2.geometry.attributes["uniqueVertexColor"].data
         sameColorPoints = []
         sameColorPointsNorm = []
 
@@ -169,13 +170,15 @@ class RegistratorICP(object):
         return closestPoints, closestPairsRay, closestPairsNormDist
 
 
-    # FIXME: is duplicate vertices removal necessary?
-    # def removeDuiplicateVertices(self, vertices, rtol=1e-5):
-    #     """ Remove duplicate vertices in the list of vertices """
-    #     uniqueVertices = np.unique(vertices, axis=0)
+    # # TODO: duplicate vertices removal to make program faster
+    # def filterUniqueVertices(self, vertices, rtol=1e-5):
+    #     """ Remove duplicate vertices in the list of vertices:
+    #         return filtered vertices and indices of unique vertices """
+    #     uniqueVertices, uniqueIdx = np.unique(vertices, axis=0, return_index=True)
+
     #     if len(vertices) != len(uniqueVertices):
     #         logging.warning(f"Removed {len(vertices) - len(uniqueVertices)} duplicate vertices.")
-    #     return uniqueVertices
+    #     return uniqueVertices, uniqueIdx
 
 
     
