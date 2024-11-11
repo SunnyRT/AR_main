@@ -114,3 +114,17 @@ class Matrix(object):
             [right[2], up[2], -forward[2], position[2]],
             [0, 0, 0, 1]
         ]).astype(float)
+
+
+    @staticmethod
+    def toHomogeneous(matrix):
+        """ Convert 3x3 matrix to 4x4 homogeneous matrix """
+        if matrix.shape==(3,3):
+            homogeneous = Matrix.makeIdentity()
+            homogeneous[0:3, 0:3] = matrix
+            homogeneous[3, 3] = 1
+            return homogeneous
+        elif matrix.shape==(4,4):
+            return matrix
+        else:
+            raise ValueError("matrix must be 3x3 or 4x4")

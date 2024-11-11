@@ -9,7 +9,6 @@ from material.textureMaterial import TextureMaterial
 class GUIFrame(InputFrame):
     def __init__(self, parent, title, size):
         wx.Frame.__init__(self, parent, title=title, size=size)
-        
         # # TODO: to be overried
         # self.canvas = InputCanvas(self)
         
@@ -33,6 +32,8 @@ class GUIFrame(InputFrame):
         # File menu
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_OPEN, "&Open")
+        self.ID_LOAD = wx.NewIdRef()
+        file_menu.Append(self.ID_LOAD, "&Load")
         file_menu.Append(wx.ID_SAVE, "&Save")
         file_menu.AppendSeparator()
         file_menu.Append(wx.ID_EXIT, "E&xit")
@@ -221,9 +222,13 @@ class GUIFrame(InputFrame):
             wx.MessageBox("wxPython OpenGL Example with Menu Bar", "About", wx.OK | wx.ICON_INFORMATION)
         elif event_id == wx.ID_OPEN:
             self.on_open_file()
+        elif event_id == self.ID_LOAD:
+            self.on_load_file()
+        elif event_id == wx.ID_SAVE:
+            self.on_save_file()
         self.canvas.SetFocus()  # Set focus back to the canvas    
 
-    def on_open_file(self):
+    def on_open_file(self): # FIXME: open directory which contains a corresponding pair of (image file + contour.sw)
         """ Open a file dialog to select a file to open."""
         wildcard = "JPEG files (*.jpg)|*.jpg|PNG files (*.png)|*.png|All files (*.*)|*.*"
         dialog = wx.FileDialog(self, "Open image file", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
@@ -234,8 +239,97 @@ class GUIFrame(InputFrame):
             self.canvas.initialized = False
             print(f"Selected file: {image2d_path}")
             
+        dialog.Destroy() 
+        self.canvas.SetFocus()  # Set focus back to the canvas
+
+    def on_load_file(self):
+        """ Load a registration text file, in the format of:
+                Transformation Matrix: xxx
+                Resolution:
+                Near plane (n):
+                Far plane (f):
+                Delta:
+        """
+        
+        dialog = wx.FileDialog(self, "Load registration result", 
+                               wildcard="Text files (*.txt)|*.txt", style=wx.FD_LOAD | wx.FD_FILE_MUST_EXIST)
+        
+        if dialog.ShowModal() == wx.ID_OK:
+            load_path = dialog.GetPath()
+            try:
+                with open(load_path, "r") as file:
+                    matrix_lines = []
+                    reading_matrix = False
+                    for line in file:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        if "Transformation Matrix" in line:
+                            reading_matrix = True
+                            continue
+                        if reading_matrix:
+                            # Read the transformation matrix values
+                            if len(matrix_lines) < 4:  # Assuming a 4x4 matrix
+                                matrix_row = [float(value) for value in line.split()]
+                                matrix_lines.append(matrix_row)
+                            if len(matrix_lines) == 4:
+                                self.canvas.init_registration = np.array(matrix_lines)
+                                reading_matrix = False
+
+                        # Parse additional parameters
+                        elif line.startswith("Resolution:"):
+                            self.resolution = int(line.split(":")[1].strip())
+                        elif line.startswith("Near plane (n):"):
+                            self.n = float(line.split(":")[1].strip())
+                        elif line.startswith("Far plane (f):"):
+                            self.f = float(line.split(":")[1].strip())
+                        elif line.startswith("Delta:"):
+                            self.delta = float(line.split(":")[1].strip())
+                wx.MessageBox(f"Registration result loaded from {load_path}", "Load Successful", wx.OK | wx.ICON_INFORMATION)
+                self.canvas.initialized = False
+            except Exception as e:
+                wx.MessageBox(f"Failed to load file: {e}","Error", wx.ok | wx.ICON_ERROR)
+            
+        dialog.Destroy() 
+        self.canvas.SetFocus()  # Set focus back to the canvas
+    
+    def on_save_file(self):
+        """ Save current registration result in a text file:
+            - Transformation matrix of camera in world coordinates
+            - Resolution
+            - Near and far plane distances (n and f)
+            - Delta parameter
+        """
+        # Open a save file dialog
+        dialog = wx.FileDialog(self, "Save registration result", wildcard="Text files (*.txt)|*.txt", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        
+        if dialog.ShowModal() == wx.ID_OK:
+            # Get the selected file path
+            save_path = dialog.GetPath()
+            try:
+                with open(save_path, "w") as file:
+                    # Write the transformation matrix
+                    file.write("Transformation Matrix:\n")
+                    matrix = self.canvas.rig1.getWorldMatrix()  # get world matrix of camera1 == rig1
+                    for row in matrix:
+                        file.write(" ".join(f"{value:.2f}" for value in row) + "\n")
+                    file.write("\n")
+                    
+                    # Write additional parameters
+                    file.write(f"Resolution: {self.resolution}\n")
+                    file.write(f"Near plane (n): {self.n}\n")
+                    file.write(f"Far plane (f): {self.f}\n")
+                    file.write(f"Delta: {self.delta}\n")
+                    
+                    wx.MessageBox(f"Registration result saved to {save_path}", "Save Successful", wx.OK | wx.ICON_INFORMATION)
+            except Exception as e:
+                wx.MessageBox(f"Failed to save file: {e}", "Error", wx.OK | wx.ICON_ERROR)
+        
         dialog.Destroy()
         self.canvas.SetFocus()  # Set focus back to the canvas
+
+        
+            
 
     def on_projection_click(self, event):
         print("Toggle perspective / orthographic projection")

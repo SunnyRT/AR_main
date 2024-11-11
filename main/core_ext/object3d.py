@@ -1,5 +1,5 @@
 from core.matrix import Matrix
-import numpy
+import numpy 
 
 
 class Object3D(object):
@@ -128,7 +128,7 @@ class Object3D(object):
         assert rotationMatrix.shape == (3, 3), "rotationMatrix must be a 3x3 matrix"
 
         if self.parent is None:
-            parentWorldMatrix = Matrix.makeIdentity()
+            parentWorldMatrix = numpy.eye(3)
         else:
             parentWorldMatrix = self.parent.getWorldRotationMatrix()
 
@@ -161,4 +161,3 @@ class Object3D(object):
 
         
 
-    

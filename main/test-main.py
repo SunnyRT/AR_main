@@ -5,6 +5,7 @@ from core.guiFrame import GUIFrame
 from core_ext.rendererDual import RendererDual
 from core_ext.scene import Scene
 from core_ext.camera import Camera
+from core_ext.microscope import Microscope
 from core_ext.mesh import Mesh
 from geometry.planeGeometry import PlaneGeometry
 from geometry.rectangleGeometry import RectangleGeometry
@@ -49,6 +50,8 @@ class MyCanvas(InputCanvas):
         self.f = 250
         self.delta = 2
         self.camera1_z = 250
+        self.init_registration = np.eye(4) # TODO: check!!!
+        self.init_registration[2][3] = self.camera1_z # TODO: check!!!
 
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
@@ -61,11 +64,11 @@ class MyCanvas(InputCanvas):
         self.renderer = RendererDual(glcanvas=self, clearColor=[0.8, 0.8, 0.8])
         self.scene = Scene()
 
-        # Set up first camera: camera0 for CAD engineering viewport
+        # Set up camera0: camera0 for CAD engineering viewport
         self.camera0 = Camera(isPerspective=False, aspectRatio=600/900, zoom=0.5)
         self.rig0 = MovementRig()
         self.rig0.add(self.camera0)
-        self.rig0.setPosition([-100, 50, 500]) # TODO: to change
+        self.rig0.setPosition([-100, 50, 500]) 
         self.rig0.lookAt([0, 0, 0])
         self.scene.add(self.rig0)
 
@@ -86,12 +89,21 @@ class MyCanvas(InputCanvas):
 
 
 
-        # FIXME: Load 2D texture image
-        self.image2d = Image2D(self.image2d_path, self.resolution, near = self.n, far = self.f, camera_z=self.camera1_z, alpha=0.5,
+        # Set up camera1 (microscope) for surgery viewport 
+        texture2d = Texture(self.image2d_path)
+        self.camera1 = Microscope(texture2d, self.resolution, self.n) # TODO: chanegd into new extended class of camera
+        self.rig1 = MovementRig()
+        self.rig1.add(self.camera1)
+        self.rig1.setWorldPosition(self.init_registration[:,3])        
+        self.rig1.setWorldRotation(np.array([self.init_registration[0][0:3],
+                                             self.init_registration[1][0:3],
+                                             self.init_registration[2][0:3]]))
+        self.scene.add(self.rig1)
+        
+        # Set up image2d object, include: imagePlane, contour
+        self.image2d = Image2D(texture2d=texture2d, rig=self.rig1, camera=self.camera1, resolution=self.resolution, near=self.n, far=self.f, alpha=0.5,
                                contourPath=self.contour_path, contourColor=self.color_pinna, displayStyle='line', contourSize=3)
-        self.camera1 = self.image2d.camera
-        self.rig1 = self.image2d.rig
-        self.scene.add(self.rig1) # Add rig1, and hence the entire image2d object to scene
+
 
 
         # Add projector from camera1 through contour points
@@ -135,7 +147,7 @@ class MyCanvas(InputCanvas):
 
 
         """ Update information displayed in the tool panel"""
-        transform_matrix = self.image2d.imagePlane.getWorldMatrix()
+        transform_matrix = self.camera1.getWorldMatrix()
         distance = np.linalg.norm(self.camera1.getWorldPosition())
         view_angle = self.camera1.theta
         match_count = self.registrator.matchCount

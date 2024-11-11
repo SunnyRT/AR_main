@@ -11,13 +11,14 @@ from extras.movementRig import MovementRig
 import numpy as np
 
 class Image2D(object):
-    def __init__(self, imagePath, resolution, near, far, camera_z, alpha=0.5, cameraDisplay=True,
+    def __init__(self, texture2d, rig, camera, resolution, near, far, alpha=0.5,
                  contourPath=None, contourColor = [1, 0, 0], displayStyle = 'line', contourSize = 1):    
 
         print("Initializing Image2D...")
 
         # 0. Initialize parameters
-        texture2d = Texture(imagePath)
+        self.rig = rig
+        self.camera = camera
         self.pxWidth = texture2d.width
         self.pxHeight = texture2d.height
         self.resolution = resolution
@@ -25,13 +26,7 @@ class Image2D(object):
         self.f = far # far clipping plane
         self.aspectRatio = self.pxWidth / self.pxHeight
 
-        # 1. Add movementRig and microscopic camera 
-        self.rig = MovementRig()
 
-        # 2. Add microscopic camera
-        camera_theta = self._calcCameraTheta()
-        self.camera = Camera(isPerspective=True, angleOfView=camera_theta, aspectRatio=self.aspectRatio, renderBox=cameraDisplay)
-        
 
         # 3. Load 2D texture plane mesh from image file
         self.material2d = TextureMaterial(texture2d, {"alpha": alpha})
@@ -48,15 +43,13 @@ class Image2D(object):
 
 
         
-        # 5. Parent relationship 
+        # 5. Scene graph parent relationship 
         # rig -> camera -> imagePlane -> contourMesh
-        self.rig.add(self.camera)
         self.camera.add(self.imagePlane)
         if self.contourMesh is not None:
             self.imagePlane.add(self.contourMesh)
         
         # 6. initial positioning
-        self.rig.setPosition([0, 0, camera_z])
         self.imagePlane.translate(0, 0, -self.n)
         self.contourMesh.translate(0, 0, 0.1) # TODO: Move contour slightly above imagePlane
 
@@ -71,14 +64,6 @@ class Image2D(object):
 
 
 
-
-
-
-
-    def _calcCameraTheta(self):
-        width, height = self._getWorldDimensions()
-        theta = 2 * np.arctan((height / 2) / self.n) / np.pi * 180
-        return theta
     
     def _getWorldDimensions(self):
         width = self.pxWidth * self.resolution * self.n
@@ -115,7 +100,7 @@ class Image2D(object):
         #         px_coords = np.array([(float(parts[i]), float(parts[i + 1]), 0) for i in range(0, len(parts), 2)])
         #         break
 
-        """FIXME: load multiple contour line!!!!!!!!"""
+        """ load multiple contour line!!!!!!!!"""
         self.all_px_coords_segments = [] # irregular list of (M,3) arrays, where each array is a contour line segment
         self.all_px_coords = np.empty((0,3)) # (N,3) array, where N is the total number of contour vertices (for all segments)
 
@@ -181,6 +166,7 @@ class Image2D(object):
         ctrlMouseScroll = inputObject.getCtrlMouseScroll()
         if shiftMouseScroll != 0:
             self.n += 10*shiftMouseScroll
+            self.camera.n = self.n
 
             # update projectorObject coneMesh with new near plane
             if self.projectorObject is not None:
@@ -221,6 +207,7 @@ class Image2D(object):
             if self.projectorObject is not None:
                 self.rig.translate(0, 0, -altSroll * 10, localCoord=True)
                 self.n -= altSroll * 10
+                self.camera.n = self.n
                 self.f -= altSroll * 10
                 self.projectorObject.n -= altSroll * 10
                 self.projectorObject.f -= altSroll * 10
