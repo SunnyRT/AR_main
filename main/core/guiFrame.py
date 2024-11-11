@@ -279,13 +279,13 @@ class GUIFrame(InputFrame):
 
                         # Parse additional parameters
                         elif line.startswith("Resolution:"):
-                            self.resolution = float(line.split(":")[1].strip())
+                            self.canvas.resolution = float(line.split(":")[1].strip())
                         elif line.startswith("Near plane (n):"):
-                            self.n = float(line.split(":")[1].strip())
+                            self.canvas.n = float(line.split(":")[1].strip())
                         elif line.startswith("Far plane (f):"):
-                            self.f = float(line.split(":")[1].strip())
+                            self.canvas.f = float(line.split(":")[1].strip())
                         elif line.startswith("Delta:"):
-                            self.delta = float(line.split(":")[1].strip())
+                            self.canvas.delta = float(line.split(":")[1].strip())
                 wx.MessageBox(f"Registration result loaded from {load_path}", "Load Successful", wx.OK | wx.ICON_INFORMATION)
                 self.canvas.initialized = False
             except Exception as e:

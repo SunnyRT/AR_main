@@ -57,7 +57,7 @@ class Model3dGeometry(Geometry):
                 vnormalData.append(vertex_normals[vertex_index])
                 
 
-        print(f"vertexpos: {np.array(positionData).shape}, vertexcolor:{np.array(colorData).shape}, vertexnormal: {np.array(vnormalData).shape}")
+        # print(f"vertexpos: {np.array(positionData).shape}, vertexcolor:{np.array(colorData).shape}, vertexnormal: {np.array(vnormalData).shape}")
 
         
 

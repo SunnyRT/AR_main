@@ -41,14 +41,13 @@ class Projector(object):
         colorData = []
 
         self.cameraPos= camera.getWorldPosition()
-        print(f"cameraPos in createRayMesh: {self.cameraPos}")
         contourPos = contourMesh.getWorldPosition()
-        contourRot = contourMesh.getWorldRotationMatrix() # TODO:
+        contourRot = contourMesh.getWorldRotationMatrix() 
 
         # extract vertices positions from contourMesh
         contourVertPos_segments = contourMesh.geometry.positionData_segments # list of arrays for each segment
-        # displace each vertex by the contour position
-        for i, segment in enumerate(contourVertPos_segments): # TODO:
+        # displace each vertex by the contour position & rotate by the contour rotation
+        for i, segment in enumerate(contourVertPos_segments): 
             # Apply the transformation to each vertex in the segment
             contourVertPos_segments[i] = np.array([contourRot @ vertex + contourPos for vertex in segment])
         contourVertWorldPos_segments = contourVertPos_segments # store for later use

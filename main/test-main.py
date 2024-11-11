@@ -108,8 +108,7 @@ class MyCanvas(InputCanvas):
 
         # Add projector from camera1 through contour points
         self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=self.delta, lineWidth=1, color=self.color_pinna,
-                                   alpha=0.8, visibleRay=True, visibleCone=True)
-        print(f"camera1 position: {self.camera1.getWorldPosition()}")
+                                   alpha=0.5, visibleRay=False, visibleCone=True)
         self.camera1.add(self.projector.rayMesh)
 
         # Correct projector position and orientation
