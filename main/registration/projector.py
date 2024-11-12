@@ -12,21 +12,25 @@ import pdb
 
 class Projector(object):
 
-    def __init__(self, camera, contourMesh, lineWidth=1, color=[1,1,0], alpha=0.3, near=500, far=750, delta=1, 
+    def __init__(self, canvas, camera, contourMesh, lineWidth=1, color=[1,1,0], alpha=0.3,
                  visibleRay=True, visibleCone=True):
         
-
-        self.n = near
-        self.f = far
-        self.delta = delta
+        self.canvas = canvas
+        # self.n = near
+        # self.f = far
+        # self.canvas.delta = delta # TODO: global variable from canvas!!!!
         self.color = color
         self.alpha = alpha
+        
 
         
         """"""""""""""" intialize ray mesh """""""""""""""
         self.rayMesh = self._createRayMesh(camera, contourMesh, lineWidth)
         self.coneMesh = self._createConeMesh()
-        self.rayMesh.add(self.coneMesh)
+        if self.coneMesh is not None:
+            self.rayMesh.add(self.coneMesh)
+        else:
+            raise ValueError("Projector.__init__() error: coneMesh is None")
         if not visibleRay:
             self.rayMesh.visible = False
         if not visibleCone:
@@ -86,9 +90,11 @@ class Projector(object):
 
         
         """"""""""""""" create projector cone geometry, iterate for each contour segment!!! """""""""""""""
-        print(f"delta in createConeMesh: {self.delta}")
-        numSamples = int((self.f-self.n)/self.delta) #FIXME: is +1 needed?
-        print(f"nearPlane: {self.n}, farPlane: {self.f}, numSamples: {numSamples}")
+        print(f"delta in createConeMesh: {self.canvas.delta}")
+        numSamples = int((self.canvas.f-self.canvas.n)/self.canvas.delta) #FIXME: is +1 needed?
+        print(f"nearPlane: {self.canvas.n}, farPlane: {self.canvas.f}, numSamples: {numSamples}")
+        if numSamples <= 0:
+            return None
 
 
         positionData_segments = []
@@ -114,8 +120,8 @@ class Projector(object):
             rayDirs = contourVertWorldPos - self.cameraPos
             rayDirsNormalized = rayDirs / np.linalg.norm(rayDirs, axis=1)[:, None]
 
-            nearPoints = self.cameraPos + rayDirsNormalized * self.n
-            farPoints = self.cameraPos + rayDirsNormalized * self.f
+            nearPoints = self.cameraPos + rayDirsNormalized * self.canvas.n
+            farPoints = self.cameraPos + rayDirsNormalized * self.canvas.f
             sampledPoints = (1 - t_values) * nearPoints[:, None] + t_values * farPoints[:, None] # Shape: (numRays, numSamples, 3)
             vertex_positions = sampledPoints.reshape(-1, 3) # Shape: (numRays*numSamples, 3)
             vertex_rays = np.repeat(np.arange(numRays), numSamples)
@@ -235,25 +241,6 @@ class Projector(object):
     
 
 
-
-
-    # # manipulate projector coneMesh: change near and far planes
-    # def update(self, inputObject, deltaTime=None): 
-    #     if inputObject is None:
-    #         print("Projector.update() error: inputObject is None")
-    #         return
-        
-    #     shiftMouseScroll = inputObject.getShiftMouseScroll()
-    #     ctrlMouseScroll = inputObject.getCtrlMouseScroll()
-    #     if shiftMouseScroll != 0:
-    #         self.n += 10*shiftMouseScroll
-    #         self._updateConeMesh()
-    #         # print(f"shiftMouseScroll: {shiftMouseScroll}, near: {self.n}")
-    #     if ctrlMouseScroll != 0:
-    #         self.f += 10*ctrlMouseScroll
-    #         self._updateConeMesh()
-    #         # print(f"ctrlMouseScroll: {ctrlMouseScroll}, far: {self.f}")
-
             
     
     def _updateConeMesh(self):
@@ -262,7 +249,10 @@ class Projector(object):
             self.rayMesh.remove(self.coneMesh)
             del self.coneMesh
         self.coneMesh = self._createConeMesh()
-        self.rayMesh.add(self.coneMesh)
+        if self.coneMesh is not None:
+            self.rayMesh.add(self.coneMesh)
+        else:
+            raise ValueError("Projector._updateConeMesh() error: coneMesh is None")
 
 
 

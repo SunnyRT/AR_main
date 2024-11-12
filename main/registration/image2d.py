@@ -11,19 +11,20 @@ from extras.movementRig import MovementRig
 import numpy as np
 
 class Image2D(object):
-    def __init__(self, texture2d, rig, camera, resolution, near, far, alpha=0.5,
+    def __init__(self, canvas, texture2d, rig, camera, alpha=0.5,
                  contourPath=None, contourColor = [1, 0, 0], displayStyle = 'line', contourSize = 1):    
 
         print("Initializing Image2D...")
 
         # 0. Initialize parameters
+        self.canvas = canvas
         self.rig = rig
         self.camera = camera
         self.pxWidth = texture2d.width
         self.pxHeight = texture2d.height
-        self.resolution = resolution
-        self.n = near # near clipping plane = focal length (i.e. distance between camera and image plane)
-        self.f = far # far clipping plane
+        # self.resolution = resolution
+        # self.n = near # near clipping plane = focal length (i.e. distance between camera and image plane)
+        # self.f = far # far clipping plane
         self.aspectRatio = self.pxWidth / self.pxHeight
 
 
@@ -50,7 +51,7 @@ class Image2D(object):
             self.imagePlane.add(self.contourMesh)
         
         # 6. initial positioning
-        self.imagePlane.translate(0, 0, -self.n)
+        self.imagePlane.translate(0, 0, -self.canvas.n)
         # self.contourMesh.translate(0, 0, 0.1) # TODO: Move contour slightly above imagePlane
 
 
@@ -66,8 +67,8 @@ class Image2D(object):
 
     
     def _getWorldDimensions(self):
-        width = self.pxWidth * self.resolution * self.n
-        height = self.pxHeight * self.resolution * self.n
+        width = self.pxWidth * self.canvas.resolution * self.canvas.n
+        height = self.pxHeight * self.canvas.resolution * self.canvas.n
         return width, height
 
 
@@ -82,9 +83,12 @@ class Image2D(object):
     def _updateImagePlane(self):
         if self.imagePlane in self.camera.children:
             self.camera.remove(self.imagePlane)
+            del self.imagePlane
         self.imagePlane = self._createImagePlane()
         self.camera.add(self.imagePlane)
-        self.imagePlane.translate(0, 0, -self.n)
+        print(f"image2d pos1: {self.imagePlane.getWorldPosition()}")
+        self.imagePlane.translate(0, 0, -self.canvas.n)
+        print(f"image2d pos1: {self.imagePlane.getWorldPosition()}")
     
 
 
@@ -134,7 +138,7 @@ class Image2D(object):
 
     def _createContour(self):
         width, height = self._getWorldDimensions()
-        contourGeometry = ContourGeometry(self.all_px_coords, self.all_px_coords_segments, width, height, self.resolution, self.n, self.contourColor, flipY=True)
+        contourGeometry = ContourGeometry(self.all_px_coords, self.all_px_coords_segments, width, height, self.canvas.resolution, self.canvas.n, self.contourColor, flipY=True)
         contourMesh = Mesh(contourGeometry, self.contourMaterial)
 
         return contourMesh
@@ -159,20 +163,29 @@ class Image2D(object):
 
 
 
-    def update(self, inputObject, registratorObject=None):
+    def update(self, inputObject, registratorObject=None, reset=False):
+
+        if reset:
+            self._updateImagePlane()
+            if self.contourMesh is not None:
+                self._updateContour()
+            if self.projectorObject is not None:
+                self.projectorObject._updateConeMesh()
+            if registratorObject is not None:
+                registratorObject.updateMesh1(self.projectorObject.coneMesh)
 
         # Handle shift and ctrl + mouse scroll to manipulate near and far clipping planes
         shiftMouseScroll = inputObject.getShiftMouseScroll()
         ctrlMouseScroll = inputObject.getCtrlMouseScroll()
         if shiftMouseScroll != 0:
-            self.n += 10*shiftMouseScroll
-            self.camera.n = self.n
+            self.canvas.n += 10*shiftMouseScroll
+            # self.camera.initialize()
 
             # update projectorObject coneMesh with new near plane
             if self.projectorObject is not None:
-                self.projectorObject.n = self.n
+                # self.projectorObject.n = self.canvas.n # TODO:
                 self.projectorObject._updateConeMesh()
-            # print(f"shiftMouseScroll: {shiftMouseScroll}, near: {self.n}")
+            # print(f"shiftMouseScroll: {shiftMouseScroll}, near: {self.canvas.n}")
 
             # update registratorObject with new coneMesh(mesh1)
             if registratorObject is not None:
@@ -187,13 +200,13 @@ class Image2D(object):
 
 
         if ctrlMouseScroll != 0:
-            self.f += 10*ctrlMouseScroll
+            self.canvas.f += 10*ctrlMouseScroll
 
             # update projectorObject coneMesh with new far plane
             if self.projectorObject is not None:
-                self.projectorObject.f = self.f
+                # self.projectorObject.f = self.canvas.f
                 self.projectorObject._updateConeMesh()
-            # print(f"ctrlMouseScroll: {ctrlMouseScroll}, far: {self.f}")
+            # print(f"ctrlMouseScroll: {ctrlMouseScroll}, far: {self.canvas.f}")
 
             # update registratorObject with new coneMesh(mesh1)
             if registratorObject is not None:
@@ -206,18 +219,18 @@ class Image2D(object):
             print(f"altSroll: {altSroll}")
             if self.projectorObject is not None:
                 self.rig.translate(0, 0, -altSroll * 10, localCoord=True)
-                self.n -= altSroll * 10
-                self.camera.n = self.n
-                self.f -= altSroll * 10
-                self.projectorObject.n -= altSroll * 10
-                self.projectorObject.f -= altSroll * 10
+                self.canvas.n -= altSroll * 10
+                # self.camera.initialize()
+                self.canvas.f -= altSroll * 10
+                # self.projectorObject.n -= altSroll * 10
+                # self.projectorObject.f -= altSroll * 10
                 # self.camera.theta = self._calcCameraTheta() # theta would not be affected by camera movement
 
                 self.projectorObject._updateConeMesh()
                 self._updateImagePlane()
                 if self.contourMesh is not None:
                     self._updateContour()
-                print(f"near: {self.projectorObject.n}, far: {self.projectorObject.f}, camera moved: {altSroll * 10}")
+                print(f"near: {self.canvas.n}, far: {self.canvas.f}, camera moved: {altSroll * 10}")
             else:
                 print("MovementRig.update() error: projectorObject is None")
         

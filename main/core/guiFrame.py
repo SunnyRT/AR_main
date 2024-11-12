@@ -273,8 +273,12 @@ class GUIFrame(InputFrame):
                                 matrix_row = [float(value) for value in line.split()]
                                 matrix_lines.append(matrix_row)
                             if len(matrix_lines) == 4:
-                                self.canvas.init_registration = np.array(matrix_lines)
-                                self.canvas.camera1_z = self.canvas.init_registration[2][3]
+                                transform = np.array(matrix_lines)
+                                print(f"Old imagePlane position: {self.canvas.image2d.imagePlane.getWorldPosition()}")
+                                # self.canvas.camera1_z = self.canvas.init_registration[2][3]
+                                self.canvas.rig1.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
+                                # self.canvas.image2d.imagePlane.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
+                                self.canvas.rig1.setWorldRotation(transform[0:3, 0:3])
                                 reading_matrix = False
 
                         # Parse additional parameters
@@ -282,12 +286,19 @@ class GUIFrame(InputFrame):
                             self.canvas.resolution = float(line.split(":")[1].strip())
                         elif line.startswith("Near plane (n):"):
                             self.canvas.n = float(line.split(":")[1].strip())
+                            # self.canvas.camera1.initialize()
+                            # self.canvas.image2d.imagePlane.translate(0, 0, -self.canvas.n)
                         elif line.startswith("Far plane (f):"):
                             self.canvas.f = float(line.split(":")[1].strip())
+                            print(f"NEW FAR PLANE: {self.canvas.f}")
                         elif line.startswith("Delta:"):
                             self.canvas.delta = float(line.split(":")[1].strip())
+                # update imagePlane, contourMesh, projectorMesh, registrator Mesh1
+                print(f"new near plane: {self.canvas.n}, new far plane: {self.canvas.f}")
+                self.canvas.image2d.update(self.canvas, self.canvas.registrator, reset=True)
                 wx.MessageBox(f"Registration result loaded from {load_path}", "Load Successful", wx.OK | wx.ICON_INFORMATION)
-                self.canvas.initialized = False
+                # self.canvas.initialized = False
+                print(f"New imagePlane position: {self.canvas.image2d.imagePlane.getWorldPosition()}")
             except Exception as e:
                 wx.MessageBox(f"Failed to load file: {e}","Error", wx.OK | wx.ICON_ERROR)
             

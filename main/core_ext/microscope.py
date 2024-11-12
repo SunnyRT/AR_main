@@ -9,21 +9,29 @@ import numpy as np
 
 class Microscope(Camera):
     
-    def __init__(self, imageTexture, resolution, near, isPerspective=True):
-        pxWidth = imageTexture.width
-        pxHeight = imageTexture.height
-        aspectRatio = pxWidth / pxHeight
-        angleOfView = self._calcCameraTheta(pxWidth, pxHeight, resolution, near)
+    def __init__(self, canvas, imageTexture, isPerspective=True):
+        self.canvas = canvas
+        self.pxWidth = imageTexture.width
+        self.pxHeight = imageTexture.height
+        self.aspectRatio = self.pxWidth / self.pxHeight
+        self.isPerspective = isPerspective
 
-        super().__init__(isPerspective=isPerspective, angleOfView=angleOfView,
-                       aspectRatio=aspectRatio, 
-                       near=near, 
+        self.initialize()
+        self.intialized = True
+
+
+    
+    def initialize(self):
+        angleOfView = self._calcCameraTheta(self.pxWidth, self.pxHeight, self.canvas.resolution, self.canvas.n) # FIXME: reinitialize if canvas.n changes?????
+        super().__init__(isPerspective=self.isPerspective, angleOfView=angleOfView,
+                       aspectRatio=self.aspectRatio, 
                        renderBox=True)
+        
 
-    def _calcCameraTheta(self, pxWidth, pxHeight, resolution, near):
-        # width = pxWidth * resolution * near
-        height = pxHeight * resolution * near
-        theta = 2 * np.arctan((height / 2) / near) / np.pi * 180
+    def _calcCameraTheta(self, pxWidth, pxHeight, resolution, nearPlane):
+        # width = pxWidth * resolution * nearPlane
+        height = pxHeight * resolution * nearPlane
+        theta = 2 * np.arctan((height / 2) / nearPlane) / np.pi * 180
         return theta
     
 

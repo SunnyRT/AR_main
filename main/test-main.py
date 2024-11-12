@@ -49,9 +49,9 @@ class MyCanvas(InputCanvas):
         self.n = 200
         self.f = 250
         self.delta = 2
-        self.camera1_z = 250
+        camera1_z = 250
         self.init_registration = np.eye(4) # TODO: check!!!
-        self.init_registration[2][3] = self.camera1_z # TODO: check!!!
+        self.init_registration[2][3] = camera1_z # TODO: check!!!
 
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
@@ -91,7 +91,7 @@ class MyCanvas(InputCanvas):
 
         # Set up camera1 (microscope) for surgery viewport 
         texture2d = Texture(self.image2d_path)
-        self.camera1 = Microscope(texture2d, self.resolution, self.n) # TODO: chanegd into new extended class of camera
+        self.camera1 = Microscope(self, texture2d) # TODO: chanegd into new extended class of camera
         self.rig1 = MovementRig()
         self.rig1.add(self.camera1)
         self.rig1.setWorldPosition(self.init_registration[:,3])        
@@ -101,13 +101,14 @@ class MyCanvas(InputCanvas):
         self.scene.add(self.rig1)
         
         # Set up image2d object, include: imagePlane, contour
-        self.image2d = Image2D(texture2d=texture2d, rig=self.rig1, camera=self.camera1, resolution=self.resolution, near=self.n, far=self.f, alpha=0.5,
-                               contourPath=self.contour_path, contourColor=self.color_pinna, displayStyle='line', contourSize=3)
+        self.image2d = Image2D(canvas=self, texture2d=texture2d, rig=self.rig1, camera=self.camera1,
+                               alpha=0.5, contourPath=self.contour_path, contourColor=self.color_pinna, displayStyle='line', contourSize=3)
         self.image2d.imagePlane.translate(0,0,-0.01) # Move imagePlane slightly above the camera1 viewplane
 
 
         # Add projector from camera1 through contour points
-        self.projector = Projector(self.camera1, self.image2d.contourMesh, near=self.n, far=self.f, delta=self.delta, lineWidth=1, color=self.color_pinna,
+        self.projector = Projector(self, self.camera1, self.image2d.contourMesh, 
+                                   lineWidth=1, color=self.color_pinna,
                                    alpha=0.5, visibleRay=False, visibleCone=True)
         self.camera1.add(self.projector.rayMesh)
 
@@ -159,8 +160,8 @@ class MyCanvas(InputCanvas):
 
 
         """ Update information displayed in the tool panel"""
-        transform_matrix = self.camera1.getWorldMatrix()
-        distance = np.linalg.norm(self.camera1.getWorldPosition())
+        transform_matrix = self.rig1.getWorldMatrix()
+        distance = np.linalg.norm(self.rig1.getWorldPosition())
         view_angle = self.camera1.theta
         match_count = self.registrator.matchCount
         mean_error = self.registrator.meanError
