@@ -253,7 +253,7 @@ class RegistratorICP(object):
         matchMesh = Mesh(matchGeo, matchMat)
         if self.matchMesh in self.sceneObject.children:
             self.sceneObject.remove(self.matchMesh)
-            del self.matchMesh # TODO: is this necessary????
+            del self.matchMesh
         self.matchMesh = matchMesh
         self.sceneObject.add(self.matchMesh)        
 

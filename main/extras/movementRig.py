@@ -77,9 +77,11 @@ class MovementRig(Object3D):
             self.rotateY(rotateAmount)
 
         if inputObject.isKeyPressed(self.KEY_LOOK_UP):
-            self.lookAttachment.rotateX(rotateAmount)
+            # self.lookAttachment.rotateX(rotateAmount) # TODO:
+            self.rotateX(rotateAmount)
         if inputObject.isKeyPressed(self.KEY_LOOK_DOWN):
-            self.lookAttachment.rotateX(-rotateAmount)
+            # self.lookAttachment.rotateX(-rotateAmount)
+            self.rotateX(-rotateAmount)
 
 
         # # Handle mouse-based rotation when left mouse button is held down

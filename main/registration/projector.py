@@ -256,7 +256,7 @@ class Projector(object):
 
 
 
-    # FIXME: DEBUG:
+    # For DEBUGGING:
     def _createConeNormalMesh(self, vertex_positions, vertex_normals):
         if vertex_positions.shape[0] != vertex_normals.shape[0]:
             raise ValueError("vertex_positions and vertex_normals must have the same number of vertices")
@@ -279,6 +279,10 @@ class Projector(object):
                             
 
         return Mesh(normalGeometry, normalMaterial)
+    
+    def setAlpha(self, alpha):
+        self.rayMesh.setAlpha(alpha)
+        self.coneMesh.setAlpha(alpha)
         
 
         

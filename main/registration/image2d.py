@@ -20,8 +20,10 @@ class Image2D(object):
         self.canvas = canvas
         self.rig = rig
         self.camera = camera
-        self.pxWidth = texture2d.width
-        self.pxHeight = texture2d.height
+        self.texture2d = texture2d
+        self.pxWidth = self.texture2d.width
+        self.pxHeight = self.texture2d.height
+        
         # self.resolution = resolution
         # self.n = near # near clipping plane = focal length (i.e. distance between camera and image plane)
         # self.f = far # far clipping plane
@@ -30,7 +32,7 @@ class Image2D(object):
 
 
         # 3. Load 2D texture plane mesh from image file
-        self.material2d = TextureMaterial(texture2d, {"alpha": alpha})
+        self.material2d = TextureMaterial(self.texture2d, {"alpha": alpha})
         self.imagePlane = self._createImagePlane()
 
 
@@ -86,9 +88,7 @@ class Image2D(object):
             del self.imagePlane
         self.imagePlane = self._createImagePlane()
         self.camera.add(self.imagePlane)
-        print(f"image2d pos1: {self.imagePlane.getWorldPosition()}")
         self.imagePlane.translate(0, 0, -self.canvas.n)
-        print(f"image2d pos1: {self.imagePlane.getWorldPosition()}")
     
 
 
@@ -153,14 +153,8 @@ class Image2D(object):
 
 
 
-
-
-
-
-
-
-
-
+    def setAlpha(self, alpha):
+        self.imagePlane.setAlpha(alpha)
 
 
     def update(self, inputObject, registratorObject=None, reset=False):

@@ -41,4 +41,6 @@ class Mesh(Object3D):
         # 3. unbind VAO when done configuring VBOs (to avoid accidental changes)
         # 4. Bind VAO when rendering (to use the configurations)
 
+    def setAlpha(self, alpha):
+        self.material.setProperties({"alpha": alpha})
         
