@@ -159,7 +159,7 @@ class Image2D(object):
 
     def update(self, inputObject, registratorObject=None, reset=False):
 
-        if reset:
+        if reset: # When a registration result is loaded to the scene!
             self._updateImagePlane()
             if self.contourMesh is not None:
                 self._updateContour()
@@ -173,7 +173,6 @@ class Image2D(object):
         ctrlMouseScroll = inputObject.getCtrlMouseScroll()
         if shiftMouseScroll != 0:
             self.canvas.n += 10*shiftMouseScroll
-            # self.camera.initialize()
 
             # update projectorObject coneMesh with new near plane
             if self.projectorObject is not None:

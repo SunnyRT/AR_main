@@ -10,7 +10,7 @@ class Camera(Object3D):
 
     def __init__(self, isPerspective=False, angleOfView=60,
                     aspectRatio=1.0, 
-                    distance=20, # FIXME: to find a better way to match perspective and orthographic projection????
+                    distance=20, 
                     near=0.1,
                     far=1000,
                     zoom=1.0,
