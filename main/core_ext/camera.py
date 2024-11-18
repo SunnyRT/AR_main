@@ -98,4 +98,4 @@ class Camera(Object3D):
             self.zoom += mouseScroll * 0.01
             self.setOrthographic()
 
-        # super.update(inputObject, deltaTime) # Propagate update to children
+        super().update(inputObject, deltaTime) # Propagate update to children

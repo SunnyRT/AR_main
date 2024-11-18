@@ -5,7 +5,7 @@ class MatchMeshFactory(MeshFactory):
         super().__init__(mediator)
 
     # FIXME:!
-    def update(self, mesh, del_n=None):
+    def update(self, del_n=None):
         # override parent class method
         if del_n is not None:
             pass

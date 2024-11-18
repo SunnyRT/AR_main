@@ -3,6 +3,7 @@ from mesh.mesh import Mesh
 class MeshFactory(object):
     def __init__(self, mediator=None):
         self.mediator = mediator # TODO: may not be necessary
+        self.mesh = None
         pass
 
     def setMediator(self, mediator):
@@ -17,13 +18,20 @@ class MeshFactory(object):
     
 
     
-    def update(self, mesh):
+    def update(self):
         # find parent node, remove mesh from parent node
-        parent = mesh.parent
-        parent.remove(mesh)
-        del mesh
+        parent = self.mesh.parent
+        descendents = self.mesh.children
+        # print(f"oldMesh parent: {parent}, to remove: {self.mesh} among children: {parent.children}")
+        for child in parent.children:
+            if child.geometry.vertexCount == self.mesh.geometry.vertexCount:
+                parent.remove(child)
+                del child
+                break # Assume only one mesh with the same vertex count to be removed
 
         # create new mesh
-        mesh = self.createMesh()
-        parent.add(mesh)
-        return mesh 
+        self.mesh = self.createMesh()
+        for child in descendents:
+            self.mesh.add(child)
+        parent.add(self.mesh)
+        return self.mesh

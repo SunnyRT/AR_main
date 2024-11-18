@@ -377,12 +377,12 @@ class GUIFrame(InputFrame):
 
     def on_projection_click(self, event):
         print("Toggle perspective / orthographic projection")
-        self.canvas.cameraIdx = (self.canvas.cameraIdx + 1) % 2
+        self.canvas.state = (self.canvas.state + 1) % 2
         self.canvas.update()
         self.canvas.SetFocus()  # Set focus back to the canvas
 
 
-    # FIXME: to be done!!!!
+    
     def on_register_click(self, event):
         if self.canvas.registrator is None:
             raise Exception("Registrator not initialized")
@@ -391,18 +391,21 @@ class GUIFrame(InputFrame):
         self.canvas.SetFocus()  # Set focus back to the canvas
 
         
-
+    # FIXME: to be done!!!!
     def on_dmax_slider_change(self, event):
         value = self.dmax_slider.GetValue()/10
-        self.canvas.registrator.d_max = value
-        self.canvas.registrator.updateMatch()
+        # self.canvas.registrator.d_max = value
+        # self.canvas.registrator.updateMatch()
         print(f"Maximum match pair distance dmax: {value}")
         self.canvas.SetFocus()  # Set focus back to the canvas
 
     def on_delta_slider_change(self, event):
         value = self.delta_slider.GetValue()/10
-        # self.canvas.projector.delta = value
-        self.canvas.delta = value
+    
+        # FIXME: viewport = 0 or 1
+        viewport = self.canvas.viewport
+        mediator = self.canvas.mediators[viewport]
+        mediator.notify(self, "update projector delta", data={"delta": value})
         self.canvas.projector._updateConeMesh()
         self.canvas.registrator.updateMesh1(mesh1=self.canvas.projector.coneMesh)
         print(f"Projector coneMesh z-resolution: {value}")
@@ -418,23 +421,27 @@ class GUIFrame(InputFrame):
 
     def on_image2d_slider_change(self, event):
         value = self.image2d_slider.GetValue()/100
-        self.canvas.image2d.setAlpha(value)
+        # FIXME:
+        # self.canvas.image2d.setAlpha(value)
         # print(f"Image plane alpha: {value}")
         self.canvas.SetFocus()
 
     def on_projector_slider_change(self, event):
         value = self.projector_slider.GetValue()/100
-        self.canvas.projector.setAlpha(value)
+        # FIXME:
+        # self.canvas.projector.setAlpha(value)
         # print(f"Projector alpha: {value}")
         self.canvas.SetFocus()
 
 
     def on_contour_visible(self, event):
-        self.canvas.image2d.contourMesh.visible = self.contour_chkbx.GetValue()
+        # FIXME:
+        # self.canvas.image2d.contourMesh.visible = self.contour_chkbx.GetValue()
         self.canvas.SetFocus()
 
     def on_match_visible(self, event):
-        self.canvas.registrator.matchMesh.visible = self.match_chkbx.GetValue()
+        # FIXME:
+        # self.canvas.registrator.matchMesh.visible = self.match_chkbx.GetValue()
         self.canvas.SetFocus()
 
 

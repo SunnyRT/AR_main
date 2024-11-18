@@ -27,7 +27,7 @@ class ContourGeometry(Geometry):
 
         colorData = [contourColor] * len(px_coords)
 
-        self.positionData_segments = positionData_segments # TODO: store contour coordinates arranged in contour line segments for later use
+        self.positionData_segments = positionData_segments # store contour coordinates arranged in contour line segments for later use
 
         self.addAttribute("vec3", "vertexPosition", positionData)
         self.addAttribute("vec3", "vertexColor", colorData)

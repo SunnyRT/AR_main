@@ -43,11 +43,6 @@ class Object3D(object):
         return descendants
     
 
-    # TODO:!!!!!
-    def update(self, *args, **kwargs):
-        for child in self.children:
-            child.update(*args, **kwargs) # recursively propagates update in children
-
 
     # apply geometric transformation to model matrix of this Object3D
     def applyMatrix(self, matrix, localCoord=True):
@@ -160,4 +155,12 @@ class Object3D(object):
             self.transform[0:3, 0:3] = rotationMatrix[0:3, 0:3] # set new rotation
 
         
+
+
+
+
+    # TODO:!!!!!
+    def update(self, *args, **kwargs):
+        for child in self.children:
+            child.update(*args, **kwargs) # recursively propagates update in children
 

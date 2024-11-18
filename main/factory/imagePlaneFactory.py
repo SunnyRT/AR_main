@@ -1,8 +1,8 @@
 from factory.meshFactory import MeshFactory
 
-from material.material import TextureMaterial
+from material.textureMaterial import TextureMaterial
 from geometry.planeGeometry import PlaneGeometry
-from mesh.imagePlaneMesh import ImagePlaneMesh
+from mesh.mesh import Mesh
 
 
 class ImagePlaneFactory(MeshFactory):
@@ -20,7 +20,7 @@ class ImagePlaneFactory(MeshFactory):
         pxWidth = texture.width
         pxHeight = texture.height
         width, height = self._getWorldDimension(self.n, self.res, pxWidth, pxHeight)
-        return PlaneGeometry(width, height, 4, 4, filpY=True)
+        return PlaneGeometry(width, height, 4, 4, flipY=True)
 
     def _getWorldDimension(self, n, res, pxWidth, pxHeight):
         width = pxWidth * res * n
@@ -31,17 +31,17 @@ class ImagePlaneFactory(MeshFactory):
     def createMesh(self):
         # override parent class method
         geometry = self.createGeometry(self.texture)
-        mesh = ImagePlaneMesh(geometry, self.material)
-        mesh.translate(0, 0, -self.n)
-        return mesh
+        self.mesh = Mesh(geometry, self.material)
+        self.mesh.translate(0, 0, -self.n)
+        return self.mesh
     
-    def update(self, mesh, del_n=None):
+    def update(self, del_n=None):
         # override parent class method
         if del_n is not None: # update n
             self.n += del_n
-        mesh = super().update(mesh)
-        mesh.translate(0, 0, -self.n)
-        return mesh # (to be assigned to canvas attribute)
+        self.mesh = super().update() # calls createMesh()
+        # self.mesh.translate(0, 0, -self.n)
+        return self.mesh # (to be assigned to canvas attribute)
     
     
     

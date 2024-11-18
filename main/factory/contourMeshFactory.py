@@ -54,13 +54,13 @@ class ContourMeshFactory(MeshFactory):
 
     def createMesh(self):
         geometry = self.createGeometry(self.texture)
-        mesh = Mesh(geometry, self.material)
-        return mesh
+        self.mesh = Mesh(geometry, self.material)
+        return self.mesh
 
-    def update(self, mesh, del_n=None):
+    def update(self, del_n=None):
         # override parent class method
         if del_n is not None: # update n
             self.n += del_n
-        mesh = super().update(mesh)
-        mesh.translate(0, 0, 0.1) # move contour slightly above the image plane
-        return mesh
+        self.mesh = super().update()
+        self.mesh.translate(0, 0, 0.1) # move contour slightly above the image plane
+        return self.mesh

@@ -116,6 +116,9 @@ class MovementRig(Object3D):
         currTransform = self.getWorldMatrix()
         if not (prevTransform == currTransform).all():
             self.isUpdated = True
+
+    
+        super().update(inputObject, deltaTime) # propagate update to children
         
 
 

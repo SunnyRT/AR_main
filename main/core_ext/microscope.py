@@ -9,11 +9,15 @@ import numpy as np
 
 class Microscope(Camera):
     
-    def __init__(self, imageTexture, isPerspective=True):
+    def __init__(self, imageTexture, n, res, isPerspective=True, mediator=None):
         self.pxWidth = imageTexture.width
         self.pxHeight = imageTexture.height
         self.aspectRatio = self.pxWidth / self.pxHeight
+        self.n = n # FIXME: this does not change with near / far clipping plane of the camera, nor z????
+        self.res = res
         self.isPerspective = isPerspective
+        if mediator is not None:
+            self.mediator = mediator
 
         self.initialize()
         self.intialized = True
@@ -21,7 +25,7 @@ class Microscope(Camera):
 
     
     def initialize(self):
-        angleOfView = self._calcCameraTheta(self.pxWidth, self.pxHeight, self.canvas.resolution, self.n) # FIXME: reinitialize if canvas.n changes?????
+        angleOfView = self._calcCameraTheta(self.pxWidth, self.pxHeight, self.res, self.n) # FIXME: reinitialize if canvas.n changes?????
         super().__init__(isPerspective=self.isPerspective, angleOfView=angleOfView,
                        aspectRatio=self.aspectRatio, 
                        renderBox=True)
@@ -33,32 +37,53 @@ class Microscope(Camera):
         theta = 2 * np.arctan((height / 2) / nearPlane) / np.pi * 180
         return theta
     
-
+    def setMediator(self, mediator):
+        self.mediator = mediator
     
-    def update(self, inputObject, deltaTime=None):
-        # Override update function in parent class Camera
+    def update(self, inputObject=None, deltaTime=None, del_n=None): 
+        # Override update function in parent class Camera 
+        # to detect events of changing camera parameters: self.n
 
-        # Handle shift mouse scroll -> set near clipping plane n
-        shiftMouseScroll = inputObject.getShiftMouseScroll()
-        if shiftMouseScroll != 0:
-            self.n += 10*shiftMouseScroll
+        # simply update n, without monitoring inputObject
+        if del_n is not None:
+            self.n += del_n
             self.initialize()
             self.isUpdated = True # FIXME: !!!!!!!!!
-            if self.mediator:
-                self.mediator.notify(self, "update near plane", data={"shiftScroll": shiftMouseScroll})    
+
+        elif inputObject is not None: # observe inputObject to detect events of changing camera parameters
+            # Handle shift mouse scroll -> set near clipping plane n
+            shiftMouseScroll = inputObject.getShiftMouseScroll()
+            if shiftMouseScroll != 0:
+                self.n += 10*shiftMouseScroll
+                if self.mediator:
+                    self.mediator.notify(self, "update near plane", data={"shiftScroll": shiftMouseScroll})    
+            
+            # Handle ctrl mouse scroll -> set far clipping plane f
+            # No update on onself
+            ctrlMouseScroll = inputObject.getCtrlMouseScroll()
+            if ctrlMouseScroll != 0:
+                if self.mediator:
+                    self.mediator.notify(self, "update far plane", data={"ctrlScroll": ctrlMouseScroll})      
 
 
-        # FIXME: !!!!!!!!!
-        # TODO: track changes in camera parameters (microscopic camera1)
-        self.isUpdated = False
+            # FIXME: !!!!!!!!!
+            # track changes in camera parameters (microscopic camera1)
+            self.isUpdated = False
 
-        # Assume self.isPerspective = True!!!!
-        if inputObject.isKeyPressed('up'):
-            self.theta -= 0.1
-            self.setPerspective()
-            self.isUpdated = True
-        if inputObject.isKeyPressed('down'):
-            self.theta += 0.1
-            self.setPerspective()
-            self.isUpdated = True
+            # Assume self.isPerspective = True!!!!
+            if inputObject.isKeyPressed('up'):
+                self.theta -= 0.1
+                self.setPerspective()
+                self.isUpdated = True
+            if inputObject.isKeyPressed('down'):
+                self.theta += 0.1
+                self.setPerspective()
+                self.isUpdated = True
+
+        else:
+            raise ValueError("Microscope.update() error: inputObject is None")
+
+        
+
+
 
