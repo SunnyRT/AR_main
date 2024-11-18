@@ -4,7 +4,7 @@ from scipy.optimize import least_squares
 from geometry.boxGeometry import BoxGeometry
 from material.surfaceMaterial import SurfaceMaterial
 
-from core_ext.mesh import Mesh
+from mesh.mesh import Mesh
 
 # Function to find the closest points between two sets of points
 def find_closest_points(mesh1_vertices, mesh2_vertices, d_max):

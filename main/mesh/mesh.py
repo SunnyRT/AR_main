@@ -3,10 +3,12 @@ from OpenGL.GL import *
 
 class Mesh(Object3D):
 
-    def __init__(self, geometry, material):
+    def __init__(self, geometry, material, mediator=None):
         super().__init__()
         self.geometry = geometry
         self.material = material
+        if mediator is not None:
+            self.mediator = mediator
 
         # should this object be rendered?
         self.visible = True
@@ -43,4 +45,7 @@ class Mesh(Object3D):
 
     def setAlpha(self, alpha):
         self.material.setProperties({"alpha": alpha})
+
+    def setMediator(self, mediator):
+        self.mediator = mediator
         

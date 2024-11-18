@@ -5,7 +5,7 @@ from core.guiFrame import GUIFrame
 from core_ext.rendererDual import RendererDual
 from core_ext.scene import Scene
 from core_ext.camera import Camera
-from core_ext.mesh import Mesh
+from mesh.mesh import Mesh
 from geometry.planeGeometry import PlaneGeometry
 from geometry.model3dGeometry import Model3dGeometry
 from core_ext.texture import Texture

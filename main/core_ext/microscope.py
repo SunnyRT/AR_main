@@ -9,8 +9,7 @@ import numpy as np
 
 class Microscope(Camera):
     
-    def __init__(self, canvas, imageTexture, isPerspective=True):
-        self.canvas = canvas
+    def __init__(self, imageTexture, isPerspective=True):
         self.pxWidth = imageTexture.width
         self.pxHeight = imageTexture.height
         self.aspectRatio = self.pxWidth / self.pxHeight
@@ -22,7 +21,7 @@ class Microscope(Camera):
 
     
     def initialize(self):
-        angleOfView = self._calcCameraTheta(self.pxWidth, self.pxHeight, self.canvas.resolution, self.canvas.n) # FIXME: reinitialize if canvas.n changes?????
+        angleOfView = self._calcCameraTheta(self.pxWidth, self.pxHeight, self.canvas.resolution, self.n) # FIXME: reinitialize if canvas.n changes?????
         super().__init__(isPerspective=self.isPerspective, angleOfView=angleOfView,
                        aspectRatio=self.aspectRatio, 
                        renderBox=True)
@@ -35,9 +34,21 @@ class Microscope(Camera):
         return theta
     
 
+    
     def update(self, inputObject, deltaTime=None):
         # Override update function in parent class Camera
 
+        # Handle shift mouse scroll -> set near clipping plane n
+        shiftMouseScroll = inputObject.getShiftMouseScroll()
+        if shiftMouseScroll != 0:
+            self.n += 10*shiftMouseScroll
+            self.initialize()
+            self.isUpdated = True # FIXME: !!!!!!!!!
+            if self.mediator:
+                self.mediator.notify(self, "update near plane", data={"shiftScroll": shiftMouseScroll})    
+
+
+        # FIXME: !!!!!!!!!
         # TODO: track changes in camera parameters (microscopic camera1)
         self.isUpdated = False
 

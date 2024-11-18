@@ -3,7 +3,7 @@ from core.matrix import Matrix
 from numpy.linalg import inv
 from geometry.boxGeometry import BoxGeometry
 from material.lambertMaterial import LambertMaterial
-from core_ext.mesh import Mesh
+from mesh.mesh import Mesh
 
 
 class Camera(Object3D):
@@ -12,7 +12,7 @@ class Camera(Object3D):
                     aspectRatio=1.0, 
                     distance=20, 
                     near=0.1,
-                    far=1000,
+                    far=1000, # FIXME: far clipping plane ambiguous definition!!!!!
                     zoom=1.0,
                     renderBox=False, boxDimensions=[5, 5, 10], boxColor=[0.5, 0.5, 0.5]):
         super().__init__()

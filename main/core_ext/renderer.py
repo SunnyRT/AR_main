@@ -1,6 +1,6 @@
 from OpenGL.GL import *
 import wx
-from core_ext.mesh import Mesh
+from mesh.mesh import Mesh
 from light.light import Light
 
 class Renderer(object):

@@ -7,7 +7,7 @@ from geometry.boxGeometry import BoxGeometry
 from geometry.matchGeometry import MatchGeometry
 from material.surfaceMaterial import SurfaceMaterial
 from material.lineMaterial import LineMaterial
-from core_ext.mesh import Mesh
+from mesh.mesh import Mesh
 from core.matrix import Matrix
 
 

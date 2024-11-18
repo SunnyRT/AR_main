@@ -1,4 +1,4 @@
-from core_ext.mesh import Mesh
+from mesh.mesh import Mesh
 from geometry.geometry import Geometry
 from material.lineMaterial import LineMaterial
 

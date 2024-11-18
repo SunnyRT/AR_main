@@ -4,7 +4,7 @@ from core.base import BaseCanvas
 from core_ext.renderer import Renderer
 from core_ext.scene import Scene
 from core_ext.camera import Camera
-from core_ext.mesh import Mesh
+from main.mesh.mesh import Mesh
 from geometry.boxGeometry import BoxGeometry
 from geometry.planeGeometry import PlaneGeometry
 from geometry.model3dGeometry import Model3dGeometry

@@ -3,7 +3,7 @@ from core_ext.renderer import Renderer
 from core_ext.scene import Scene
 from core_ext.camera import Camera
 from core_ext.texture import Texture
-from core_ext.mesh import Mesh
+from main.mesh.mesh import Mesh
 from core_ext.renderTarget import RenderTarget
 from geometry.rectangleGeometry import RectangleGeometry
 from geometry.sphereGeometry import SphereGeometry
