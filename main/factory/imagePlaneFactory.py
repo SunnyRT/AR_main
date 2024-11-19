@@ -40,7 +40,6 @@ class ImagePlaneFactory(MeshFactory):
         if del_n is not None: # update n
             self.n += del_n
         self.mesh = super().update() # calls createMesh()
-        # self.mesh.translate(0, 0, -self.n)
         return self.mesh # (to be assigned to canvas attribute)
     
     

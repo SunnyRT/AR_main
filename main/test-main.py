@@ -50,18 +50,28 @@ class MyCanvas(InputCanvas):
 
         self.state = 0 # 0 represents CAD engineering, 1 represents surgery
         self.viewport = 0 # 0 represents pinna, 1 represents incus
-        self.image2d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
-        self.contour_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
+        
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
+
+        self.image1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
+        self.contour1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
-        self.color_incus = [0.1372549,  0.69803922, 0.        ]
         self.res1=0.0003
         self.n1 = 200
         self.f1 = 250
         self.delta1 = 2
-        ms1_z = 250
+
+        self.image2_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.png"
+        self.contour2_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.sw"
+        self.color_incus = [0.1372549,  0.69803922, 0.        ]
+        self.res2=0.00015
+        self.n2 = 250
+        self.f2 = 260
+        self.delta2 = 0.5
+
+        rig_ms_z = 250
         self.init_registration = np.eye(4) # TODO: check!!!
-        self.init_registration[2][3] = ms1_z # TODO: check!!!
+        self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
         self.mediators = []
 
@@ -107,19 +117,18 @@ class MyCanvas(InputCanvas):
 
         """"""""""""""""""""""""""" 1. Pinna """""""""""""""""""""""""""
         # a) Set up ms1 (microscope1) for pinna 
-        texture2d = Texture(self.image2d_path)
-        self.ms1 = Microscope(texture2d, self.n1, self.res1) # chanegd into new extended class of camera
+        texture1 = Texture(self.image1_path)
+        self.ms1 = Microscope(texture1, self.n1, self.res1) # chanegd into new extended class of camera
         self.rig_ms.add(self.ms1)
         
         # TODO: NO MORE UPDATES TO MONITOR below this layer
         # 2) Set up imagePlane
-        self.imagePFac1 = ImagePlaneFactory(texture2d, self.n1, self.res1)
+        self.imagePFac1 = ImagePlaneFactory(texture1, self.n1, self.res1)
         image1 = self.imagePFac1.createMesh() # DO NOT save imageP1 as attribute (due to constant updates required!!!!)
         self.ms1.add(image1)
-        # image1.translate(0, 0, -self.n1)
 
         # 3) Set up contourMesh
-        self.contourFac1 = ContourMeshFactory(self.contour_path, texture2d, self.n1, self.res1, self.color_pinna, 1)
+        self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.n1, self.res1, self.color_pinna, 1)
         contour1 = self.contourFac1.createMesh()
         image1.add(contour1)
         contour1.translate(0, 0, 0.1) # Move contour slightly above the image plane
@@ -128,16 +137,8 @@ class MyCanvas(InputCanvas):
         self.projectorFac1 = ProjectorMeshFactory(self.ms1, contour1, self.n1, self.f1, self.delta1, self.color_pinna, alpha=0.5)
         projector1 = self.projectorFac1.createMesh()
         self.ms1.add(projector1)
-        # FIXME: Correct projector position and orientation
-        ms1_transform = self.ms1.getWorldMatrix()
-        ms1_pos = self.ms1.getWorldPosition()
-        ms1_inv = np.linalg.inv(ms1_transform)
-        projector_transform = projector1.getWorldMatrix()
-        projector_transform = ms1_inv @ projector_transform
-        projector1.setWorldRotation(np.array([projector_transform[0][0:3],
-                                                            projector_transform[1][0:3],
-                                                            projector_transform[2][0:3]]))
-        projector1.translate(ms1_pos[0], ms1_pos[1], -ms1_pos[2])
+        self.projectorFac1.correctWorldPos() # Correct projector position to align with microscope
+
 
         # 5) Set up mediator for event communication between objects
         mediator1 = ImageMediator(self.rig_ms, self.ms1, self.imagePFac1, self.contourFac1, self.projectorFac1)
@@ -223,13 +224,6 @@ class MyCanvas(InputCanvas):
         #     self.camera0.setOrthographic()
 
            
-
-        # # FIXME:
-        # """ Update image2d object """ 
-        # # - shift / ctrl + mousescroll to move near and far planes for projector conemseh
-        # # - alt + mousescroll to move ms1 along its local z-axis w/o moving projector
-        # self.image2d.update(self, self.registrator) # --> image2d.update() triggers registrator.intialize() and thus registrator.updateMatch() when coneMesh get updated
-
 
         self.renderer.render(self.scene, self.camera0, viewportSplit="left")   
         self.renderer.render(self.scene, self.ms1, clearColor = False,viewportSplit="right")

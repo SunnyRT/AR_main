@@ -4,6 +4,8 @@ from geometry.projectorGeometry import ProjectorGeometry
 from geometry.geometry import Geometry
 from material.lambertMaterial import LambertMaterial
 from material.lineMaterial import LineMaterial
+
+from core.matrix import Matrix
 import numpy as np
 
 class ProjectorMeshFactory(MeshFactory):
@@ -14,10 +16,11 @@ class ProjectorMeshFactory(MeshFactory):
         self.f = f
         self.delta = delta
         self.color = color
-        self.msPos = microscope.getWorldPosition()
-        self.contourVertWorldPos_segments = self._getContourWorldPos(contourMesh)
+        self.ms = microscope
+        self.contour=contourMesh
 
         self.material = LambertMaterial(properties={"useVertexColors":True, "alpha":alpha})
+
 
     def _getContourWorldPos(self, contourMesh): # one-off calling to load information
         contourPos = contourMesh.getWorldPosition()
@@ -33,8 +36,22 @@ class ProjectorMeshFactory(MeshFactory):
 
 
     def createMesh(self):
-        geometry = ProjectorGeometry(self.msPos, self.contourVertWorldPos_segments, self.n, self.f, self.delta, self.color)
+        msPos = self.ms.getWorldPosition()
+        contourWorldPos_segments = self._getContourWorldPos(self.contour)
+        geometry = ProjectorGeometry(msPos, contourWorldPos_segments, self.n, self.f, self.delta, self.color)
         self.mesh = Mesh(geometry, self.material)
+
+        return self.mesh
+
+    def correctWorldPos(self):
+        msMat = self.ms.getWorldMatrix()
+        msInv = np.linalg.inv(msMat)
+        msPos = self.ms.getWorldPosition()
+
+        meshMat = self.mesh.getWorldMatrix()
+        meshMat = msInv @ meshMat
+        self.mesh.setWorldRotation(np.array([meshMat[0][:3], meshMat[1][:3], meshMat[2][:3]]))
+        self.mesh.translate(-msPos[0], -msPos[1], -msPos[2]) 
         return self.mesh
 
 
@@ -47,7 +64,8 @@ class ProjectorMeshFactory(MeshFactory):
         if delta is not None:
             self.delta = delta
         self.mesh = super().update()
-        self.mesh.translate(0, 0, -self.msPos[2]) # FIXME: translate back to the microscope position
+        msPos = self.ms.getWorldPosition()
+        self.mesh.translate(0, 0, -msPos[2]) # FIXME: translate back to the microscope position
         if self.mesh is None:
             raise ValueError("ProjectorMeshFactory.update() error: NEW projectorMesh is None")
         return self.mesh

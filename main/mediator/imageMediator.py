@@ -51,7 +51,7 @@ class ImageMediator(Mediator):
         # update near and far clipping planes in microscope and imagePlane
         # self.microscope.update(del_n=-del_z)
         self.imagePlaneFactory.update(del_n=-del_z)
-        self.contourMeshFactory.update(del_n=-del_z)
+        self.projectorMeshFactory.contour = self.contourMeshFactory.update(del_n=-del_z)
         self.projectorMeshFactory.update(del_n=-del_z, del_f=-del_z)
         # self.MatchMeshFactory.update() # FIXME:
             
