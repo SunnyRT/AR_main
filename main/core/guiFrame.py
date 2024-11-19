@@ -402,7 +402,7 @@ class GUIFrame(InputFrame):
     def on_delta_slider_change(self, event):
         value = self.delta_slider.GetValue()/10
     
-        # FIXME: viewport = 0 or 1 separately!!!!
+        # FIXME: viewport = 0 or 1 separately!!!! BUG:!!!!! 
         viewport = self.canvas.viewport
         mediator = self.canvas.mediators[viewport]
         mediator.notify(self, "update projector delta", data={"delta": value})

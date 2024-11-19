@@ -63,6 +63,7 @@ class ProjectorMeshFactory(MeshFactory):
             self.f += del_f
         if delta is not None:
             self.delta = delta
+            print(f"ProjectorMeshFactory.update(): delta updated to {delta}")
         self.mesh = super().update()
         if self.mesh is None:
             raise ValueError("ProjectorMeshFactory.update() error: NEW projectorMesh is None")

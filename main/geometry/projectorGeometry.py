@@ -7,6 +7,7 @@ class ProjectorGeometry(Geometry):
         super().__init__()
         
         numSamples = int((f-n)/delta) # is +1 needed?
+        print(f"projector per-ray numSamples : {numSamples} from n: {n}, f: {f}, delta: {delta}")
         if numSamples <= 0:
             pass # FIXME: throw error
 

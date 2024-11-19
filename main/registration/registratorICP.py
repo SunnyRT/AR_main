@@ -91,9 +91,9 @@ class RegistratorICP(object):
             self.mesh1VertRay_ls[idx] = mesh1.geometry.attributes["uniqueVertexRay"].data # Record which ray each vertex in mesh1 lies on
         
         # iterate through each mesh1 and mesh2 pair
-
         closestPairsPerRay_ls, closestPairsNormDistPerRay_ls = [], []
         for i in range(len(self.mesh1_ls)):
+            self.mesh1Vertices_ls[i], self.mesh1VertNorm_ls[i], _ = self.getMeshVertData(self.mesh1_ls[i])
             closestPoints, closestPairsRay, closestPairsNormDist = self.findClosestPoints(self.mesh1Vertices_ls[i], 
                                                                                           self.mesh1VertNorm_ls[i], 
                                                                                           self.mesh1VertRay_ls[i], 
