@@ -148,7 +148,36 @@ class MyCanvas(InputCanvas):
 
 
         """"""""""""""""""""""""""" 2. Incus """""""""""""""""""""""""""
-        # TBD.......
+        # a) Set up ms1 (microscope2) for incus
+        texture2 = Texture(self.image2_path)
+        self.ms2 = Microscope(texture2, self.n2, self.res2) # chanegd into new extended class of camera
+        self.rig_ms.add(self.ms2)
+        
+        # TODO: NO MORE UPDATES TO MONITOR below this layer
+        # 2) Set up imagePlane
+        self.imagePFac2 = ImagePlaneFactory(texture2, self.n2, self.res2)
+        image2 = self.imagePFac2.createMesh() # DO NOT save imageP2 as attribute (due to constant updates required!!!!)
+        self.ms2.add(image2)
+
+        # 3) Set up contourMesh
+        self.contourFac2 = ContourMeshFactory(self.contour2_path, texture2, self.n2, self.res2, self.color_incus, 1)
+        contour2 = self.contourFac2.createMesh()
+        image2.add(contour2)
+        contour2.translate(0, 0, 0.1) # Move contour slightly above the image plane
+
+        # 4) Set up projectorMesh
+        self.projectorFac2 = ProjectorMeshFactory(self.ms2, contour2, self.n2, self.f2, self.delta2, self.color_incus, alpha=0.5)
+        projector2 = self.projectorFac2.createMesh()
+        self.ms2.add(projector2)
+        self.projectorFac2.correctWorldPos() # Correct projector position to align with microscope
+
+
+        # 5) Set up mediator for event communication between objects
+        mediator2 = ImageMediator(self.rig_ms, self.ms2, self.imagePFac2, self.contourFac2, self.projectorFac2)
+        self.rig_ms.addMediator(mediator2)
+        self.ms2.setMediator(mediator2)
+        self.mediators.append(mediator2) # index of mediator correspond to state index (0: pinna, 1: incus)
+
 
         """"""""""""""""""""""""""" 3. Model3d """""""""""""""""""""""""""
         # Load 3D model
@@ -203,30 +232,43 @@ class MyCanvas(InputCanvas):
             self.state = (self.state + 1) % 2
 
 
+
+        # """ Rest CAD viewport camera0 to align with different microscope viewports"""
+        if self.isKeyDown("i"): 
+            self.viewport = (self.viewport + 1) % len(self.mediators) # 0: pinna, 1: incus, 2:etc
+
+            # FIXME:
+            self.rig0.setWorldPosition(self.rig_ms.getWorldPosition())
+            self.rig0.setWorldRotation(self.rig_ms.getWorldRotationMatrix())
+            self.rig0.lookAttachment.setWorldRotation(self.rig_ms.lookAttachment.getWorldRotationMatrix())
+            if self.viewport == 0:
+                self.camera0.zoom = 0.5
+            elif self.viewport == 1:
+                self.camera0.zoom = 1
+            self.camera0.setOrthographic()
+
+
         if self.state == 0:
             self.rig0.update(self)
             self.camera0.update(self)
         else:
             self.rig_ms.update(self)
-            self.ms1.update(self)
-            # # update projector coneMesh vertices when only ms1 moves
-            # if self.rig_ms.isUpdated or self.ms1.isUpdated:
-                # print("ms1 moved")
-                # self.registrator.updateMatch(updateMesh1Vertices=True) 
-
-        # # FIXME:
-        # """ Rest CAD viewport camera0 to align with ms1 """
-        # if self.isKeyDown("i"): 
-        #     self.rig0.setWorldPosition(self.rig_ms.getWorldPosition())
-        #     self.rig0.setWorldRotation(self.rig_ms.getWorldRotationMatrix())
-        #     self.rig0.lookAttachment.setWorldRotation(self.rig_ms.lookAttachment.getWorldRotationMatrix())
-        #     self.camera0.zoom = 0.5 # reset zoom
-        #     self.camera0.setOrthographic()
-
-           
+            if self.viewport == 0:
+                self.ms1.update(self)
+                # # FIXME: update projector coneMesh vertices when only ms1 moves
+                # if self.rig_ms.isUpdated or self.ms1.isUpdated:
+                    # print("ms1 moved")
+                    # self.registrator.updateMatch(updateMesh1Vertices=True)   
+            elif self.viewport == 1:
+                self.ms2.update(self)
+ 
 
         self.renderer.render(self.scene, self.camera0, viewportSplit="left")   
-        self.renderer.render(self.scene, self.ms1, clearColor = False,viewportSplit="right")
+        if self.viewport == 0:
+            self.renderer.render(self.scene, self.ms1, clearColor = False,viewportSplit="right")
+        elif self.viewport == 1:
+            self.renderer.render(self.scene, self.ms2, clearColor = False,viewportSplit="right")
+        
         
         
 

@@ -118,7 +118,7 @@ class MovementRig(Object3D):
             self.isUpdated = True
 
     
-        super().update(inputObject, deltaTime) # propagate update to children
+        # super().update(inputObject, deltaTime) # propagate update to children
         
 
 

@@ -26,7 +26,8 @@ class MicroscopeRig(MovementRig):
             for mediator in self.mediators:
                 mediator.notify(self, "rig move along z", data={"altScroll": altMouseScroll})
 
-        super().update(inputObject, deltaTime)
+        # FIXME: selective update propagation to child objects (microscope)
+        super().update(inputObject, deltaTime) # no child update propagation, only inherited movement updates
     
 
     def addMediator(self, mediator):

@@ -18,10 +18,10 @@ class ImageMediator(Mediator):
             # print(f"ImageMediator: notified to update near plane by {sender}")
             self.handle_update_n(event, data)
         if event == "update far plane": # sent by microscope
-            print(f"ImageMediator: notified to update far plane by {sender}")
+            # print(f"ImageMediator: notified to update far plane by {sender}")
             self.handle_update_f(event, data)
         if event == "rig move along z": # sent by microscopeRIG!!! # FIXME: multiple mediators needed!!!!!
-            print(f"ImageMediator: notified to move rig along z by {sender}")
+            # print(f"ImageMediator: notified to move rig along z by {sender}")
             self.handle_rig_movez(event, data)
         if event == "update projector delta": # sent by GUIframe
             print(f"ImageMediator: notified to update projector delta by {sender}")
@@ -34,13 +34,14 @@ class ImageMediator(Mediator):
         del_n = 10*data["shiftScroll"]
         # update near clipping plane in microscope and imagePlane
         self.imagePlaneFactory.update(del_n=del_n)
-        self.contourMeshFactory.update(del_n=del_n)
+        self.projectorMeshFactory.contour =self.contourMeshFactory.update(del_n=del_n)
         self.projectorMeshFactory.update(del_n=del_n)
         # self.MatchMeshFactory.update() # FIXME:
 
     def handle_update_f(self, event, data):
         del_f = 10*data["ctrlScroll"]
         # update far clipping plane in microscope and imagePlane
+        self.projectorMeshFactory.contour =self.contourMeshFactory.update(del_n=0)
         self.projectorMeshFactory.update(del_f=del_f)
         # self.MatchMeshFactory.update() # FIXME:
 

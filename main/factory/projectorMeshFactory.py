@@ -54,7 +54,7 @@ class ProjectorMeshFactory(MeshFactory):
         self.mesh.translate(-msPos[0], -msPos[1], -msPos[2]) 
         return self.mesh
 
-
+    
     def update(self, del_n=None, del_f=None, delta=None):
         # override parent class method
         if del_n is not None: # update n
@@ -64,10 +64,10 @@ class ProjectorMeshFactory(MeshFactory):
         if delta is not None:
             self.delta = delta
         self.mesh = super().update()
-        msPos = self.ms.getWorldPosition()
-        self.mesh.translate(0, 0, -msPos[2]) # FIXME: translate back to the microscope position
         if self.mesh is None:
             raise ValueError("ProjectorMeshFactory.update() error: NEW projectorMesh is None")
+        else:
+            self.correctWorldPos() # FIXME: translate back to the microscope position
         return self.mesh
     
 
