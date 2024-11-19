@@ -262,6 +262,7 @@ class MyCanvas(InputCanvas):
         elif self.viewport == 1:
             self.renderer.render(self.scene, self.ms1, clearColor = False,viewportSplit="right")
         
+        # print(f"scene update(): {self.matchFac.mesh.visible}")
         
         
 

@@ -39,7 +39,6 @@ class ProjectorMeshFactory(MeshFactory):
     def createMesh(self):
         msPos = self.ms.getWorldPosition()
         contourWorldPos_segments = self._getContourWorldPos(self.contour)
-        print(f"ProjectorMeshFactory.createMesh(): contourWorldPos_segments: {contourWorldPos_segments[-1][:5]}")
         geometry = ProjectorGeometry(msPos=msPos, contourVertWorldPos_segments=contourWorldPos_segments, 
                                      n=self.n, f=self.f, delta=self.delta, color=self.color)
         self.mesh = Mesh(geometry, self.material)
@@ -66,7 +65,6 @@ class ProjectorMeshFactory(MeshFactory):
             self.f += del_f
         if delta is not None:
             self.delta = delta
-            print(f"ProjectorMeshFactory.update(): delta updated to {delta}")
         self.mesh = super().update()
         if self.mesh is None:
             raise ValueError("ProjectorMeshFactory.update() error: NEW projectorMesh is None")

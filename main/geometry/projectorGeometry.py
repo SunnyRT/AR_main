@@ -33,22 +33,18 @@ class ProjectorGeometry(Geometry):
 
             nearPoints = msPos + rayDirsNormalized * n
             farPoints = msPos + rayDirsNormalized * f
-            # print(f"msPos: {msPos}, rayDirs: {rayDirs[:5]}, rayDirsNormalized: {rayDirsNormalized[:5]}")
-            # print(f"nearPoints:{nearPoints[:5]}, farPoints:{farPoints[:5]}, n: {n}, f: {f}")
-            # print(f"t_values: {t_values.shape}")
+
             sampledPoints = (1 - t_values) * nearPoints[:, None] + t_values * farPoints[:, None] # Shape: (numRays, numSamples, 3)
             vertex_positions = sampledPoints.reshape(-1, 3) # Shape: (numRays*numSamples, 3)
             vertex_rays = np.repeat(np.arange(numRays), numSamples)
             vertex_colors = np.repeat(np.array([color]), numRays*numSamples, axis=0)
 
             face_indices, rayData, rayIdOffset = self._calcFaceAndRayIndices(numRays, numSamples, rayIdOffset)
-            # print(f"numRays: {numRays}, numSamples: {numSamples}, face_indices: {np.array(face_indices).shape}")
-            # print(f"rayData values: {np.unique(rayData)}")
-            vertex_normals= self._calcVertexNormals(vertex_positions, face_indices)
-            # print(f"before arranging, vertexpos: {np.array(vertex_positions).shape}, vertexnormal: {np.array(vertex_normals).shape}")
 
+            vertex_normals= self._calcVertexNormals(vertex_positions, face_indices)
+     
             positionData, colorData, vnormalData = self._arrangeVertexData(vertex_positions, face_indices, vertex_colors, vertex_normals)
-            # print(f"cone vertexpos: {np.array(positionData).shape}, cone vertexcolor:{np.array(colorData).shape}, cone vertexnormal: {np.array(vnormalData).shape}")
+            
             positionData_segments.append(positionData)
             colorData_segments.append(colorData)
             normalData_segments.append(vnormalData)

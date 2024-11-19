@@ -439,7 +439,7 @@ class GUIFrame(InputFrame):
         self.canvas.SetFocus()
 
     def on_match_visible(self, event):
-        visible = self.contour_chkbx.GetValue()
+        visible = self.match_chkbx.GetValue()
         viewport = self.canvas.viewport
         mediator = self.canvas.mediators[viewport]
         mediator.notify(self, "update visibility", data={"object":"match", "is_visible": visible})

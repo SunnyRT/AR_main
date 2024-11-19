@@ -87,7 +87,7 @@ class ImageMediator(Mediator):
          
     def handle_msrig_move(self, event, data):
         # only need to update registrator and matchMeshFactory
-        print(f"ImageMediator: notified to move rig by {data['prevTransform']} to {data['currTransform']}")
+        # print(f"ImageMediator: notified to move rig by {data['prevTransform']} to {data['currTransform']}")
         self.registrator.updateMatch()
         self.matchMeshFactory.update(self.registrator.closestPairsPerRay)
 
@@ -96,7 +96,7 @@ class ImageMediator(Mediator):
     def handle_update_delta(self, event, data):
         delta = data["delta"]
         # update delta in projectorMesh
-        print(f"ImageMediator: notified to update projector delta to {delta}")
+        # print(f"ImageMediator: notified to update projector delta to {delta}")
         projector = self.projectorMeshFactory.update(delta=delta)
         
         self.registrator.updateMesh1(mesh1=projector, idx=self.idx)
