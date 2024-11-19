@@ -144,7 +144,7 @@ class GUIFrame(InputFrame):
             sizer.Add(hbox, 0, wx.ALL | wx.EXPAND, 2)
             return value_text
         
-        self.view_angle_text = add_labeled_text(self.tool_panel, tool_sizer, "View Angle:", "0.0")
+        # self.view_angle_text = add_labeled_text(self.tool_panel, tool_sizer, "View Angle:", "0.0")
         self.match_count_text = add_labeled_text(self.tool_panel, tool_sizer, "Number of Matches:", "0")
         self.mean_error_text = add_labeled_text(self.tool_panel, tool_sizer, "Mean Error:", "0.0")
         self.mean_norm_measure_text = add_labeled_text(self.tool_panel, tool_sizer, "Mean Normal Measure:", "0.0")
@@ -217,11 +217,11 @@ class GUIFrame(InputFrame):
 
         
     
-    def update_tool_panel(self, transform_matrix, distance, view_angle, match_count, mean_error, mean_norm_measure):
+    def update_tool_panel(self, transform_matrix, distance, match_count, mean_error, mean_norm_measure):
         """ Update the text in the tool panel."""
         self.transform_matrix_text.SetLabel("Transformation Matrix:\n"+self.format_matrix(transform_matrix))
         # self.distance_text.SetLabel(f"Distance to Origin:\n {distance:.2f}")
-        self.view_angle_text.SetLabel(f"{view_angle:.2f}")
+        # self.view_angle_text.SetLabel(f"{view_angle:.2f}")
         self.match_count_text.SetLabel(f"{match_count}")
         self.mean_error_text.SetLabel(f"{mean_error:.2f}")
         self.mean_norm_measure_text.SetLabel(f"{mean_norm_measure:.2f}")
@@ -255,16 +255,15 @@ class GUIFrame(InputFrame):
             self.on_save_file()
         self.canvas.SetFocus()  # Set focus back to the canvas    
 
-    def on_open_file(self): # FIXME: open directory which contains a corresponding pair of (image file + contour.sw)
+    def on_open_file(self): # FIXME: not implemented
         """ Open a file dialog to select a file to open."""
         wildcard = "JPEG files (*.jpg)|*.jpg|PNG files (*.png)|*.png|All files (*.*)|*.*"
         dialog = wx.FileDialog(self, "Open image file", wildcard=wildcard, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         
         if dialog.ShowModal() == wx.ID_OK:
-            image2d_path = dialog.GetPath()
-            self.canvas.image2d_path = image2d_path
-            self.canvas.initialized = False
-            print(f"Selected file: {image2d_path}")
+            path = dialog.GetPath()
+            # self.canvas.initialized = False
+            print(f"Selected file: {path}, but unable to load.")
             
         dialog.Destroy() 
         self.canvas.SetFocus()  # Set focus back to the canvas
@@ -272,10 +271,8 @@ class GUIFrame(InputFrame):
     def on_load_file(self):
         """ Load a registration text file, in the format of:
                 Transformation Matrix: xxx
-                Resolution:
-                Near plane (n):
-                Far plane (f):
-                Delta:
+
+                TODO: to include other parameters
         """
         
         dialog = wx.FileDialog(self, "Load registration result", 
@@ -283,56 +280,64 @@ class GUIFrame(InputFrame):
         
         if dialog.ShowModal() == wx.ID_OK:
             load_path = dialog.GetPath()
-            try:
-                with open(load_path, "r") as file:
-                    matrix_lines = []
-                    reading_matrix = False
-                    for line in file:
-                        line = line.strip()
-                        if not line:
-                            continue
-                        if "Transformation Matrix" in line:
-                            reading_matrix = True
-                            continue
-                        if reading_matrix:
-                            
-                            # Read the transformation matrix values
-                            if len(matrix_lines) < 4:  # Assuming a 4x4 matrix
-                                matrix_row = [float(value) for value in line.split()]
-                                matrix_lines.append(matrix_row)
-                            if len(matrix_lines) == 4:
-                                transform = np.array(matrix_lines)
-                                imgPlane_zpos = self.canvas.image2d.imagePlane.getWorldPosition()[2]
-                                coneMesh_len = self.canvas.f - self.canvas.n
-                                print(f"Old imagePlane position: {self.canvas.image2d.imagePlane.getWorldPosition()}")
-                                self.canvas.rig1.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
-                                self.canvas.rig1.setWorldRotation(transform[0:3, 0:3])
-                                reading_matrix = False
+            # try:
+            with open(load_path, "r") as file:
+                matrix_lines = []
+                reading_matrix = False
+                for line in file:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    if "Transformation Matrix" in line:
+                        reading_matrix = True
+                        continue
+                    if reading_matrix:
+                        
+                        # Read the transformation matrix values
+                        if len(matrix_lines) < 4:  # Assuming a 4x4 matrix
+                            matrix_row = [float(value) for value in line.split()]
+                            matrix_lines.append(matrix_row)
+                        if len(matrix_lines) == 4:
+                            transform = np.array(matrix_lines)
 
-                                # update self.canvas.n and self.canvas.f
-                                self.canvas.n = transform[2][3] - imgPlane_zpos
-                                self.canvas.f = self.canvas.n + coneMesh_len
-                                print(f"new near plane: {self.canvas.n}, new far plane: {self.canvas.f}")
 
-                        # # Parse additional parameters
-                        # elif line.startswith("Resolution:"):
-                        #     self.canvas.resolution = float(line.split(":")[1].strip())
-                        # elif line.startswith("Near plane (n):"):
-                        #     self.canvas.n = float(line.split(":")[1].strip())
-                        #     # self.canvas.camera1.initialize()
-                        #     # self.canvas.image2d.imagePlane.translate(0, 0, -self.canvas.n)
-                        # elif line.startswith("Far plane (f):"):
-                        #     self.canvas.f = float(line.split(":")[1].strip())
-                        #     print(f"NEW FAR PLANE: {self.canvas.f}")
-                        # elif line.startswith("Delta:"):
-                        #     self.canvas.delta = float(line.split(":")[1].strip())
-                # update imagePlane, contourMesh, projectorMesh, registrator Mesh1
-                self.canvas.image2d.update(self.canvas, self.canvas.registrator, reset=True)
-                wx.MessageBox(f"Registration result loaded from {load_path}", "Load Successful", wx.OK | wx.ICON_INFORMATION)
-                # self.canvas.initialized = False
-                print(f"New imagePlane position: {self.canvas.image2d.imagePlane.getWorldPosition()}")
-            except Exception as e:
-                wx.MessageBox(f"Failed to load file: {e}","Error", wx.OK | wx.ICON_ERROR)
+                            # imgPlane_zpos = self.canvas.image2d.imagePlane.getWorldPosition()[2]
+                            # coneMesh_len = self.canvas.f - self.canvas.n
+                            # print(f"Old imagePlane position: {self.canvas.image2d.imagePlane.getWorldPosition()}")
+                            # self.canvas.rig_ms.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
+                            # self.canvas.rig_ms.setWorldRotation(transform[0:3, 0:3])
+                            reading_matrix = False
+
+                            # # update self.canvas.n and self.canvas.f
+                            # self.canvas.n = transform[2][3] - imgPlane_zpos
+                            # self.canvas.f = self.canvas.n + coneMesh_len
+                            # print(f"new near plane: {self.canvas.n}, new far plane: {self.canvas.f}")
+
+                    # # Parse additional parameters
+                    # elif line.startswith("Resolution:"):
+                    #     self.canvas.resolution = float(line.split(":")[1].strip())
+                    # elif line.startswith("Near plane (n):"):
+                    #     self.canvas.n = float(line.split(":")[1].strip())
+                    #     # self.canvas.camera1.initialize()
+                    #     # self.canvas.image2d.imagePlane.translate(0, 0, -self.canvas.n)
+                    # elif line.startswith("Far plane (f):"):
+                    #     self.canvas.f = float(line.split(":")[1].strip())
+                    #     print(f"NEW FAR PLANE: {self.canvas.f}")
+                    # elif line.startswith("Delta:"):
+                    #     self.canvas.delta = float(line.split(":")[1].strip())
+            # update imagePlane, contourMesh, projectorMesh, registrator Mesh1
+            del_z = transform[2][3] - self.canvas.rig_ms.getWorldPosition()[2] + 25 # TODO: 25 is an offset value
+            self.canvas.rig_ms.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
+            self.canvas.rig_ms.setWorldRotation(transform[0:3, 0:3])
+
+            for mediator in self.canvas.mediators:
+                mediator.notify(self, "load microscope transform", data={"del_z": del_z}) 
+            wx.MessageBox(f"Registration result loaded from {load_path}", "Load Successful", wx.OK | wx.ICON_INFORMATION)
+            # self.canvas.initialized = False
+            print(f"New rig_ms position: {self.canvas.rig_ms.getWorldPosition()}")
+            # except Exception as e:
+            #     print(f"Failed to load file: {e}")
+            #     wx.MessageBox(f"Failed to load file: {e}","Error", wx.OK | wx.ICON_ERROR)
             
         dialog.Destroy() 
         self.canvas.SetFocus()  # Set focus back to the canvas
@@ -354,16 +359,16 @@ class GUIFrame(InputFrame):
                 with open(save_path, "w") as file:
                     # Write the transformation matrix
                     file.write("Transformation Matrix:\n")
-                    matrix = self.canvas.rig1.getWorldMatrix()  # get world matrix of camera1 == rig1
+                    matrix = self.canvas.rig_ms.getWorldMatrix()  # get world matrix of both microscopes == rig_ms
                     for row in matrix:
                         file.write(" ".join(f"{value:.2f}" for value in row) + "\n")
                     file.write("\n")
                     
-                    # Write additional parameters
-                    file.write(f"Resolution: {self.canvas.resolution}\n")
-                    file.write(f"Near plane (n): {self.canvas.n}\n")
-                    file.write(f"Far plane (f): {self.canvas.f}\n")
-                    file.write(f"Delta: {self.canvas.delta}\n")
+                    # # Write additional parameters
+                    # file.write(f"Resolution: {self.canvas.resolution}\n")
+                    # file.write(f"Near plane (n): {self.canvas.n}\n")
+                    # file.write(f"Far plane (f): {self.canvas.f}\n")
+                    # file.write(f"Delta: {self.canvas.delta}\n")
                     
                     wx.MessageBox(f"Registration result saved to {save_path}", "Save Successful", wx.OK | wx.ICON_INFORMATION)
             except Exception as e:

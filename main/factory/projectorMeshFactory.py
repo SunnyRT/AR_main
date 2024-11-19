@@ -57,12 +57,16 @@ class ProjectorMeshFactory(MeshFactory):
         return self.mesh
 
     
-    def update(self, del_n=None, del_f=None, delta=None):
+    def update(self, del_n=None, del_f=None, delta=None, n=None, f=None):
         # override parent class method
         if del_n is not None: # update n
             self.n += del_n
+        elif n is not None:
+            self.n = n
         if del_f is not None:
             self.f += del_f
+        elif f is not None:
+            self.f = f
         if delta is not None:
             self.delta = delta
         self.mesh = super().update()

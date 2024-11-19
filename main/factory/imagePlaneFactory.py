@@ -35,10 +35,12 @@ class ImagePlaneFactory(MeshFactory):
         self.mesh.translate(0, 0, -self.n)
         return self.mesh
     
-    def update(self, del_n=None):
+    def update(self, del_n=None, n=None):
         # override parent class method
         if del_n is not None: # update n
             self.n += del_n
+        elif n is not None:
+            self.n = n
         self.mesh = super().update() # calls createMesh()
         return self.mesh # (to be assigned to canvas attribute)
     

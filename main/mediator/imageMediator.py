@@ -48,6 +48,10 @@ class ImageMediator(Mediator):
             self.handle_update_alpha(event, data)
         if event == "update visibility":
             self.handle_update_visibility(event, data)    
+
+        """ load microscope rig transform from file """
+        if event == "load microscope transform":
+            self.handle_load_ms_transform(event, data)
             
             
 
@@ -121,3 +125,26 @@ class ImageMediator(Mediator):
             self.contourMeshFactory.setVisibility(visible)
         elif data["object"] == "match":
             self.matchMeshFactory.setVisibility(visible)
+        elif data["object"] == "image":
+            self.imagePlaneFactory.setVisibility(visible)
+
+
+    
+    def handle_load_ms_transform(self, event, data):
+        
+        del_z = data["del_z"]
+        
+        # image_z = self.imagePlaneFactory.mesh.getWorldPosition()[2]
+        # old_f = self.projectorMeshFactory.f
+        # old_n = self.projectorMeshFactory.n
+        # proj_len = old_f - old_n
+        # new_n = transform[2][3] - image_z
+        # new_f = new_n + proj_len
+        # print(f"old near: {old_n}, new near: {new_n}, old far: {old_f}, new far: {new_f}")
+        
+
+        self.imagePlaneFactory.update(del_n=del_z)
+        self.projectorMeshFactory.contour=self.contourMeshFactory.update(del_n=del_z)
+        projector=self.projectorMeshFactory.update(del_n=del_z, del_f=del_z)
+        self.registrator.updateMesh1(mesh1=projector, idx=self.idx)
+        self.matchMeshFactory.update(self.registrator.closestPairsPerRay)

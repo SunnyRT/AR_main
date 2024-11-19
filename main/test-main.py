@@ -52,8 +52,8 @@ class MyCanvas(InputCanvas):
         self.contour0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
         self.res0=0.0003
-        self.n0 = 200
-        self.f0 = 250
+        self.n0 = 210
+        self.f0 = 240
         self.delta0 = 2
 
         self.image1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.png"
@@ -210,13 +210,13 @@ class MyCanvas(InputCanvas):
         """ Update information displayed in the tool panel"""
         transform_matrix = self.rig_ms.getWorldMatrix()
         distance = np.linalg.norm(self.rig_ms.getWorldPosition())
-        view_angle = self.ms1.theta
+        # view_angle = self.ms1.theta
         match_count = self.registrator.matchCount
         mean_error = self.registrator.meanError
         mean_norm_measure = self.registrator.meanNormMeasure
 
         
-        self.GetParent().update_tool_panel(transform_matrix, distance, view_angle, 
+        self.GetParent().update_tool_panel(transform_matrix, distance, 
                                            match_count, mean_error, mean_norm_measure)
 
 
@@ -235,12 +235,16 @@ class MyCanvas(InputCanvas):
             self.rig_cm.lookAttachment.setWorldRotation(self.rig_ms.lookAttachment.getWorldRotationMatrix())
             if self.viewport == 0:
                 self.camera.zoom = 0.5
-                self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": True})
-                self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": False})
+                # self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": True})
+                # self.mediators[0].notify(self, "update visibility", {"object": "contour", "is_visible": True})
+                # self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": False})
+                # self.mediators[1].notify(self, "update visibility", {"object": "contour", "is_visible": False})
             elif self.viewport == 1:
                 self.camera.zoom = 1
-                self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": True})
-                self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": False})
+                # self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": True})
+                # self.mediators[1].notify(self, "update visibility", {"object": "contour", "is_visible": True})
+                # self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": False})
+                # self.mediators[0].notify(self, "update visibility", {"object": "contour", "is_visible": False})
             self.camera.setOrthographic()
 
         """monitor updates"""
