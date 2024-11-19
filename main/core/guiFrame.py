@@ -326,7 +326,7 @@ class GUIFrame(InputFrame):
                     # elif line.startswith("Delta:"):
                     #     self.canvas.delta = float(line.split(":")[1].strip())
             # update imagePlane, contourMesh, projectorMesh, registrator Mesh1
-            del_z = transform[2][3] - self.canvas.rig_ms.getWorldPosition()[2] + 25 # TODO: 25 is an offset value
+            del_z = transform[2][3] - self.canvas.rig_ms.getWorldPosition()[2]  # TODO: 25 is an offset value
             self.canvas.rig_ms.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
             self.canvas.rig_ms.setWorldRotation(transform[0:3, 0:3])
 
