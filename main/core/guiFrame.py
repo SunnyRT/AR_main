@@ -403,10 +403,11 @@ class GUIFrame(InputFrame):
         value = self.delta_slider.GetValue()/10
     
         # FIXME: viewport = 0 or 1 separately!!!! BUG:!!!!! 
+        print(f"GUI update: z-resolution = {value}")
         viewport = self.canvas.viewport
         mediator = self.canvas.mediators[viewport]
         mediator.notify(self, "update projector delta", data={"delta": value})
-        print(f"Projector coneMesh z-resolution: {value}")
+        
         self.canvas.SetFocus()  # Set focus back to the canvas
 
     # transparency slider event handlers

@@ -93,7 +93,8 @@ class RegistratorICP(object):
         # iterate through each mesh1 and mesh2 pair
         closestPairsPerRay_ls, closestPairsNormDistPerRay_ls = [], []
         for i in range(len(self.mesh1_ls)):
-            self.mesh1Vertices_ls[i], self.mesh1VertNorm_ls[i], _ = self.getMeshVertData(self.mesh1_ls[i])
+            if updateMesh1idx==-1:
+                self.mesh1Vertices_ls[i], self.mesh1VertNorm_ls[i], _ = self.getMeshVertData(self.mesh1_ls[i])
             closestPoints, closestPairsRay, closestPairsNormDist = self.findClosestPoints(self.mesh1Vertices_ls[i], 
                                                                                           self.mesh1VertNorm_ls[i], 
                                                                                           self.mesh1VertRay_ls[i], 

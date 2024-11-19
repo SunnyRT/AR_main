@@ -27,30 +27,33 @@ class ProjectorMeshFactory(MeshFactory):
         contourRot = contourMesh.getWorldRotationMatrix()
         contourVertPos_segments = contourMesh.geometry.positionData_segments
 
+        contourVertWorldPos_segments = []
         # displace each vertex by the contour position & rotate by the contour rotation
         for i, segment in enumerate(contourVertPos_segments): 
             # Apply the transformation to each vertex in the segment
-            contourVertPos_segments[i] = np.array([contourRot @ vertex + contourPos for vertex in segment])
-        contourVertWorldPos_segments = contourVertPos_segments 
+            temp = np.array([contourRot @ vertex + contourPos for vertex in segment])
+            contourVertWorldPos_segments.append(temp)
         return contourVertWorldPos_segments       
 
 
     def createMesh(self):
         msPos = self.ms.getWorldPosition()
         contourWorldPos_segments = self._getContourWorldPos(self.contour)
-        geometry = ProjectorGeometry(msPos, contourWorldPos_segments, self.n, self.f, self.delta, self.color)
+        print(f"ProjectorMeshFactory.createMesh(): contourWorldPos_segments: {contourWorldPos_segments[-1][:5]}")
+        geometry = ProjectorGeometry(msPos=msPos, contourVertWorldPos_segments=contourWorldPos_segments, 
+                                     n=self.n, f=self.f, delta=self.delta, color=self.color)
         self.mesh = Mesh(geometry, self.material)
 
         return self.mesh
 
     def correctWorldPos(self):
-        msMat = self.ms.getWorldMatrix()
-        msInv = np.linalg.inv(msMat)
+        msRot = self.ms.getWorldRotationMatrix()
+        msInv = np.linalg.inv(msRot)
         msPos = self.ms.getWorldPosition()
 
-        meshMat = self.mesh.getWorldMatrix()
-        meshMat = msInv @ meshMat
-        self.mesh.setWorldRotation(np.array([meshMat[0][:3], meshMat[1][:3], meshMat[2][:3]]))
+        meshRot_old = self.mesh.getWorldRotationMatrix()
+        meshRot= msInv @ meshRot_old
+        self.mesh.setWorldRotation(meshRot)
         self.mesh.translate(-msPos[0], -msPos[1], -msPos[2]) 
         return self.mesh
 
@@ -68,6 +71,7 @@ class ProjectorMeshFactory(MeshFactory):
         if self.mesh is None:
             raise ValueError("ProjectorMeshFactory.update() error: NEW projectorMesh is None")
         else:
+            pass
             self.correctWorldPos() # FIXME: translate back to the microscope position
         return self.mesh
     

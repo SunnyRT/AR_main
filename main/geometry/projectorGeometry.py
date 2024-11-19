@@ -6,7 +6,7 @@ class ProjectorGeometry(Geometry):
     def __init__(self, msPos, contourVertWorldPos_segments, n, f, delta, color):
         super().__init__()
         
-        numSamples = int((f-n)/delta) # is +1 needed?
+        numSamples = int((f-n)/delta)+1 # is +1 needed?
         print(f"projector per-ray numSamples : {numSamples} from n: {n}, f: {f}, delta: {delta}")
         if numSamples <= 0:
             pass # FIXME: throw error
@@ -22,17 +22,20 @@ class ProjectorGeometry(Geometry):
         vertex_rays_segments = []
 
         rayIdOffset = 0
-
         for i, contourVertWorldPos in enumerate(contourVertWorldPos_segments):
             numRays = len(contourVertWorldPos)
 
             # Calculate sampled points along each ray
             t_values = np.linspace(0, 1, numSamples).reshape(1,-1,1)  # Sampling along the ray
+          
             rayDirs = contourVertWorldPos - msPos
             rayDirsNormalized = rayDirs / np.linalg.norm(rayDirs, axis=1)[:, None]
 
             nearPoints = msPos + rayDirsNormalized * n
             farPoints = msPos + rayDirsNormalized * f
+            # print(f"msPos: {msPos}, rayDirs: {rayDirs[:5]}, rayDirsNormalized: {rayDirsNormalized[:5]}")
+            # print(f"nearPoints:{nearPoints[:5]}, farPoints:{farPoints[:5]}, n: {n}, f: {f}")
+            # print(f"t_values: {t_values.shape}")
             sampledPoints = (1 - t_values) * nearPoints[:, None] + t_values * farPoints[:, None] # Shape: (numRays, numSamples, 3)
             vertex_positions = sampledPoints.reshape(-1, 3) # Shape: (numRays*numSamples, 3)
             vertex_rays = np.repeat(np.arange(numRays), numSamples)
@@ -59,7 +62,7 @@ class ProjectorGeometry(Geometry):
             # # Debugging:
             # coneMeshNormal = self._createConeNormalMesh(vertex_positions, vertex_normals)
             # self.rayMesh.add(coneMeshNormal)
-
+            
 
         positionData_segments = np.concatenate(positionData_segments, axis=0)
         colorData_segments = np.concatenate(colorData_segments, axis=0)
