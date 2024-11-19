@@ -19,16 +19,31 @@ class MicroscopeRig(MovementRig):
 
 
     def update(self, inputObject, deltaTime=None):
-        # Handle alt mouse scroll -> move rig along z
+        # 1. Handle alt mouse scroll -> move rig along z
         altMouseScroll = inputObject.getAltMouseScroll()
         if altMouseScroll != 0:
             self.translate(0, 0, -altMouseScroll*10)
             for mediator in self.mediators:
                 mediator.notify(self, "rig move along z", data={"altScroll": altMouseScroll})
 
-        # FIXME: selective update propagation to child objects (microscope)
-        super().update(inputObject, deltaTime) # no child update propagation, only inherited movement updates
-    
+
+
+
+
+        # 2. track changes in camera parameters (microscopic camera1)
+        prevTransform = self.getWorldMatrix()
+
+        # selective update propagation to child objects (microscope)
+        # no child update propagation, only inherited movement updates
+        super().update(inputObject, deltaTime) 
+
+        # if rig has moved, notify mediators
+        currTransform = self.getWorldMatrix()
+        if not (prevTransform == currTransform).all():
+            # choose to notify only 1 single mediator
+            # eventually reaching the same registrator and the matchMeshFactory
+            self.mediators[0].notify(self, "rig moved", data={"prevTransform": prevTransform, "currTransform": currTransform})
+            
 
     def addMediator(self, mediator):
         self.mediators.append(mediator)

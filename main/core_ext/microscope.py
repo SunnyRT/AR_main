@@ -48,7 +48,6 @@ class Microscope(Camera):
         if del_n is not None:
             self.n += del_n
             self.initialize()
-            self.isUpdated = True # FIXME: !!!!!!!!!
 
         elif inputObject is not None: # observe inputObject to detect events of changing camera parameters
             # Handle shift mouse scroll -> set near clipping plane n
@@ -65,20 +64,6 @@ class Microscope(Camera):
                 if self.mediator:
                     self.mediator.notify(self, "update far plane", data={"ctrlScroll": ctrlMouseScroll})      
 
-
-            # FIXME: !!!!!!!!!
-            # track changes in camera parameters (microscopic camera1)
-            self.isUpdated = False
-
-            # Assume self.isPerspective = True!!!!
-            if inputObject.isKeyPressed('up'):
-                self.theta -= 0.1
-                self.setPerspective()
-                self.isUpdated = True
-            if inputObject.isKeyPressed('down'):
-                self.theta += 0.1
-                self.setPerspective()
-                self.isUpdated = True
 
         else:
             raise ValueError("Microscope.update() error: inputObject is None")

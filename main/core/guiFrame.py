@@ -391,23 +391,21 @@ class GUIFrame(InputFrame):
         self.canvas.SetFocus()  # Set focus back to the canvas
 
         
-    # FIXME: to be done!!!!
     def on_dmax_slider_change(self, event):
         value = self.dmax_slider.GetValue()/10
-        # self.canvas.registrator.d_max = value
-        # self.canvas.registrator.updateMatch()
+        viewport = self.canvas.viewport
+        mediator = self.canvas.mediators[viewport]
+        mediator.notify(self, "update dmax", data={"dmax": value})
         print(f"Maximum match pair distance dmax: {value}")
         self.canvas.SetFocus()  # Set focus back to the canvas
 
     def on_delta_slider_change(self, event):
         value = self.delta_slider.GetValue()/10
     
-        # FIXME: viewport = 0 or 1
+        # FIXME: viewport = 0 or 1 separately!!!!
         viewport = self.canvas.viewport
         mediator = self.canvas.mediators[viewport]
         mediator.notify(self, "update projector delta", data={"delta": value})
-        self.canvas.projector._updateConeMesh()
-        self.canvas.registrator.updateMesh1(mesh1=self.canvas.projector.coneMesh)
         print(f"Projector coneMesh z-resolution: {value}")
         self.canvas.SetFocus()  # Set focus back to the canvas
 
@@ -421,27 +419,29 @@ class GUIFrame(InputFrame):
 
     def on_image2d_slider_change(self, event):
         value = self.image2d_slider.GetValue()/100
-        # FIXME:
-        # self.canvas.image2d.setAlpha(value)
-        # print(f"Image plane alpha: {value}")
+        for mediator in self.canvas.mediators:
+            mediator.notify(self, "update alpha", data={"object":"image", "alpha": value})
         self.canvas.SetFocus()
 
     def on_projector_slider_change(self, event):
         value = self.projector_slider.GetValue()/100
-        # FIXME:
-        # self.canvas.projector.setAlpha(value)
-        # print(f"Projector alpha: {value}")
+        for mediator in self.canvas.mediators:
+            mediator.notify(self, "update alpha", data={"object":"projector", "alpha": value})
         self.canvas.SetFocus()
 
 
     def on_contour_visible(self, event):
-        # FIXME:
-        # self.canvas.image2d.contourMesh.visible = self.contour_chkbx.GetValue()
+        visible = self.contour_chkbx.GetValue()
+        viewport = self.canvas.viewport
+        mediator = self.canvas.mediators[viewport]
+        mediator.notify(self, "update visibility", data={"object":"contour", "is_visible": visible})
         self.canvas.SetFocus()
 
     def on_match_visible(self, event):
-        # FIXME:
-        # self.canvas.registrator.matchMesh.visible = self.match_chkbx.GetValue()
+        visible = self.contour_chkbx.GetValue()
+        viewport = self.canvas.viewport
+        mediator = self.canvas.mediators[viewport]
+        mediator.notify(self, "update visibility", data={"object":"match", "is_visible": visible})
         self.canvas.SetFocus()
 
 

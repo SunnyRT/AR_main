@@ -16,7 +16,11 @@ class MeshFactory(object):
         else:
             return None
     
+    def setAlpha(self, alpha):
+        self.mesh.setAlpha(alpha)
 
+    def setVisibility(self, visible):
+        self.mesh.visible = visible
     
     def update(self):
         # find parent node, remove mesh from parent node
@@ -31,7 +35,8 @@ class MeshFactory(object):
 
         # create new mesh
         self.mesh = self.createMesh()
-        for child in descendents:
-            self.mesh.add(child)
+        if len(descendents) > 0:
+            for child in descendents:
+                self.mesh.add(child)
         parent.add(self.mesh)
         return self.mesh

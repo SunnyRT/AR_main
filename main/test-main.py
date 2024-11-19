@@ -33,6 +33,7 @@ from registration.registratorICP import RegistratorICP
 from factory.imagePlaneFactory import ImagePlaneFactory
 from factory.contourMeshFactory import ContourMeshFactory
 from factory.projectorMeshFactory import ProjectorMeshFactory
+from factory.matchMeshFactory import MatchMeshFactory
 
 from mediator.imageMediator import ImageMediator
 
@@ -141,7 +142,7 @@ class MyCanvas(InputCanvas):
 
 
         # 5) Set up mediator for event communication between objects
-        mediator1 = ImageMediator(self.rig_ms, self.ms1, self.imagePFac1, self.contourFac1, self.projectorFac1)
+        mediator1 = ImageMediator(self.rig_ms, self.ms1, self.imagePFac1, self.contourFac1, self.projectorFac1, idx=0)
         self.rig_ms.addMediator(mediator1)
         self.ms1.setMediator(mediator1)
         self.mediators.append(mediator1) # index of mediator correspond to state index (0: pinna, 1: incus)
@@ -173,11 +174,10 @@ class MyCanvas(InputCanvas):
 
 
         # 5) Set up mediator for event communication between objects
-        mediator2 = ImageMediator(self.rig_ms, self.ms2, self.imagePFac2, self.contourFac2, self.projectorFac2)
+        mediator2 = ImageMediator(self.rig_ms, self.ms2, self.imagePFac2, self.contourFac2, self.projectorFac2, idx=1)
         self.rig_ms.addMediator(mediator2)
         self.ms2.setMediator(mediator2)
         self.mediators.append(mediator2) # index of mediator correspond to state index (0: pinna, 1: incus)
-
 
         """"""""""""""""""""""""""" 3. Model3d """""""""""""""""""""""""""
         # Load 3D model
@@ -198,9 +198,13 @@ class MyCanvas(InputCanvas):
         self.initialized = True
 
         """"""""""""""""""""""""""" 4. Registrator """""""""""""""""""""""""""
-        # # Setup ICP registrator
-        # # FIXME:
-        # self.registrator = RegistratorICP(self.projector.coneMesh, self.model3d, self.scene, self.rig_ms) # TODO: execution is done by GUIFrame!!!
+        # Setup ICP registrator
+        projectors = [projector1, projector2] # require updates of registrator attributes via mediator
+        self.matchFac = MatchMeshFactory(sceneObject=self.scene)
+        self.registrator = RegistratorICP(projectors, self.model3d, self.rig_ms, 10, self.matchFac) # TODO: execution is done by GUIFrame!!!
+        for mediator in self.mediators:
+            mediator.setMatchMeshFactory(self.matchFac)
+            mediator.setRegistrator(self.registrator)
 
     def update(self):
 
@@ -208,61 +212,56 @@ class MyCanvas(InputCanvas):
         if not self.initialized:
             self.initialize()
 
-        # FIXME:
-        # self.scene.update() # updates get propagated to all descendent objects in the scene
 
-        # FIXME:
         """ Update information displayed in the tool panel"""
         transform_matrix = self.rig_ms.getWorldMatrix()
         distance = np.linalg.norm(self.rig_ms.getWorldPosition())
         view_angle = self.ms1.theta
-        # match_count = self.registrator.matchCount
-        # mean_error = self.registrator.meanError
-        # mean_norm_measure = self.registrator.meanNormMeasure
-        match_count = 0
-        mean_error = 0
-        mean_norm_measure = 0
+        match_count = self.registrator.matchCount
+        mean_error = self.registrator.meanError
+        mean_norm_measure = self.registrator.meanNormMeasure
+
         
         self.GetParent().update_tool_panel(transform_matrix, distance, view_angle, 
                                            match_count, mean_error, mean_norm_measure)
 
-        # FIXME:
+
         """ Update the scene and toggle between cameras."""
         if self.isKeyDown("space"):  # Toggle between cameras with spacebar
             self.state = (self.state + 1) % 2
 
 
 
-        # """ Rest CAD viewport camera0 to align with different microscope viewports"""
+        """ Rest CAD viewport camera0 to align with different microscope viewports"""
         if self.isKeyDown("i"): 
             self.viewport = (self.viewport + 1) % len(self.mediators) # 0: pinna, 1: incus, 2:etc
 
-            # FIXME:
             self.rig0.setWorldPosition(self.rig_ms.getWorldPosition())
             self.rig0.setWorldRotation(self.rig_ms.getWorldRotationMatrix())
             self.rig0.lookAttachment.setWorldRotation(self.rig_ms.lookAttachment.getWorldRotationMatrix())
             if self.viewport == 0:
                 self.camera0.zoom = 0.5
+                self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": True})
+                self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": False})
             elif self.viewport == 1:
                 self.camera0.zoom = 1
+                self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": True})
+                self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": False})
             self.camera0.setOrthographic()
 
-
+        """monitor updates"""
         if self.state == 0:
+
             self.rig0.update(self)
             self.camera0.update(self)
         else:
             self.rig_ms.update(self)
             if self.viewport == 0:
                 self.ms1.update(self)
-                # # FIXME: update projector coneMesh vertices when only ms1 moves
-                # if self.rig_ms.isUpdated or self.ms1.isUpdated:
-                    # print("ms1 moved")
-                    # self.registrator.updateMatch(updateMesh1Vertices=True)   
             elif self.viewport == 1:
                 self.ms2.update(self)
  
-
+        """Render the scene"""
         self.renderer.render(self.scene, self.camera0, viewportSplit="left")   
         if self.viewport == 0:
             self.renderer.render(self.scene, self.ms1, clearColor = False,viewportSplit="right")

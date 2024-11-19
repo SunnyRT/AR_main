@@ -46,9 +46,7 @@ class MovementRig(Object3D):
     
     def update(self, inputObject, deltaTime=None):
 
-        # TODO: track changes in camera parameters (microscopic camera1)
-        self.isUpdated = False
-        prevTransform = self.getWorldMatrix()
+        
 
         if inputObject is None:
             print("MovementRig.update() error: inputObject is None")
@@ -77,7 +75,7 @@ class MovementRig(Object3D):
             self.rotateY(rotateAmount)
 
         if inputObject.isKeyPressed(self.KEY_LOOK_UP):
-            # self.lookAttachment.rotateX(rotateAmount) # TODO:
+            # self.lookAttachment.rotateX(rotateAmount) 
             self.rotateX(rotateAmount)
         if inputObject.isKeyPressed(self.KEY_LOOK_DOWN):
             # self.lookAttachment.rotateX(-rotateAmount)
@@ -112,10 +110,6 @@ class MovementRig(Object3D):
         if mouseScroll != 0:
             self.translate(0, 0, -mouseScroll * moveAmount)
 
-        # super().update(inputObject, deltaTime) # propagate update to children
-        currTransform = self.getWorldMatrix()
-        if not (prevTransform == currTransform).all():
-            self.isUpdated = True
 
     
         # super().update(inputObject, deltaTime) # propagate update to children
