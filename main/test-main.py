@@ -7,14 +7,10 @@ from core_ext.scene import Scene
 from core_ext.camera import Camera
 from core_ext.microscope import Microscope
 from mesh.mesh import Mesh
-from geometry.planeGeometry import PlaneGeometry
-from geometry.rectangleGeometry import RectangleGeometry
-from geometry.boxGeometry import BoxGeometry
+
 from geometry.model3dGeometry import Model3dGeometry
 from core_ext.texture import Texture
-from material.textureMaterial import TextureMaterial
 from material.lambertMaterial import LambertMaterial
-from material.pointMaterial import PointMaterial
 
 
 from light.ambientLight import AmbientLight
@@ -28,8 +24,6 @@ from extras.movementRig import MovementRig
 from extras.microscopeRig import MicroscopeRig
 
 from registration.registratorICP import RegistratorICP
-# from registration.image2d import Image2D
-# from registration.projector import Projector
 from factory.imagePlaneFactory import ImagePlaneFactory
 from factory.contourMeshFactory import ContourMeshFactory
 from factory.projectorMeshFactory import ProjectorMeshFactory
@@ -54,21 +48,21 @@ class MyCanvas(InputCanvas):
         
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
 
-        self.image1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
-        self.contour1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
+        self.image0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
+        self.contour0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
-        self.res1=0.0003
-        self.n1 = 200
-        self.f1 = 250
-        self.delta1 = 2
+        self.res0=0.0003
+        self.n0 = 200
+        self.f0 = 250
+        self.delta0 = 2
 
-        self.image2_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.png"
-        self.contour2_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.sw"
+        self.image1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.png"
+        self.contour1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.sw"
         self.color_incus = [0.1372549,  0.69803922, 0.        ]
-        self.res2=0.00015
-        self.n2 = 250
-        self.f2 = 260
-        self.delta2 = 0.5
+        self.res1=0.00015
+        self.n1 = 250
+        self.f1 = 260
+        self.delta1 = 0.5
 
         rig_ms_z = 250
         self.init_registration = np.eye(4) # TODO: check!!!
@@ -87,13 +81,13 @@ class MyCanvas(InputCanvas):
         self.renderer = RendererDual(glcanvas=self, clearColor=[0.8, 0.8, 0.8])
         self.scene = Scene()
 
-        # Set up camera0: camera0 for CAD engineering viewport
-        self.camera0 = Camera(isPerspective=False, aspectRatio=600/900, zoom=0.5)
-        self.rig0 = MovementRig()
-        self.rig0.add(self.camera0)
-        self.rig0.setPosition([-100, 50, 500]) 
-        self.rig0.lookAt([0, 0, 0])
-        self.scene.add(self.rig0)
+        # Set up camera: camera for CAD engineering viewport
+        self.camera = Camera(isPerspective=False, aspectRatio=600/900, zoom=0.5)
+        self.rig_cm = MovementRig() # MovementRig for CAD camera
+        self.rig_cm.add(self.camera)
+        self.rig_cm.setPosition([-100, 50, 500]) 
+        self.rig_cm.lookAt([0, 0, 0])
+        self.scene.add(self.rig_cm)
 
 
 
@@ -117,7 +111,39 @@ class MyCanvas(InputCanvas):
         self.scene.add(self.rig_ms)
 
         """"""""""""""""""""""""""" 1. Pinna """""""""""""""""""""""""""
-        # a) Set up ms1 (microscope1) for pinna 
+        # a) Set up ms0 (microscope1) for pinna 
+        texture0 = Texture(self.image0_path)
+        self.ms0 = Microscope(texture0, self.n0, self.res0) # chanegd into new extended class of camera
+        self.rig_ms.add(self.ms0)
+        
+        # TODO: NO MORE UPDATES TO MONITOR below this layer
+        # 2) Set up imagePlane
+        self.imagePFac0 = ImagePlaneFactory(texture0, self.n0, self.res0)
+        image0 = self.imagePFac0.createMesh() # DO NOT save imageP0 as attribute (due to constant updates required!!!!)
+        self.ms0.add(image0)
+
+        # 3) Set up contourMesh
+        self.contourFac0 = ContourMeshFactory(self.contour0_path, texture0, self.n0, self.res0, self.color_pinna, 1)
+        contour0 = self.contourFac0.createMesh()
+        image0.add(contour0)
+        contour0.translate(0, 0, 0.1) # Move contour slightly above the image plane
+
+        # 4) Set up projectorMesh
+        self.projectorFac0 = ProjectorMeshFactory(self.ms0, contour0, self.n0, self.f0, self.delta0, self.color_pinna, alpha=0.5)
+        projector0 = self.projectorFac0.createMesh()
+        self.ms0.add(projector0)
+        self.projectorFac0.correctWorldPos() # Correct projector position to align with microscope
+
+
+        # 5) Set up mediator for event communication between objects
+        mediator0 = ImageMediator(self.rig_ms, self.ms0, self.imagePFac0, self.contourFac0, self.projectorFac0, idx=0)
+        self.rig_ms.addMediator(mediator0)
+        self.ms0.setMediator(mediator0)
+        self.mediators.append(mediator0) # index of mediator correspond to state index (0: pinna, 1: incus)
+
+
+        """"""""""""""""""""""""""" 2. Incus """""""""""""""""""""""""""
+        # a) Set up ms1 (microscope1) for incus
         texture1 = Texture(self.image1_path)
         self.ms1 = Microscope(texture1, self.n1, self.res1) # chanegd into new extended class of camera
         self.rig_ms.add(self.ms1)
@@ -125,59 +151,27 @@ class MyCanvas(InputCanvas):
         # TODO: NO MORE UPDATES TO MONITOR below this layer
         # 2) Set up imagePlane
         self.imagePFac1 = ImagePlaneFactory(texture1, self.n1, self.res1)
-        image1 = self.imagePFac1.createMesh() # DO NOT save imageP1 as attribute (due to constant updates required!!!!)
+        image1 = self.imagePFac1.createMesh() # DO NOT save image1 as attribute (due to constant updates required!!!!)
         self.ms1.add(image1)
 
         # 3) Set up contourMesh
-        self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.n1, self.res1, self.color_pinna, 1)
+        self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.n1, self.res1, self.color_incus, 1)
         contour1 = self.contourFac1.createMesh()
         image1.add(contour1)
         contour1.translate(0, 0, 0.1) # Move contour slightly above the image plane
 
         # 4) Set up projectorMesh
-        self.projectorFac1 = ProjectorMeshFactory(self.ms1, contour1, self.n1, self.f1, self.delta1, self.color_pinna, alpha=0.5)
+        self.projectorFac1 = ProjectorMeshFactory(self.ms1, contour1, self.n1, self.f1, self.delta1, self.color_incus, alpha=0.5)
         projector1 = self.projectorFac1.createMesh()
         self.ms1.add(projector1)
         self.projectorFac1.correctWorldPos() # Correct projector position to align with microscope
 
 
         # 5) Set up mediator for event communication between objects
-        mediator1 = ImageMediator(self.rig_ms, self.ms1, self.imagePFac1, self.contourFac1, self.projectorFac1, idx=0)
+        mediator1 = ImageMediator(self.rig_ms, self.ms1, self.imagePFac1, self.contourFac1, self.projectorFac1, idx=1)
         self.rig_ms.addMediator(mediator1)
         self.ms1.setMediator(mediator1)
         self.mediators.append(mediator1) # index of mediator correspond to state index (0: pinna, 1: incus)
-
-
-        """"""""""""""""""""""""""" 2. Incus """""""""""""""""""""""""""
-        # a) Set up ms1 (microscope2) for incus
-        texture2 = Texture(self.image2_path)
-        self.ms2 = Microscope(texture2, self.n2, self.res2) # chanegd into new extended class of camera
-        self.rig_ms.add(self.ms2)
-        
-        # TODO: NO MORE UPDATES TO MONITOR below this layer
-        # 2) Set up imagePlane
-        self.imagePFac2 = ImagePlaneFactory(texture2, self.n2, self.res2)
-        image2 = self.imagePFac2.createMesh() # DO NOT save imageP2 as attribute (due to constant updates required!!!!)
-        self.ms2.add(image2)
-
-        # 3) Set up contourMesh
-        self.contourFac2 = ContourMeshFactory(self.contour2_path, texture2, self.n2, self.res2, self.color_incus, 1)
-        contour2 = self.contourFac2.createMesh()
-        image2.add(contour2)
-        contour2.translate(0, 0, 0.1) # Move contour slightly above the image plane
-
-        # 4) Set up projectorMesh
-        self.projectorFac2 = ProjectorMeshFactory(self.ms2, contour2, self.n2, self.f2, self.delta2, self.color_incus, alpha=0.5)
-        projector2 = self.projectorFac2.createMesh()
-        self.ms2.add(projector2)
-        self.projectorFac2.correctWorldPos() # Correct projector position to align with microscope
-
-
-        # 5) Set up mediator for event communication between objects
-        mediator2 = ImageMediator(self.rig_ms, self.ms2, self.imagePFac2, self.contourFac2, self.projectorFac2, idx=1)
-        self.rig_ms.addMediator(mediator2)
-        self.ms2.setMediator(mediator2)
-        self.mediators.append(mediator2) # index of mediator correspond to state index (0: pinna, 1: incus)
 
         """"""""""""""""""""""""""" 3. Model3d """""""""""""""""""""""""""
         # Load 3D model
@@ -199,7 +193,7 @@ class MyCanvas(InputCanvas):
 
         """"""""""""""""""""""""""" 4. Registrator """""""""""""""""""""""""""
         # Setup ICP registrator
-        projectors = [projector1, projector2] # require updates of registrator attributes via mediator
+        projectors = [projector0, projector1] # require updates of registrator attributes via mediator
         self.matchFac = MatchMeshFactory(sceneObject=self.scene)
         self.registrator = RegistratorICP(projectors, self.model3d, self.rig_ms, 10, self.matchFac) # TODO: execution is done by GUIFrame!!!
         for mediator in self.mediators:
@@ -232,41 +226,41 @@ class MyCanvas(InputCanvas):
 
 
 
-        """ Rest CAD viewport camera0 to align with different microscope viewports"""
+        """ Rest CAD viewport camera to align with different microscope viewports"""
         if self.isKeyDown("i"): 
             self.viewport = (self.viewport + 1) % len(self.mediators) # 0: pinna, 1: incus, 2:etc
 
-            self.rig0.setWorldPosition(self.rig_ms.getWorldPosition())
-            self.rig0.setWorldRotation(self.rig_ms.getWorldRotationMatrix())
-            self.rig0.lookAttachment.setWorldRotation(self.rig_ms.lookAttachment.getWorldRotationMatrix())
+            self.rig_cm.setWorldPosition(self.rig_ms.getWorldPosition())
+            self.rig_cm.setWorldRotation(self.rig_ms.getWorldRotationMatrix())
+            self.rig_cm.lookAttachment.setWorldRotation(self.rig_ms.lookAttachment.getWorldRotationMatrix())
             if self.viewport == 0:
-                self.camera0.zoom = 0.5
+                self.camera.zoom = 0.5
                 self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": True})
                 self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": False})
             elif self.viewport == 1:
-                self.camera0.zoom = 1
+                self.camera.zoom = 1
                 self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": True})
                 self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": False})
-            self.camera0.setOrthographic()
+            self.camera.setOrthographic()
 
         """monitor updates"""
         if self.state == 0:
 
-            self.rig0.update(self)
-            self.camera0.update(self)
+            self.rig_cm.update(self)
+            self.camera.update(self)
         else:
             self.rig_ms.update(self)
             if self.viewport == 0:
-                self.ms1.update(self)
+                self.ms0.update(self)
             elif self.viewport == 1:
-                self.ms2.update(self)
+                self.ms1.update(self)
  
         """Render the scene"""
-        self.renderer.render(self.scene, self.camera0, viewportSplit="left")   
+        self.renderer.render(self.scene, self.camera, viewportSplit="left")   
         if self.viewport == 0:
-            self.renderer.render(self.scene, self.ms1, clearColor = False,viewportSplit="right")
+            self.renderer.render(self.scene, self.ms0, clearColor = False,viewportSplit="right")
         elif self.viewport == 1:
-            self.renderer.render(self.scene, self.ms2, clearColor = False,viewportSplit="right")
+            self.renderer.render(self.scene, self.ms1, clearColor = False,viewportSplit="right")
         
         
         
