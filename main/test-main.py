@@ -61,7 +61,7 @@ class MyCanvas(InputCanvas):
         self.color_incus = [0.1372549,  0.69803922, 0.        ]
         self.res1=0.00015
         self.n1 = 250
-        self.f1 = 260
+        self.f1 = 270
         self.delta1 = 0.5
 
         rig_ms_z = 250

@@ -87,7 +87,7 @@ class GUIFrame(InputFrame):
         # Maximum value label
         max_label = wx.StaticText(self.tool_panel, label="10")
         dmax_sizer.Add(max_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
-        tool_sizer.Add(dmax_sizer, 0, wx.ALL | wx.EXPAND, 2)
+        tool_sizer.Add(dmax_sizer, 0, wx.ALL | wx.EXPAND, 0)
 
         # Bind the slider event
         self.Bind(wx.EVT_SLIDER, self.on_dmax_slider_change, self.dmax_slider)
@@ -112,7 +112,7 @@ class GUIFrame(InputFrame):
         # Maximum value label
         max_label = wx.StaticText(self.tool_panel, label="10")
         delta_sizer.Add(max_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
-        tool_sizer.Add(delta_sizer, 0, wx.ALL | wx.EXPAND, 2)
+        tool_sizer.Add(delta_sizer, 0, wx.ALL | wx.EXPAND, 10)
 
         # Bind the slider event
         self.Bind(wx.EVT_SLIDER, self.on_delta_slider_change, self.delta_slider)
@@ -132,23 +132,23 @@ class GUIFrame(InputFrame):
             label="Transformation Matrix\n" + self.format_matrix(np.identity(4)),
             style=wx.ALIGN_LEFT
         )
-        tool_sizer.Add(self.transform_matrix_text, 0, wx.ALL | wx.EXPAND, 10)
+        tool_sizer.Add(self.transform_matrix_text, 0, wx.ALL | wx.EXPAND, 2)
 
 
         def add_labeled_text(tool_panel, sizer, label_text, initial_value=""):
             hbox = wx.BoxSizer(wx.HORIZONTAL)
             label = wx.StaticText(tool_panel, label=label_text)
             hbox.Add(label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 2)
-            value_text = wx.StaticText(tool_panel, label=initial_value, style=wx.ALIGN_RIGHT)
+            value_text = wx.StaticText(tool_panel, label=initial_value, style=wx.ALIGN_LEFT)
             hbox.Add(value_text, 1, wx.ALL | wx.EXPAND, 2)
-            sizer.Add(hbox, 0, wx.ALL | wx.EXPAND, 2)
+            sizer.Add(hbox, 0, wx.ALL | wx.EXPAND, 0)
             return value_text
         
         # self.view_angle_text = add_labeled_text(self.tool_panel, tool_sizer, "View Angle:", "0.0")
         self.match_count_text = add_labeled_text(self.tool_panel, tool_sizer, "Number of Matches:", "0")
         self.mean_error_text = add_labeled_text(self.tool_panel, tool_sizer, "Mean Error:", "0.0")
         self.mean_norm_measure_text = add_labeled_text(self.tool_panel, tool_sizer, "Mean Normal Measure:", "0.0")
-
+        tool_sizer.AddSpacer(12)
 
 
 
@@ -191,16 +191,30 @@ class GUIFrame(InputFrame):
         visibility_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.contour_chkbx = wx.CheckBox(self.tool_panel, label="Show Contour")
         self.contour_chkbx.SetValue(True)
-        visibility_sizer.Add(self.contour_chkbx, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        visibility_sizer.Add(self.contour_chkbx, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3)
         self.Bind(wx.EVT_CHECKBOX, self.on_contour_visible, self.contour_chkbx)
 
         self.match_chkbx = wx.CheckBox(self.tool_panel, label="Show Matches")
         self.match_chkbx.SetValue(True)
-        visibility_sizer.Add(self.match_chkbx, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        visibility_sizer.Add(self.match_chkbx, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3)
         self.Bind(wx.EVT_CHECKBOX, self.on_match_visible, self.match_chkbx)
 
         tool_sizer.Add(visibility_sizer, 0, wx.ALL | wx.EXPAND, 2)
 
+
+        """ Radio button for ensemble visibility control """
+        visible_ensemble_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.pinna_rb = wx.RadioButton(self.tool_panel, label="Pinna", style=wx.RB_GROUP)
+        self.incus_rb = wx.RadioButton(self.tool_panel, label="Incus")
+        self.both_rb = wx.RadioButton(self.tool_panel, label="Both")
+        visible_ensemble_sizer.Add(self.pinna_rb, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        visible_ensemble_sizer.Add(self.incus_rb, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        visible_ensemble_sizer.Add(self.both_rb, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.pinna_rb.Bind(wx.EVT_RADIOBUTTON, self.on_ensemble_visible)
+        self.incus_rb.Bind(wx.EVT_RADIOBUTTON, self.on_ensemble_visible)
+        self.both_rb.Bind(wx.EVT_RADIOBUTTON, self.on_ensemble_visible)
+
+        tool_sizer.Add(visible_ensemble_sizer, 0, wx.ALL | wx.EXPAND, 2)
 
 
 
@@ -450,7 +464,18 @@ class GUIFrame(InputFrame):
         mediator.notify(self, "update visibility", data={"object":"match", "is_visible": visible})
         self.canvas.SetFocus()
 
-
+    def on_ensemble_visible(self, event):
+        print(f"Ensemble visibility: pinna={self.pinna_rb.GetValue()}, incus={self.incus_rb.GetValue()}, both={self.both_rb.GetValue()}")
+        pinna_visible = self.pinna_rb.GetValue() or self.both_rb.GetValue()
+        incus_visible = self.incus_rb.GetValue() or self.both_rb.GetValue()
+        mediators = self.canvas.mediators
+        if (pinna_visible or incus_visible):
+            mediators[0].notify(self, "update ensemble visibility", data={"is_visible": pinna_visible})
+            mediators[1].notify(self, "update ensemble visibility", data={"is_visible": incus_visible})
+        else:
+            raise Exception("Invalid visibility selection")
+        self.canvas.SetFocus()
+    
     # def on_text_enter(self, event):
     #     text = self.textbox.GetValue()
     #     print(f"Text entered: {text}")
