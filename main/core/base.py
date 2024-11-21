@@ -43,7 +43,7 @@ class BaseCanvas(glcanvas.GLCanvas):
         """Override in subclass."""
         pass
 
-    def on_paint(self, event):
+    def on_paint(self, event): # FIXME: no event argument
         self.SetCurrent(self.context)
         if not self.init:
             self.initialize()

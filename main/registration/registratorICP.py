@@ -357,8 +357,8 @@ class RegistratorICP(object):
 
             self.transformMesh(self.msRig, transformMatrix) # updated the microscope rig
 
-            for i, mesh1 in enumerate(self.mesh1_ls):
-                self.mesh1Vertices_ls[i], self.mesh1VertNorm_ls[i], _ = self.getMeshVertData(mesh1)
+            for j, mesh1 in enumerate(self.mesh1_ls):
+                self.mesh1Vertices_ls[j], self.mesh1VertNorm_ls[j], _ = self.getMeshVertData(mesh1)
             
             print(f"Iteration {i + 1}: Optimized parameters {params}")
 

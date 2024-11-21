@@ -68,7 +68,31 @@ class GUIFrame(InputFrame):
         self.Bind(wx.EVT_BUTTON, self.on_register_click, self.register_button)
 
 
-        
+        """ Create registration itr slider"""
+        self.n_itr = 1
+        itr_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        itr_label = wx.StaticText(self.tool_panel, label="iteration:")
+        itr_sizer.Add(itr_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5) 
+        # Minimum value label
+        min_label = wx.StaticText(self.tool_panel, label="1")
+        itr_sizer.Add(min_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
+
+        # Slider itself
+        self.itr_slider = wx.Slider(self.tool_panel, value=self.n_itr, minValue=1, maxValue=100, style=wx.SL_HORIZONTAL) # precision: 1, actual range 1-100
+        itr_sizer.Add(self.itr_slider, 0, wx.ALL | wx.EXPAND, 2)  
+
+        # Maximum value label
+        max_label = wx.StaticText(self.tool_panel, label="100")
+        itr_sizer.Add(max_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
+        # Current value label
+        self.itr_value_label = wx.StaticText(self.tool_panel, label=f"{self.itr_slider.GetValue():.0f}")
+        itr_sizer.Add(self.itr_value_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
+
+        tool_sizer.Add(itr_sizer, 0, wx.ALL | wx.EXPAND, 10)
+
+        # Bind the slider event
+        self.Bind(wx.EVT_SLIDER, self.on_itr_slider_change, self.itr_slider)
+        """ End of slider creation """
 
 
         """ Create dmax slider"""
@@ -80,13 +104,17 @@ class GUIFrame(InputFrame):
         dmax_sizer.Add(min_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
         # Slider itself
         try:
-            self.dmax_slider = wx.Slider(self.tool_panel, value=self.canvas.registrator.d_max, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL) # precision: 0.1, actual range 0-10
+            self.dmax_slider = wx.Slider(self.tool_panel, value=self.canvas.registrator.d_max*10, minValue=1, maxValue=100, style=wx.SL_HORIZONTAL) # precision: 0.1, actual range 0-10
         except:
-            self.dmax_slider = wx.Slider(self.tool_panel, value=10, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
+            self.dmax_slider = wx.Slider(self.tool_panel, value=10, minValue=1, maxValue=100, style=wx.SL_HORIZONTAL)
         dmax_sizer.Add(self.dmax_slider, 0, wx.ALL | wx.EXPAND, 2)  
         # Maximum value label
         max_label = wx.StaticText(self.tool_panel, label="10")
         dmax_sizer.Add(max_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
+        # Current value label
+        self.dmax_value_label = wx.StaticText(self.tool_panel, label=f"{self.dmax_slider.GetValue() / 10:.1f}")
+        dmax_sizer.Add(self.dmax_value_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
+
         tool_sizer.Add(dmax_sizer, 0, wx.ALL | wx.EXPAND, 0)
 
         # Bind the slider event
@@ -105,13 +133,17 @@ class GUIFrame(InputFrame):
 
         # Slider itself
         try:
-            self.delta_slider = wx.Slider(self.tool_panel, value=self.canvas.projector.delta, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL) # precision: 0.1, actual range 0-10
+            self.delta_slider = wx.Slider(self.tool_panel, value=self.canvas.projector.delta*10, minValue=1, maxValue=100, style=wx.SL_HORIZONTAL) # precision: 0.1, actual range 0-10
         except:
-            self.delta_slider = wx.Slider(self.tool_panel, value=2, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
+            self.delta_slider = wx.Slider(self.tool_panel, value=2, minValue=1, maxValue=100, style=wx.SL_HORIZONTAL)
         delta_sizer.Add(self.delta_slider, 0, wx.ALL | wx.EXPAND, 2)  
         # Maximum value label
         max_label = wx.StaticText(self.tool_panel, label="10")
         delta_sizer.Add(max_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
+        # Current value label
+        self.delta_value_label = wx.StaticText(self.tool_panel, label=f"{self.delta_slider.GetValue() / 10:.1f}")
+        delta_sizer.Add(self.delta_value_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
+
         tool_sizer.Add(delta_sizer, 0, wx.ALL | wx.EXPAND, 10)
 
         # Bind the slider event
@@ -405,13 +437,20 @@ class GUIFrame(InputFrame):
     def on_register_click(self, event):
         if self.canvas.registrator is None:
             raise Exception("Registrator not initialized")
-        self.canvas.registrator.register(n_iterations=1)
-        self.canvas.update() #TODO: is this necessary????
+        for i in range(self.n_itr):
+            self.canvas.registrator.register(n_iterations=1)
+            self.canvas.on_paint(event=None)
         self.canvas.SetFocus()  # Set focus back to the canvas
 
+    def on_itr_slider_change(self, event):
+        value = self.itr_slider.GetValue()
+        self.itr_value_label.SetLabel(f"{value:.0f}")
+        self.n_itr = int(value)
+        self.canvas.SetFocus()
         
     def on_dmax_slider_change(self, event):
         value = self.dmax_slider.GetValue()/10
+        self.dmax_value_label.SetLabel(f"{value:.1f}")
         viewport = self.canvas.viewport
         mediator = self.canvas.mediators[viewport]
         mediator.notify(self, "update dmax", data={"dmax": value})
@@ -420,7 +459,8 @@ class GUIFrame(InputFrame):
 
     def on_delta_slider_change(self, event):
         value = self.delta_slider.GetValue()/10
-    
+        self.delta_value_label.SetLabel(f"{value:.1f}")
+
         # FIXME: viewport = 0 or 1 separately!!!! BUG:!!!!! 
         print(f"GUI update: z-resolution = {value}")
         viewport = self.canvas.viewport

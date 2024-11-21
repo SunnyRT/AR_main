@@ -181,14 +181,15 @@ class MyCanvas(InputCanvas):
         self.scene.add(self.model3d)
         self.model3d.rotateY(pi/2)
 
-        # Grid setup
-        grid = GridHelper(size=1024, divisions=64, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
-        grid.rotateX(-pi / 2)
-        self.scene.add(grid)
+        # # Grid setup
+        # grid = GridHelper(size=1024, divisions=64, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
+        # grid.rotateX(-pi / 2)
+        # self.scene.add(grid)
 
-        # Axes helper
-        axes = AxesHelper(axisLength=128, lineWidth=2)
-        self.scene.add(axes)
+        # # Axes helper
+        # axes = AxesHelper(axisLength=128, lineWidth=2)
+        # self.scene.add(axes)
+        
         self.initialized = True
 
         """"""""""""""""""""""""""" 4. Registrator """""""""""""""""""""""""""
