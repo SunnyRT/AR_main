@@ -32,7 +32,8 @@ class MatchMeshFactory(MeshFactory):
             parent = self.sceneObject
 
         self.mesh = self.createMesh(matchPairs)
-        parent.add(self.mesh)
+        if self.mesh is not None:
+            parent.add(self.mesh)
         return self.mesh
 
 

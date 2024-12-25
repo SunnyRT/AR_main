@@ -48,23 +48,23 @@ class MyCanvas(InputCanvas):
         
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
 
-        self.image0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
-        self.contour0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
+        self.image0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
+        self.contour0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
-        self.res0=0.0003
-        self.n0 = 210
-        self.f0 = 240
+        self.res0= 0.000117 #FIXME:????
+        self.n0 = 200
+        self.f0 = 230
         self.delta0 = 2
 
-        self.image1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.png"
-        self.contour1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.sw"
+        self.image1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP"
+        self.contour1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
         self.color_incus = [0.1372549,  0.69803922, 0.        ]
-        self.res1=0.00015
-        self.n1 = 250
-        self.f1 = 260
+        self.res1= 0.000117 #FIXME:????
+        self.n1 = 240
+        self.f1 = 250
         self.delta1 = 0.5
 
-        rig_ms_z = 250
+        rig_ms_z = 200
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
@@ -180,6 +180,7 @@ class MyCanvas(InputCanvas):
         self.model3d = Mesh(geometry3d, lambertMaterial)
         self.scene.add(self.model3d)
         self.model3d.rotateY(pi/2)
+        self.model3d.translate(0, 0, -40, localCoord=False) # TODO: pinna front surface around world origin
 
         # Grid setup
         grid = GridHelper(size=1024, divisions=64, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)

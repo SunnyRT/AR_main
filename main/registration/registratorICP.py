@@ -266,7 +266,11 @@ class RegistratorICP(object):
         # print(f"Number of closest pairs (1 per ray) within dmax: {len(self.closestPairsPerRay)}")
         
         # compute mean absolute distance between matching points
-        sourcePoints, targetPoints = zip(*closestPairsPerRay)
+        try:
+            sourcePoints, targetPoints = zip(*closestPairsPerRay)
+        except:
+            print("No matching points found within max distance.")
+            return
         sourcePoints = np.array(sourcePoints)
         targetPoints = np.array(targetPoints)
         self.meanError = np.mean(np.linalg.norm(sourcePoints - targetPoints, axis=1))
