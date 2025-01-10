@@ -314,11 +314,67 @@ class GUIFrame(InputFrame):
         dialog.Destroy() 
         self.canvas.SetFocus()  # Set focus back to the canvas
 
+    # def on_load_file(self):
+    #     """ Load a registration text file, in the format of:
+    #             Transformation Matrix: xxx
+
+    #             TODO: to include other parameters
+    #     """
+        
+    #     dialog = wx.FileDialog(self, "Load registration result", 
+    #                            wildcard="Text files (*.txt)|*.txt", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        
+    #     if dialog.ShowModal() == wx.ID_OK:
+    #         load_path = dialog.GetPath()
+    #         # try:
+    #         with open(load_path, "r") as file:
+    #             matrix_lines = []
+    #             reading_matrix = False
+    #             for line in file:
+    #                 line = line.strip()
+    #                 if not line:
+    #                     continue
+    #                 if "Transformation Matrix" in line:
+    #                     reading_matrix = True
+    #                     continue
+    #                 if reading_matrix:
+                        
+    #                     # Read the transformation matrix values
+    #                     if len(matrix_lines) < 4:  # Assuming a 4x4 matrix
+    #                         matrix_row = [float(value) for value in line.split()]
+    #                         matrix_lines.append(matrix_row)
+    #                     if len(matrix_lines) == 4:
+    #                         transform = np.array(matrix_lines)
+    #                         reading_matrix = False
+
+    #         # update imagePlane, contourMesh, projectorMesh, registrator Mesh1
+    #         del_z = transform[2][3] - self.canvas.rig_ms.getWorldPosition()[2]  # TODO: 25 is an offset value
+    #         self.canvas.rig_ms.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
+    #         self.canvas.rig_ms.setWorldRotation(transform[0:3, 0:3])
+
+    #         for mediator in self.canvas.mediators:
+    #             mediator.notify(self, "load microscope transform", data={"del_z": del_z}) 
+    #         wx.MessageBox(f"Registration result loaded from {load_path}", "Load Successful", wx.OK | wx.ICON_INFORMATION)
+    #         # self.canvas.initialized = False
+    #         print(f"New rig_ms position: {self.canvas.rig_ms.getWorldPosition()}")
+            
+    #     dialog.Destroy() 
+    #     self.canvas.SetFocus()  # Set focus back to the canvas
+    
+
     def on_load_file(self):
         """ Load a registration text file, in the format of:
-                Transformation Matrix: xxx
+                Transformation Matrix: 
+                xxxx
+                xxxx
+                xxxx
+                xxxx
 
-                TODO: to include other parameters
+                [Object: x]
+                Resolution: x
+                Near plane (n): x
+                Far plane (f): x
+                Delta: x
         """
         
         dialog = wx.FileDialog(self, "Load registration result", 
@@ -330,6 +386,7 @@ class GUIFrame(InputFrame):
             with open(load_path, "r") as file:
                 matrix_lines = []
                 reading_matrix = False
+                obj_count = -1
                 for line in file:
                     line = line.strip()
                     if not line:
@@ -344,50 +401,45 @@ class GUIFrame(InputFrame):
                             matrix_row = [float(value) for value in line.split()]
                             matrix_lines.append(matrix_row)
                         if len(matrix_lines) == 4:
+                            reading_matrix = False
                             transform = np.array(matrix_lines)
-
-
+                            self.canvas.init_registration = transform
                             # imgPlane_zpos = self.canvas.image2d.imagePlane.getWorldPosition()[2]
                             # coneMesh_len = self.canvas.f - self.canvas.n
                             # print(f"Old imagePlane position: {self.canvas.image2d.imagePlane.getWorldPosition()}")
                             # self.canvas.rig_ms.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
                             # self.canvas.rig_ms.setWorldRotation(transform[0:3, 0:3])
-                            reading_matrix = False
+                            
 
                             # # update self.canvas.n and self.canvas.f
                             # self.canvas.n = transform[2][3] - imgPlane_zpos
                             # self.canvas.f = self.canvas.n + coneMesh_len
                             # print(f"new near plane: {self.canvas.n}, new far plane: {self.canvas.f}")
 
-                    # # Parse additional parameters
-                    # elif line.startswith("Resolution:"):
-                    #     self.canvas.resolution = float(line.split(":")[1].strip())
-                    # elif line.startswith("Near plane (n):"):
-                    #     self.canvas.n = float(line.split(":")[1].strip())
-                    #     # self.canvas.camera1.initialize()
-                    #     # self.canvas.image2d.imagePlane.translate(0, 0, -self.canvas.n)
-                    # elif line.startswith("Far plane (f):"):
-                    #     self.canvas.f = float(line.split(":")[1].strip())
-                    #     print(f"NEW FAR PLANE: {self.canvas.f}")
-                    # elif line.startswith("Delta:"):
-                    #     self.canvas.delta = float(line.split(":")[1].strip())
-            # update imagePlane, contourMesh, projectorMesh, registrator Mesh1
-            del_z = transform[2][3] - self.canvas.rig_ms.getWorldPosition()[2]  # TODO: 25 is an offset value
-            self.canvas.rig_ms.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
-            self.canvas.rig_ms.setWorldRotation(transform[0:3, 0:3])
-
-            for mediator in self.canvas.mediators:
-                mediator.notify(self, "load microscope transform", data={"del_z": del_z}) 
+                    # Parse additional parameters
+                    elif line.startswith("[Object:"):
+                        obj_count = int(line.split(":")[1].strip()[:-1])
+                    elif line.startswith("Resolution:"):
+                        self.canvas.res[obj_count] = float(line.split(":")[1].strip())
+                    elif line.startswith("Near plane (n):"):
+                        self.canvas.ns[obj_count] = float(line.split(":")[1].strip())
+                    elif line.startswith("Far plane (f):"):
+                        self.canvas.fs[obj_count] = float(line.split(":")[1].strip())
+                    elif line.startswith("Delta:"):
+                        self.canvas.deltas[obj_count] = float(line.split(":")[1].strip())
+            # Reinitialize the scene with new parameters
+            self.canvas.initialized = False
             wx.MessageBox(f"Registration result loaded from {load_path}", "Load Successful", wx.OK | wx.ICON_INFORMATION)
-            # self.canvas.initialized = False
+            
             print(f"New rig_ms position: {self.canvas.rig_ms.getWorldPosition()}")
             # except Exception as e:
             #     print(f"Failed to load file: {e}")
             #     wx.MessageBox(f"Failed to load file: {e}","Error", wx.OK | wx.ICON_ERROR)
-            
         dialog.Destroy() 
         self.canvas.SetFocus()  # Set focus back to the canvas
-    
+
+
+
     def on_save_file(self):
         """ Save current registration result in a text file:
             - Transformation matrix of camera in world coordinates
@@ -410,7 +462,14 @@ class GUIFrame(InputFrame):
                         file.write(" ".join(f"{value:.2f}" for value in row) + "\n")
                     file.write("\n")
                     
-                    # # Write additional parameters
+                    # Write additional parameters
+                    for i, projectorFac in enumerate(self.canvas.projectorFacs):
+                        file.write(f"[Object: {i}]\n")
+                        file.write(f"Resolution: {self.canvas.res[i]}\n")
+                        file.write(f"Near plane (n): {projectorFac.n}\n")
+                        file.write(f"Far plane (f): {projectorFac.f}\n")
+                        file.write(f"Delta: {projectorFac.delta}\n")
+                        file.write("\n")
                     # file.write(f"Resolution: {self.canvas.resolution}\n")
                     # file.write(f"Near plane (n): {self.canvas.n}\n")
                     # file.write(f"Far plane (f): {self.canvas.f}\n")

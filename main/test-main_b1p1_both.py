@@ -45,31 +45,44 @@ class MyCanvas(InputCanvas):
 
         self.state = 0 # 0 represents CAD engineering, 1 represents surgery
         self.viewport = 0 # 0 represents pinna, 1 represents incus
-        
+
+        self.res = []
+        self.ns = []
+        self.fs = []
+        self.deltas = []
+
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
 
         self.image0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
         self.contour0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
-        self.res0= 0.000117 #FIXME:????
-        self.n0 = 200
-        self.f0 = 230
-        self.delta0 = 2
+        res0 = 0.000117 #FIXME:????
+        n0 = 200
+        f0 = 230
+        delta0 = 2
+        self.res.append(res0)
+        self.ns.append(n0)
+        self.fs.append(f0)
+        self.deltas.append(delta0)
 
-        self.image1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP"
-        self.contour1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
-        self.color_incus = [0.1372549,  0.69803922, 0.        ]
-        self.res1= 0.000117 #FIXME:????
-        self.n1 = 240
-        self.f1 = 250
-        self.delta1 = 0.5
+        # self.image1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP"
+        # self.contour1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
+        # self.color_incus = [0.1372549,  0.69803922, 0.        ]
+        # res1= 0.000117 #FIXME:????
+        # n1 = 240
+        # f1 = 250
+        # delta1 = 0.5
+        # self.res.append(res1)
+        # self.ns.append(n1)
+        # self.fs.append(f1)
+        # self.deltas.append(delta1)
 
         rig_ms_z = 200
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
         self.mediators = []
-
+        self.projectorFacs = []
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
 
@@ -78,8 +91,9 @@ class MyCanvas(InputCanvas):
         print("Initializing program...")
 
         # Initialize renderer, scene, and cameras
-        self.renderer = RendererDual(glcanvas=self, clearColor=[0.8, 0.8, 0.8])
+        self.renderer = RendererDual(glcanvas=self, clearColor=[1,1,1])
         self.scene = Scene()
+        projectors = [] # require updates of registrator attributes via mediator
 
         # Set up camera: camera for CAD engineering viewport
         self.camera = Camera(isPerspective=False, aspectRatio=600/900, zoom=0.5)
@@ -113,24 +127,26 @@ class MyCanvas(InputCanvas):
         """"""""""""""""""""""""""" 1. Pinna """""""""""""""""""""""""""
         # a) Set up ms0 (microscope1) for pinna 
         texture0 = Texture(self.image0_path)
-        self.ms0 = Microscope(texture0, self.n0, self.res0) # chanegd into new extended class of camera
+        self.ms0 = Microscope(texture0, self.ns[0], self.res[0]) # chanegd into new extended class of camera
         self.rig_ms.add(self.ms0)
         
         # TODO: NO MORE UPDATES TO MONITOR below this layer
         # 2) Set up imagePlane
-        self.imagePFac0 = ImagePlaneFactory(texture0, self.n0, self.res0)
+        self.imagePFac0 = ImagePlaneFactory(texture0, self.ns[0], self.res[0])
         image0 = self.imagePFac0.createMesh() # DO NOT save imageP0 as attribute (due to constant updates required!!!!)
         self.ms0.add(image0)
 
         # 3) Set up contourMesh
-        self.contourFac0 = ContourMeshFactory(self.contour0_path, texture0, self.n0, self.res0, self.color_pinna, 1)
+        self.contourFac0 = ContourMeshFactory(self.contour0_path, texture0, self.ns[0], self.res[0], self.color_pinna, 1)
         contour0 = self.contourFac0.createMesh()
         image0.add(contour0)
         contour0.translate(0, 0, 0.1) # Move contour slightly above the image plane
 
         # 4) Set up projectorMesh
-        self.projectorFac0 = ProjectorMeshFactory(self.ms0, contour0, self.n0, self.f0, self.delta0, self.color_pinna, alpha=0.5)
+        self.projectorFac0 = ProjectorMeshFactory(self.ms0, contour0, self.ns[0], self.fs[0], self.deltas[0], self.color_pinna, alpha=0.5)
+        self.projectorFacs.append(self.projectorFac0)
         projector0 = self.projectorFac0.createMesh()
+        projectors.append(projector0)
         self.ms0.add(projector0)
         self.projectorFac0.correctWorldPos() # Correct projector position to align with microscope
 
@@ -145,24 +161,26 @@ class MyCanvas(InputCanvas):
         # """"""""""""""""""""""""""" 2. Incus """""""""""""""""""""""""""
         # # a) Set up ms1 (microscope1) for incus
         # texture1 = Texture(self.image1_path)
-        # self.ms1 = Microscope(texture1, self.n1, self.res1) # chanegd into new extended class of camera
+        # self.ms1 = Microscope(texture1, self.ns[1], self.res[1]) # chanegd into new extended class of camera
         # self.rig_ms.add(self.ms1)
         
         # # TODO: NO MORE UPDATES TO MONITOR below this layer
         # # 2) Set up imagePlane
-        # self.imagePFac1 = ImagePlaneFactory(texture1, self.n1, self.res1)
+        # self.imagePFac1 = ImagePlaneFactory(texture1, self.ns[1], self.res[1])
         # image1 = self.imagePFac1.createMesh() # DO NOT save image1 as attribute (due to constant updates required!!!!)
         # self.ms1.add(image1)
 
         # # 3) Set up contourMesh
-        # self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.n1, self.res1, self.color_incus, 1)
+        # self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.ns[1], self.res[1], self.color_incus, 1)
         # contour1 = self.contourFac1.createMesh()
         # image1.add(contour1)
         # contour1.translate(0, 0, 0.1) # Move contour slightly above the image plane
 
         # # 4) Set up projectorMesh
-        # self.projectorFac1 = ProjectorMeshFactory(self.ms1, contour1, self.n1, self.f1, self.delta1, self.color_incus, alpha=0.5)
+        # self.projectorFac1 = ProjectorMeshFactory(self.ms1, contour1, self.ns[1], self.fs[1], self.deltas[1], self.color_incus, alpha=0.5)
+        # self.projectorFacs.append(self.projectorFac1)
         # projector1 = self.projectorFac1.createMesh()
+        # projectors.append(projector1)
         # self.ms1.add(projector1)
         # self.projectorFac1.correctWorldPos() # Correct projector position to align with microscope
 
@@ -185,17 +203,15 @@ class MyCanvas(InputCanvas):
         # Grid setup
         grid = GridHelper(size=1024, divisions=64, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
         grid.rotateX(-pi / 2)
-        self.scene.add(grid)
+        # self.scene.add(grid)
 
         # Axes helper
         axes = AxesHelper(axisLength=128, lineWidth=2)
-        self.scene.add(axes)
+        # self.scene.add(axes)
         self.initialized = True
 
         """"""""""""""""""""""""""" 4. Registrator """""""""""""""""""""""""""
         # Setup ICP registrator
-        # projectors = [projector0, projector1] # require updates of registrator attributes via mediator
-        projectors = [projector0] # require updates of registrator attributes via mediator
         self.matchFac = MatchMeshFactory(sceneObject=self.scene)
         self.registrator = RegistratorICP(projectors, self.model3d, self.rig_ms, 10, self.matchFac) # TODO: execution is done by GUIFrame!!!
         for mediator in self.mediators:
