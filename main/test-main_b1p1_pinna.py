@@ -94,6 +94,8 @@ class MyCanvas(InputCanvas):
         self.renderer = RendererDual(glcanvas=self, clearColor=[1,1,1])
         self.scene = Scene()
         projectors = [] # require updates of registrator attributes via mediator
+        self.projectorFacs = [] # clear projectorFacs list for each initialization
+
 
         # Set up camera: camera for CAD engineering viewport
         self.camera = Camera(isPerspective=False, aspectRatio=600/900, zoom=0.5)
