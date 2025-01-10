@@ -10,7 +10,7 @@ from mesh.mesh import Mesh
 
 from geometry.model3dGeometry import Model3dGeometry
 from core_ext.texture import Texture
-from material.lambertMaterial import LambertMaterial
+from material.model3dMaterial import Model3dMaterial
 
 
 from light.ambientLight import AmbientLight
@@ -95,6 +95,7 @@ class MyCanvas(InputCanvas):
         self.scene = Scene()
         projectors = [] # require updates of registrator attributes via mediator
         self.projectorFacs = [] # clear projectorFacs list for each initialization
+
 
         # Set up camera: camera for CAD engineering viewport
         self.camera = Camera(isPerspective=False, aspectRatio=600/900, zoom=0.5)
@@ -195,8 +196,8 @@ class MyCanvas(InputCanvas):
         """"""""""""""""""""""""""" 3. Model3d """""""""""""""""""""""""""
         # Load 3D model
         geometry3d = Model3dGeometry(self.model3d_path)
-        lambertMaterial = LambertMaterial(properties={"useVertexColors": True})
-        self.model3d = Mesh(geometry3d, lambertMaterial)
+        model3dMaterial = Model3dMaterial(properties={"useVertexColors": True})
+        self.model3d = Mesh(geometry3d, model3dMaterial)
         self.scene.add(self.model3d)
         self.model3d.rotateY(pi/2)
         self.model3d.translate(0, 0, -40, localCoord=False) # TODO: pinna front surface around world origin

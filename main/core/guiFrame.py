@@ -72,7 +72,7 @@ class GUIFrame(InputFrame):
         self.n_itr = 1
         itr_sizer = wx.BoxSizer(wx.HORIZONTAL)
         itr_label = wx.StaticText(self.tool_panel, label="iteration:")
-        itr_sizer.Add(itr_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5) 
+        itr_sizer.Add(itr_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 2) 
         # Minimum value label
         min_label = wx.StaticText(self.tool_panel, label="1")
         itr_sizer.Add(min_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
@@ -88,7 +88,7 @@ class GUIFrame(InputFrame):
         self.itr_value_label = wx.StaticText(self.tool_panel, label=f"{self.itr_slider.GetValue():.0f}")
         itr_sizer.Add(self.itr_value_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
 
-        tool_sizer.Add(itr_sizer, 0, wx.ALL | wx.EXPAND, 10)
+        tool_sizer.Add(itr_sizer, 0, wx.ALL | wx.EXPAND, 0)
 
         # Bind the slider event
         self.Bind(wx.EVT_SLIDER, self.on_itr_slider_change, self.itr_slider)
@@ -98,7 +98,7 @@ class GUIFrame(InputFrame):
         """ Create dmax slider"""
         dmax_sizer = wx.BoxSizer(wx.HORIZONTAL)
         dmax_label = wx.StaticText(self.tool_panel, label="dmax:")
-        dmax_sizer.Add(dmax_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        dmax_sizer.Add(dmax_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 2)
         # Minimum value label
         min_label = wx.StaticText(self.tool_panel, label="0")
         dmax_sizer.Add(min_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
@@ -126,7 +126,7 @@ class GUIFrame(InputFrame):
         """ Create delta slider (coneMesh resolution along optical-axis)"""
         delta_sizer = wx.BoxSizer(wx.HORIZONTAL)
         delta_label = wx.StaticText(self.tool_panel, label="delta:")
-        delta_sizer.Add(delta_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5) 
+        delta_sizer.Add(delta_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 2) 
         # Minimum value label
         min_label = wx.StaticText(self.tool_panel, label="0")
         delta_sizer.Add(min_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
@@ -144,7 +144,7 @@ class GUIFrame(InputFrame):
         self.delta_value_label = wx.StaticText(self.tool_panel, label=f"{self.delta_slider.GetValue() / 10:.1f}")
         delta_sizer.Add(self.delta_value_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
 
-        tool_sizer.Add(delta_sizer, 0, wx.ALL | wx.EXPAND, 10)
+        tool_sizer.Add(delta_sizer, 0, wx.ALL | wx.EXPAND, 0)
 
         # Bind the slider event
         self.Bind(wx.EVT_SLIDER, self.on_delta_slider_change, self.delta_slider)
@@ -155,7 +155,7 @@ class GUIFrame(InputFrame):
         # tool_sizer.Add(self.textbox, 0, wx.ALL | wx.EXPAND, 10)  # Add spacing here
         # self.Bind(wx.EVT_TEXT_ENTER, self.on_text_enter, self.textbox)
 
-        # tool_sizer.AddSpacer(10)
+        tool_sizer.AddSpacer(10)
 
         """ Display Registration Parameters"""
         # Transformation matrix display(text)
@@ -164,15 +164,15 @@ class GUIFrame(InputFrame):
             label="Transformation Matrix\n" + self.format_matrix(np.identity(4)),
             style=wx.ALIGN_LEFT
         )
-        tool_sizer.Add(self.transform_matrix_text, 0, wx.ALL | wx.EXPAND, 2)
+        tool_sizer.Add(self.transform_matrix_text, 0, wx.ALL | wx.EXPAND, 0)
 
 
         def add_labeled_text(tool_panel, sizer, label_text, initial_value=""):
             hbox = wx.BoxSizer(wx.HORIZONTAL)
             label = wx.StaticText(tool_panel, label=label_text)
-            hbox.Add(label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 2)
+            hbox.Add(label, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 0)
             value_text = wx.StaticText(tool_panel, label=initial_value, style=wx.ALIGN_LEFT)
-            hbox.Add(value_text, 1, wx.ALL | wx.EXPAND, 2)
+            hbox.Add(value_text, 1, wx.ALL | wx.EXPAND, 0)
             sizer.Add(hbox, 0, wx.ALL | wx.EXPAND, 0)
             return value_text
         
@@ -204,7 +204,7 @@ class GUIFrame(InputFrame):
             # Maximum value label
             max_label = wx.StaticText(tool_panel, label="1")
             slider_sizer.Add(max_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
-            sizer.Add(slider_sizer, 0, wx.ALL | wx.EXPAND, 2)
+            sizer.Add(slider_sizer, 0, wx.ALL | wx.EXPAND, 0)
 
             return slider
         
@@ -249,6 +249,39 @@ class GUIFrame(InputFrame):
         tool_sizer.Add(visible_ensemble_sizer, 0, wx.ALL | wx.EXPAND, 2)
 
 
+        """ Checkbox for visibility of individual objects in model3d """
+        visibility_model3d_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # List of components
+        components = [
+            "oticCapsule",
+            "stapes",
+            "sigmoidSinus",
+            "incus",
+            "malleus",
+            "chordaTympani",
+            "tensorTympani",
+            "facialNerve",
+            "pinna"
+        ]
+
+        # Dictionary to hold checkboxes for easy access
+        self.component_chkbx = {}
+        
+        for component in components:
+            # Create a checkbox for each component
+            chkbx = wx.CheckBox(self.tool_panel, label=component)
+            chkbx.SetValue(True)  # Set default value as visible
+            visibility_model3d_sizer.Add(chkbx, 0, wx.ALL | wx.ALIGN_LEFT, 2)
+            
+            # Bind the checkbox to the generic event handler
+            chkbx.Bind(wx.EVT_CHECKBOX, self.on_model3d_visible)
+            
+            # Store the checkbox in the dictionary
+            self.component_chkbx[component] = chkbx
+        
+        tool_sizer.Add(visibility_model3d_sizer, 0, wx.ALL | wx.EXPAND, 2)
+       
 
 
 
@@ -313,54 +346,6 @@ class GUIFrame(InputFrame):
             
         dialog.Destroy() 
         self.canvas.SetFocus()  # Set focus back to the canvas
-
-    # def on_load_file(self):
-    #     """ Load a registration text file, in the format of:
-    #             Transformation Matrix: xxx
-
-    #             TODO: to include other parameters
-    #     """
-        
-    #     dialog = wx.FileDialog(self, "Load registration result", 
-    #                            wildcard="Text files (*.txt)|*.txt", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-        
-    #     if dialog.ShowModal() == wx.ID_OK:
-    #         load_path = dialog.GetPath()
-    #         # try:
-    #         with open(load_path, "r") as file:
-    #             matrix_lines = []
-    #             reading_matrix = False
-    #             for line in file:
-    #                 line = line.strip()
-    #                 if not line:
-    #                     continue
-    #                 if "Transformation Matrix" in line:
-    #                     reading_matrix = True
-    #                     continue
-    #                 if reading_matrix:
-                        
-    #                     # Read the transformation matrix values
-    #                     if len(matrix_lines) < 4:  # Assuming a 4x4 matrix
-    #                         matrix_row = [float(value) for value in line.split()]
-    #                         matrix_lines.append(matrix_row)
-    #                     if len(matrix_lines) == 4:
-    #                         transform = np.array(matrix_lines)
-    #                         reading_matrix = False
-
-    #         # update imagePlane, contourMesh, projectorMesh, registrator Mesh1
-    #         del_z = transform[2][3] - self.canvas.rig_ms.getWorldPosition()[2]  # TODO: 25 is an offset value
-    #         self.canvas.rig_ms.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
-    #         self.canvas.rig_ms.setWorldRotation(transform[0:3, 0:3])
-
-    #         for mediator in self.canvas.mediators:
-    #             mediator.notify(self, "load microscope transform", data={"del_z": del_z}) 
-    #         wx.MessageBox(f"Registration result loaded from {load_path}", "Load Successful", wx.OK | wx.ICON_INFORMATION)
-    #         # self.canvas.initialized = False
-    #         print(f"New rig_ms position: {self.canvas.rig_ms.getWorldPosition()}")
-            
-    #     dialog.Destroy() 
-    #     self.canvas.SetFocus()  # Set focus back to the canvas
-    
 
     def on_load_file(self):
         """ Load a registration text file, in the format of:
@@ -575,6 +560,32 @@ class GUIFrame(InputFrame):
             raise Exception("Invalid visibility selection")
         self.canvas.SetFocus()
     
+
+    """ Control model3d object visibility """
+    def on_model3d_visible(self, event):
+        # Get the checkbox that triggered the event
+        chkbx = event.GetEventObject()
+        # Retrieve the label of the checkbox (component name)
+        component = chkbx.GetLabel()
+        # Get the current state of the checkbox
+        is_checked = chkbx.GetValue()
+        
+        print(f"{component} visibility set to: {is_checked}")
+        
+        # Ensure that the model3d object and the attribute exist
+        if hasattr(self.canvas.model3d, 'material'):
+            material = self.canvas.model3d.material
+            if hasattr(material, 'setComponentVisibility'):
+                material.setComponentVisibility(component, is_checked)
+                self.canvas.SetFocus()
+            else:
+                print(f"Warning: material has no method 'setComponentVisibility'")
+        else:
+            print(f"Warning: model3d has no attribute 'material'")
+        self.canvas.Refresh()
+            
+
+
     # def on_text_enter(self, event):
     #     text = self.textbox.GetValue()
     #     print(f"Text entered: {text}")
