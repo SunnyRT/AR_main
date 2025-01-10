@@ -81,8 +81,8 @@ class MyCanvas(InputCanvas):
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
-        self.mediators = []
-        self.projectorFacs = []
+        # self.mediators = []
+        # self.projectorFacs = []
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
 
@@ -94,6 +94,7 @@ class MyCanvas(InputCanvas):
         self.renderer = RendererDual(glcanvas=self, clearColor=[1,1,1])
         self.scene = Scene()
         projectors = [] # require updates of registrator attributes via mediator
+        self.mediators=[] # clear mediators list for each initialization
         self.projectorFacs = [] # clear projectorFacs list for each initialization
 
 
