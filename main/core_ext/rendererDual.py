@@ -15,6 +15,8 @@ class RendererDual(object):
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) 
 
         self.glcanvas = glcanvas
+        self.vpL = None # viewport Left
+        self.vpR = None # viewport Right
 
 
     def render(self, scene, camera, clearColor=True, clearDepth=True, viewportSplit=None):
@@ -24,13 +26,20 @@ class RendererDual(object):
         if viewportSplit is not None: # TODO: 
             height= self.glcanvas.GetClientSize().height
             width = int(self.glcanvas.aspectRatio * height)
+            self.vp = (0, 0, width, height)
+
             if viewportSplit == "left":
-                glViewport(0, 0, width // 2, height)
+
+                self.vpL = (0, 0, width // 2, height)
+                glViewport(self.vpL[0], self.vpL[1], self.vpL[2], self.vpL[3])
+
             elif viewportSplit == "right":
                 aspectRatio = camera.r
                 right_height = int(width // 2 / aspectRatio)
                 # center viewport vertically
-                glViewport(width // 2+10, (height - right_height) // 2, width // 2, right_height)
+                self.vpR = (width // 2+10, (height - right_height) // 2, width // 2, right_height)
+                glViewport(self.vpR[0], self.vpR[1], self.vpR[2], self.vpR[3])
+                
             else:
                 raise ValueError("viewportSplit must be 'left' or 'right'")
         
@@ -109,6 +118,28 @@ class RendererDual(object):
             
             glDrawArrays(mesh.material.settings["drawStyle"], 0, mesh.geometry.vertexCount)
 
+
+
+    def capture_vp(self, viewportSplit=None):
+        """ Capture a screenshot of the chosen viewport, return wx.Image object """
+        glFlush()
+
+        if viewportSplit is None:
+            viewport = self.vp
+        elif viewportSplit == "left":
+            viewport = self.vpL
+        elif viewportSplit == "right":
+            viewport = self.vpR
+        else:
+            raise ValueError("viewportSplit must be 'left' or 'right'")
+        
+        x,y,w,h = viewport
+
+        glPixelStorei(GL_PACK_ALIGNMENT, 1)
+        data = glReadPixels(x,y,w,h, GL_RGB, GL_UNSIGNED_BYTE)
+        image = wx.Image(w,h, data)
+        image_flip = image.Mirror(False)
+        return image_flip
 
 
 

@@ -288,7 +288,7 @@ class MyCanvas(InputCanvas):
         
         # print(f"scene update(): {self.matchFac.mesh.visible}")
         
-        
+
 
 
 class MyFrame(GUIFrame):

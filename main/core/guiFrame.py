@@ -1,4 +1,5 @@
 import wx
+from PIL import Image
 import numpy as np
 from core.InputCanvas import InputFrame, InputCanvas
 
@@ -35,6 +36,8 @@ class GUIFrame(InputFrame):
         self.ID_LOAD = wx.NewIdRef()
         file_menu.Append(self.ID_LOAD, "&Load")
         file_menu.Append(wx.ID_SAVE, "&Save")
+        self.ID_RENDER = wx.NewIdRef()
+        file_menu.Append(self.ID_RENDER, "&Render")
         file_menu.AppendSeparator()
         file_menu.Append(wx.ID_EXIT, "E&xit")
 
@@ -332,6 +335,8 @@ class GUIFrame(InputFrame):
             self.on_load_file()
         elif event_id == wx.ID_SAVE:
             self.on_save_file()
+        elif event_id == self.ID_RENDER:
+            self.on_render_ar()
         self.canvas.SetFocus()  # Set focus back to the canvas    
 
     def on_open_file(self): # FIXME: not implemented
@@ -468,7 +473,43 @@ class GUIFrame(InputFrame):
         self.canvas.SetFocus()  # Set focus back to the canvas
 
         
-            
+    def on_render_ar(self):
+        """ Render the current scene and save the image to a file.
+        """
+        # Open a save file dialog
+        wildcard = "PNG files (*.png)|*.png|JPEG files (*.jpg;*.jpeg)|*.jpg;*.jpeg"
+        dialog = wx.FileDialog(self, "Save rendered AR view", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        
+        if dialog.ShowModal() == wx.ID_OK:
+            # Get the selected file path
+            save_path = dialog.GetPath()
+        
+        try: 
+            image = self.canvas.renderer.capture_vp(viewportSplit = "right")
+        except Exception as e:
+            wx.MessageBox(f"Failed to render AR view: {e}", "Error", wx.OK | wx.ICON_ERROR)
+            dialog.Destroy()
+            return
+    
+        ext = save_path.split(".")[-1]
+        if ext == "jpg" or ext == "jpeg":
+            image_type = wx.BITMAP_TYPE_JPEG
+        elif ext == "png":
+            image_type = wx.BITMAP_TYPE_PNG
+        else:
+            # default to PNG
+            wx.MessageBox(f"Invalid file extension: {ext}. Defaulting to PNG", "Warning", wx.OK | wx.ICON_WARNING)
+            image_type = wx.BITMAP_TYPE_PNG
+            save_path += ".png"
+
+        try:
+            image.SaveFile(save_path, image_type)
+            wx.MessageBox(f"Rendered AR view saved to {save_path}", "Save Successful", wx.OK | wx.ICON_INFORMATION)
+        except Exception as e:
+            wx.MessageBox(f"Failed to save file: {e}", "Error", wx.OK | wx.ICON_ERROR)
+        
+        dialog.Destroy()
+
 
     def on_projection_click(self, event):
         print("Toggle perspective / orthographic projection")
