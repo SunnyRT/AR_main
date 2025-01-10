@@ -72,7 +72,7 @@ class GUIFrame(InputFrame):
 
 
         """ Create registration itr slider"""
-        self.n_itr = 1
+        self.n_itr = 20
         itr_sizer = wx.BoxSizer(wx.HORIZONTAL)
         itr_label = wx.StaticText(self.tool_panel, label="iteration:")
         itr_sizer.Add(itr_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 2) 
@@ -109,7 +109,7 @@ class GUIFrame(InputFrame):
         try:
             self.dmax_slider = wx.Slider(self.tool_panel, value=self.canvas.registrator.d_max*10, minValue=1, maxValue=100, style=wx.SL_HORIZONTAL) # precision: 0.1, actual range 0-10
         except:
-            self.dmax_slider = wx.Slider(self.tool_panel, value=10, minValue=1, maxValue=100, style=wx.SL_HORIZONTAL)
+            self.dmax_slider = wx.Slider(self.tool_panel, value=100, minValue=1, maxValue=100, style=wx.SL_HORIZONTAL)
         dmax_sizer.Add(self.dmax_slider, 0, wx.ALL | wx.EXPAND, 2)  
         # Maximum value label
         max_label = wx.StaticText(self.tool_panel, label="10")
@@ -188,7 +188,7 @@ class GUIFrame(InputFrame):
 
 
         """ Transparency slider control for image2d, model3d and projector """
-        def add_alpha_slider(tool_panel, sizer, label_text, value_ptr=None):
+        def add_alpha_slider(tool_panel, sizer, label_text, default_value=50):
 
 
             # setup a horizontal sizer for the slider
@@ -201,7 +201,7 @@ class GUIFrame(InputFrame):
             slider_sizer.Add(min_label, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 1)
 
             # Slider itself
-            slider = wx.Slider(tool_panel, value=50, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
+            slider = wx.Slider(tool_panel, value=default_value, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
             slider_sizer.Add(slider, 1, wx.ALL | wx.EXPAND, 2)
 
             # Maximum value label
@@ -212,7 +212,7 @@ class GUIFrame(InputFrame):
             return slider
         
     
-        self.model3d_slider = add_alpha_slider(self.tool_panel, tool_sizer, "Model 3D Alpha:")
+        self.model3d_slider = add_alpha_slider(self.tool_panel, tool_sizer, "Model 3D Alpha:", 100)
         self.Bind(wx.EVT_SLIDER, self.on_model3d_slider_change, self.model3d_slider)
 
         self.image2d_slider = add_alpha_slider(self.tool_panel, tool_sizer, "Image Plane Alpha:")
