@@ -53,31 +53,31 @@ class MyCanvas(InputCanvas):
 
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
 
-        self.image0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
-        self.contour0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
+        self.image0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
+        self.contour0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
-        res0 = 0.000117 #FIXME:????
-        n0 = 200
-        f0 = 230
+        res0 = 0.0003
+        n0 = 210
+        f0 = 240
         delta0 = 2
         self.res.append(res0)
         self.ns.append(n0)
         self.fs.append(f0)
         self.deltas.append(delta0)
 
-        self.image1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP"
-        self.contour1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
+        self.image1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.png"
+        self.contour1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.sw"
         self.color_incus = [0.1372549,  0.69803922, 0.        ]
-        res1= 0.000117 #FIXME:????
-        n1 = 240
-        f1 = 250
+        res1= 0.00015
+        n1 = 250
+        f1 = 260
         delta1 = 0.5
         self.res.append(res1)
         self.ns.append(n1)
         self.fs.append(f1)
         self.deltas.append(delta1)
 
-        rig_ms_z = 200
+        rig_ms_z = 250
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         

@@ -53,36 +53,36 @@ class MyCanvas(InputCanvas):
 
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
 
-        self.image0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
-        self.contour0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
+        self.image0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
+        self.contour0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
-        res0 = 0.000117 #FIXME:????
-        n0 = 200
-        f0 = 230
+        res0 = 0.0003
+        n0 = 210
+        f0 = 240
         delta0 = 2
         self.res.append(res0)
         self.ns.append(n0)
         self.fs.append(f0)
         self.deltas.append(delta0)
 
-        self.image1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP"
-        self.contour1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
-        self.color_incus = [0.1372549,  0.69803922, 0.        ]
-        res1= 0.000117 #FIXME:????
-        n1 = 240
-        f1 = 250
-        delta1 = 0.5
-        self.res.append(res1)
-        self.ns.append(n1)
-        self.fs.append(f1)
-        self.deltas.append(delta1)
+        # self.image1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.png"
+        # self.contour1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.sw"
+        # self.color_incus = [0.1372549,  0.69803922, 0.        ]
+        # res1= 0.00015
+        # n1 = 250
+        # f1 = 260
+        # delta1 = 0.5
+        # self.res.append(res1)
+        # self.ns.append(n1)
+        # self.fs.append(f1)
+        # self.deltas.append(delta1)
 
-        rig_ms_z = 200
+        rig_ms_z = 250
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
-        # self.mediators = []
-        # self.projectorFacs = []
+        self.mediators = []
+        self.projectorFacs = []
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
 
@@ -94,7 +94,6 @@ class MyCanvas(InputCanvas):
         self.renderer = RendererDual(glcanvas=self, clearColor=[1,1,1])
         self.scene = Scene()
         projectors = [] # require updates of registrator attributes via mediator
-        self.mediators=[] # clear mediators list for each initialization
         self.projectorFacs = [] # clear projectorFacs list for each initialization
 
 
@@ -161,38 +160,38 @@ class MyCanvas(InputCanvas):
         self.mediators.append(mediator0) # index of mediator correspond to state index (0: pinna, 1: incus)
 
 
-        """"""""""""""""""""""""""" 2. Incus """""""""""""""""""""""""""
-        # a) Set up ms1 (microscope1) for incus
-        texture1 = Texture(self.image1_path)
-        self.ms1 = Microscope(texture1, self.ns[1], self.res[1]) # chanegd into new extended class of camera
-        self.rig_ms.add(self.ms1)
+        # """"""""""""""""""""""""""" 2. Incus """""""""""""""""""""""""""
+        # # a) Set up ms1 (microscope1) for incus
+        # texture1 = Texture(self.image1_path)
+        # self.ms1 = Microscope(texture1, self.ns[1], self.res[1]) # chanegd into new extended class of camera
+        # self.rig_ms.add(self.ms1)
         
-        # TODO: NO MORE UPDATES TO MONITOR below this layer
-        # 2) Set up imagePlane
-        self.imagePFac1 = ImagePlaneFactory(texture1, self.ns[1], self.res[1])
-        image1 = self.imagePFac1.createMesh() # DO NOT save image1 as attribute (due to constant updates required!!!!)
-        self.ms1.add(image1)
+        # # TODO: NO MORE UPDATES TO MONITOR below this layer
+        # # 2) Set up imagePlane
+        # self.imagePFac1 = ImagePlaneFactory(texture1, self.ns[1], self.res[1])
+        # image1 = self.imagePFac1.createMesh() # DO NOT save image1 as attribute (due to constant updates required!!!!)
+        # self.ms1.add(image1)
 
-        # 3) Set up contourMesh
-        self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.ns[1], self.res[1], self.color_incus, 3)
-        contour1 = self.contourFac1.createMesh()
-        image1.add(contour1)
-        contour1.translate(0, 0, 0.1) # Move contour slightly above the image plane
+        # # 3) Set up contourMesh
+        # self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.ns[1], self.res[1], self.color_incus, 3)
+        # contour1 = self.contourFac1.createMesh()
+        # image1.add(contour1)
+        # contour1.translate(0, 0, 0.1) # Move contour slightly above the image plane
 
-        # 4) Set up projectorMesh
-        self.projectorFac1 = ProjectorMeshFactory(self.ms1, contour1, self.ns[1], self.fs[1], self.deltas[1], self.color_incus, alpha=0.5)
-        self.projectorFacs.append(self.projectorFac1)
-        projector1 = self.projectorFac1.createMesh()
-        projectors.append(projector1)
-        self.ms1.add(projector1)
-        self.projectorFac1.correctWorldPos() # Correct projector position to align with microscope
+        # # 4) Set up projectorMesh
+        # self.projectorFac1 = ProjectorMeshFactory(self.ms1, contour1, self.ns[1], self.fs[1], self.deltas[1], self.color_incus, alpha=0.5)
+        # self.projectorFacs.append(self.projectorFac1)
+        # projector1 = self.projectorFac1.createMesh()
+        # projectors.append(projector1)
+        # self.ms1.add(projector1)
+        # self.projectorFac1.correctWorldPos() # Correct projector position to align with microscope
 
 
-        # 5) Set up mediator for event communication between objects
-        mediator1 = ImageMediator(self.rig_ms, self.ms1, self.imagePFac1, self.contourFac1, self.projectorFac1, idx=1)
-        self.rig_ms.addMediator(mediator1)
-        self.ms1.setMediator(mediator1)
-        self.mediators.append(mediator1) # index of mediator correspond to state index (0: pinna, 1: incus)
+        # # 5) Set up mediator for event communication between objects
+        # mediator1 = ImageMediator(self.rig_ms, self.ms1, self.imagePFac1, self.contourFac1, self.projectorFac1, idx=1)
+        # self.rig_ms.addMediator(mediator1)
+        # self.ms1.setMediator(mediator1)
+        # self.mediators.append(mediator1) # index of mediator correspond to state index (0: pinna, 1: incus)
 
         """"""""""""""""""""""""""" 3. Model3d """""""""""""""""""""""""""
         # Load 3D model
@@ -249,7 +248,7 @@ class MyCanvas(InputCanvas):
 
         """ Rest CAD viewport camera to align with different microscope viewports"""
         if self.isKeyDown("i"): 
-            self.viewport = (self.viewport + 1) % len(self.mediators) # TODO: 0: pinna, 1: incus, 2:etc
+            # self.viewport = (self.viewport + 1) % len(self.mediators) # TODO: 0: pinna, 1: incus, 2:etc
 
             self.rig_cm.setWorldPosition(self.rig_ms.getWorldPosition())
             self.rig_cm.setWorldRotation(self.rig_ms.getWorldRotationMatrix())
@@ -289,7 +288,7 @@ class MyCanvas(InputCanvas):
         
         # print(f"scene update(): {self.matchFac.mesh.visible}")
         
-        
+
 
 
 class MyFrame(GUIFrame):

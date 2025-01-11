@@ -139,7 +139,7 @@ class MyCanvas(InputCanvas):
         self.ms0.add(image0)
 
         # 3) Set up contourMesh
-        self.contourFac0 = ContourMeshFactory(self.contour0_path, texture0, self.ns[0], self.res[0], self.color_pinna, 1)
+        self.contourFac0 = ContourMeshFactory(self.contour0_path, texture0, self.ns[0], self.res[0], self.color_pinna, 3)
         contour0 = self.contourFac0.createMesh()
         image0.add(contour0)
         contour0.translate(0, 0, 0.1) # Move contour slightly above the image plane
@@ -173,7 +173,7 @@ class MyCanvas(InputCanvas):
         # self.ms1.add(image1)
 
         # # 3) Set up contourMesh
-        # self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.ns[1], self.res[1], self.color_incus, 1)
+        # self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.ns[1], self.res[1], self.color_incus, 3)
         # contour1 = self.contourFac1.createMesh()
         # image1.add(contour1)
         # contour1.translate(0, 0, 0.1) # Move contour slightly above the image plane
