@@ -53,8 +53,8 @@ class MyCanvas(InputCanvas):
 
         self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
 
-        self.image0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
-        self.contour0_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
+        self.image0_path = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
+        self.contour0_path = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
         res0 = 0.000117 #FIXME:????
         n0 = 200
@@ -65,8 +65,8 @@ class MyCanvas(InputCanvas):
         self.fs.append(f0)
         self.deltas.append(delta0)
 
-        self.image1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP"
-        self.contour1_path = "D:\\sunny\\Codes\\IIB_project\\data\\chirstmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
+        self.image1_path = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP"
+        self.contour1_path = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
         self.color_incus = [0.1372549,  0.69803922, 0.        ]
         res1= 0.000117 #FIXME:????
         n1 = 240
@@ -212,6 +212,9 @@ class MyCanvas(InputCanvas):
         axes = AxesHelper(axisLength=128, lineWidth=2)
         # self.scene.add(axes)
         self.initialized = True
+
+        """"""""""""""""""""""""""" 3-1. Round Window Niche (Contour) for Validatioin """""""""""""""""""""""""""
+        # geometry
 
         """"""""""""""""""""""""""" 4. Registrator """""""""""""""""""""""""""
         # Setup ICP registrator
