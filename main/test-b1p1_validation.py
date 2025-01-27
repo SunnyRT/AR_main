@@ -86,7 +86,7 @@ class MyCanvas(InputCanvas):
         self.colors[1] = [0.1372549,  0.69803922, 0.        ]   # incus
         self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
         self.colors[3] = [0.0, 0.50196078, 0.75294118]          # sigmoid sinus
-        self.colors[4] = [1, 0, 1]                                # FIXME: rwn
+        self.colors[4] = [1, 0, 1]                              # FIXME: rwn
 
 
         rig_ms_z = 200
