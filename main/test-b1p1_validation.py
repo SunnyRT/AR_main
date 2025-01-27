@@ -9,8 +9,10 @@ from core_ext.microscope import Microscope
 from mesh.mesh import Mesh
 
 from geometry.model3dGeometry import Model3dGeometry
+from geometry.curveGeometry import CurveGeometry
 from core_ext.texture import Texture
 from material.model3dMaterial import Model3dMaterial
+from material.lineMaterial import LineMaterial
 
 
 from light.ambientLight import AmbientLight
@@ -24,12 +26,14 @@ from extras.movementRig import MovementRig
 from extras.microscopeRig import MicroscopeRig
 
 from registration.registratorICP import RegistratorICP
+from registration.validatorICP import ValidatorICP
 from factory.imagePlaneFactory import ImagePlaneFactory
 from factory.contourMeshFactory import ContourMeshFactory
 from factory.projectorMeshFactory import ProjectorMeshFactory
 from factory.matchMeshFactory import MatchMeshFactory
 
 from mediator.imageMediator import ImageMediator
+from mediator.validationMediator import ValidationMediator
 
 
 # from extras.posMarker import PosMarker
@@ -44,45 +48,52 @@ class MyCanvas(InputCanvas):
 
 
         self.state = 0 # 0 represents CAD engineering, 1 represents surgery
-        self.viewport = 0 # 0 represents pinna, 1 represents incus
+        self.viewport = 0 # 0 represents pinna
+                          # 1 represents incus, 
+                          # 2: facial nerve (val)
+                          # 3: sigmoid sinus (val)
+                          # 4: rwn (val)
+        
+        M = 5 # number of components used for registration AND validation
+        self.M = M
 
-        self.res = []
-        self.ns = []
-        self.fs = []
-        self.deltas = []
+        self.res = [0.000117 for _ in range(M)] # FIXME:???
 
-        self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
+        self.ns = [240 for _ in range(M)]
+        self.ns[0] = 200
 
-        self.image0_path = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
-        self.contour0_path = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
-        self.color_pinna = [1.0, 0.64705882, 0.29803922]
-        res0 = 0.000117 #FIXME:????
-        n0 = 200
-        f0 = 230
-        delta0 = 2
-        self.res.append(res0)
-        self.ns.append(n0)
-        self.fs.append(f0)
-        self.deltas.append(delta0)
+        self.fs = [250 for _ in range(M)]
+        self.fs[0] = 230
 
-        self.image1_path = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP"
-        self.contour1_path = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
-        self.color_incus = [0.1372549,  0.69803922, 0.        ]
-        res1= 0.000117 #FIXME:????
-        n1 = 240
-        f1 = 250
-        delta1 = 0.5
-        self.res.append(res1)
-        self.ns.append(n1)
-        self.fs.append(f1)
-        self.deltas.append(delta1)
+        self.deltas = [0.5 for _ in range(M)]
+        self.deltas[0] = 2
+
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\michaelmas\\ear.ply"
+        self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
+
+        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP" for _ in range(M)]
+        self.image_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
+        
+        self.contour_paths = ["" for _ in range(M)]
+        self.contour_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
+        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
+        self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_facial_nerve.sw"
+        self.contour_paths[3] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_sigmoid_sinus.sw"
+        self.contour_paths[4] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_rwn.sw"
+
+        self.colors = np.zeros((5,3))
+        self.colors[0] = [1.0, 0.64705882, 0.29803922]          # pinna
+        self.colors[1] = [0.1372549,  0.69803922, 0.        ]   # incus
+        self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
+        self.colors[3] = [0.0, 0.50196078, 0.75294118]          # sigmoid sinus
+        self.colors[4] = [1, 0, 1]                                # FIXME: rwn
+
 
         rig_ms_z = 200
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
-        # self.mediators = []
-        # self.projectorFacs = []
+
         self.initialized = False  # Ensure scene isn't initialized multiple times
 
 
@@ -93,9 +104,7 @@ class MyCanvas(InputCanvas):
         # Initialize renderer, scene, and cameras
         self.renderer = RendererDual(glcanvas=self, clearColor=[1,1,1])
         self.scene = Scene()
-        projectors = [] # require updates of registrator attributes via mediator
-        self.mediators=[] # clear mediators list for each initialization
-        self.projectorFacs = [] # clear projectorFacs list for each initialization
+
 
 
         # Set up camera: camera for CAD engineering viewport
@@ -127,81 +136,35 @@ class MyCanvas(InputCanvas):
                                              self.init_registration[2][0:3]]))
         self.scene.add(self.rig_ms)
 
-        """"""""""""""""""""""""""" 1. Pinna """""""""""""""""""""""""""
-        # a) Set up ms0 (microscope1) for pinna 
-        texture0 = Texture(self.image0_path)
-        self.ms0 = Microscope(texture0, self.ns[0], self.res[0]) # chanegd into new extended class of camera
-        self.rig_ms.add(self.ms0)
-        
-        # TODO: NO MORE UPDATES TO MONITOR below this layer
-        # 2) Set up imagePlane
-        self.imagePFac0 = ImagePlaneFactory(texture0, self.ns[0], self.res[0])
-        image0 = self.imagePFac0.createMesh() # DO NOT save imageP0 as attribute (due to constant updates required!!!!)
-        self.ms0.add(image0)
+        self.ms_ls, projectorsReg, projectorsVal, mediatorsReg, mediatorsVal, self.mediators = self.setupComps(self.M, 
+                                                                                   self.image_paths,
+                                                                                   self.contour_paths, 
+                                                                                   self.ns, 
+                                                                                   self.fs, 
+                                                                                   self.deltas, 
+                                                                                   self.res,
+                                                                                   self.colors,
+                                                                                   self.rig_ms)
 
-        # 3) Set up contourMesh
-        self.contourFac0 = ContourMeshFactory(self.contour0_path, texture0, self.ns[0], self.res[0], self.color_pinna, 3)
-        contour0 = self.contourFac0.createMesh()
-        image0.add(contour0)
-        contour0.translate(0, 0, 0.1) # Move contour slightly above the image plane
-
-        # 4) Set up projectorMesh
-        self.projectorFac0 = ProjectorMeshFactory(self.ms0, contour0, self.ns[0], self.fs[0], self.deltas[0], self.color_pinna, alpha=0.5)
-        self.projectorFacs.append(self.projectorFac0)
-        projector0 = self.projectorFac0.createMesh()
-        projectors.append(projector0)
-        self.ms0.add(projector0)
-        self.projectorFac0.correctWorldPos() # Correct projector position to align with microscope
+        assert (len(self.mediators) == self.M), "Number of mediators does not match number of functional components!"
 
 
-        # 5) Set up mediator for event communication between objects
-        mediator0 = ImageMediator(self.rig_ms, self.ms0, self.imagePFac0, self.contourFac0, self.projectorFac0, idx=0)
-        self.rig_ms.addMediator(mediator0)
-        self.ms0.setMediator(mediator0)
-        self.mediators.append(mediator0) # index of mediator correspond to state index (0: pinna, 1: incus)
-
-
-        """"""""""""""""""""""""""" 2. Incus """""""""""""""""""""""""""
-        # a) Set up ms1 (microscope1) for incus
-        texture1 = Texture(self.image1_path)
-        self.ms1 = Microscope(texture1, self.ns[1], self.res[1]) # chanegd into new extended class of camera
-        self.rig_ms.add(self.ms1)
-        
-        # TODO: NO MORE UPDATES TO MONITOR below this layer
-        # 2) Set up imagePlane
-        self.imagePFac1 = ImagePlaneFactory(texture1, self.ns[1], self.res[1])
-        image1 = self.imagePFac1.createMesh() # DO NOT save image1 as attribute (due to constant updates required!!!!)
-        self.ms1.add(image1)
-
-        # 3) Set up contourMesh
-        self.contourFac1 = ContourMeshFactory(self.contour1_path, texture1, self.ns[1], self.res[1], self.color_incus, 3)
-        contour1 = self.contourFac1.createMesh()
-        image1.add(contour1)
-        contour1.translate(0, 0, 0.1) # Move contour slightly above the image plane
-
-        # 4) Set up projectorMesh
-        self.projectorFac1 = ProjectorMeshFactory(self.ms1, contour1, self.ns[1], self.fs[1], self.deltas[1], self.color_incus, alpha=0.5)
-        self.projectorFacs.append(self.projectorFac1)
-        projector1 = self.projectorFac1.createMesh()
-        projectors.append(projector1)
-        self.ms1.add(projector1)
-        self.projectorFac1.correctWorldPos() # Correct projector position to align with microscope
-
-
-        # 5) Set up mediator for event communication between objects
-        mediator1 = ImageMediator(self.rig_ms, self.ms1, self.imagePFac1, self.contourFac1, self.projectorFac1, idx=1)
-        self.rig_ms.addMediator(mediator1)
-        self.ms1.setMediator(mediator1)
-        self.mediators.append(mediator1) # index of mediator correspond to state index (0: pinna, 1: incus)
-
-        """"""""""""""""""""""""""" 3. Model3d """""""""""""""""""""""""""
+        """"""""""""""""""""""""""" 3. Model3d + RWN"""""""""""""""""""""""""""
         # Load 3D model
         geometry3d = Model3dGeometry(self.model3d_path)
         model3dMaterial = Model3dMaterial(properties={"useVertexColors": True})
         self.model3d = Mesh(geometry3d, model3dMaterial)
+
+        # Load round window niche (RWN) contour
+        geometryRWN = CurveGeometry(self.rwn_path, color=[1, 0, 1])
+        materialRWN = LineMaterial(properties={"useVertexColors": True, "lineWidth": 3})
+        rwn = Mesh(geometryRWN, materialRWN)
+        self.model3d.add(rwn)
+
         self.scene.add(self.model3d)
         self.model3d.rotateY(pi/2)
         self.model3d.translate(0, 0, -40, localCoord=False) # TODO: pinna front surface around world origin
+
 
         # Grid setup
         grid = GridHelper(size=1024, divisions=64, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
@@ -213,16 +176,91 @@ class MyCanvas(InputCanvas):
         # self.scene.add(axes)
         self.initialized = True
 
-        """"""""""""""""""""""""""" 3-1. Round Window Niche (Contour) for Validatioin """""""""""""""""""""""""""
-        # geometry
-
+        print(f"number of registrating comp:{len(projectorsReg), len(mediatorsReg)}")
+        print(f"number of validating comp:{len(projectorsVal), len(mediatorsVal)}")
         """"""""""""""""""""""""""" 4. Registrator """""""""""""""""""""""""""
         # Setup ICP registrator
-        self.matchFac = MatchMeshFactory(sceneObject=self.scene)
-        self.registrator = RegistratorICP(projectors, self.model3d, self.rig_ms, 10, self.matchFac) # TODO: execution is done by GUIFrame!!!
-        for mediator in self.mediators:
+        matchFacReg = MatchMeshFactory(sceneObject=self.scene)
+        self.registrator = RegistratorICP(projectorsReg, self.model3d, self.rig_ms, 10, matchFacReg) # TODO: execution is done by GUIFrame!!!
+        for mediator in mediatorsReg:
             mediator.setRegistrator(self.registrator)
-            mediator.setMatchMeshFactory(self.matchFac)
+            mediator.setMatchMeshFactory(matchFacReg)
+
+        
+        """"""""""""""""""""""""""" 4. Validator """""""""""""""""""""""""""
+        matchFacVal = MatchMeshFactory(sceneObject=self.scene, color=(1,0,0))
+        self.validator = ValidatorICP(projectorsVal, self.model3d, self.rig_ms, 10, matchFacVal) 
+        for mediator in mediatorsVal:
+            mediator.setValidator(self.validator)
+            mediator.setMatchMeshFactory(matchFacVal)
+
+
+
+    def setupComp(self, img_path, contour_path, n, f, delta, res, color, rig_ms, function, idx):
+        # 1) Set up microscope(ms)
+        texture = Texture(img_path)
+        ms = Microscope(texture, n, res)
+        rig_ms.add(ms)
+
+        # 2) Set up imagePlane
+        imagePFac = ImagePlaneFactory(texture, n, res)
+        image = imagePFac.createMesh()
+        ms.add(image)
+
+        # 3) Set up contourMesh
+        contourFac = ContourMeshFactory(contour_path, texture, n, res, color, 3)
+        contour = contourFac.createMesh()
+        image.add(contour)
+        contour.translate(0,0,0.01)
+
+        # 4) Set up projectorMesh
+        projectorFac = ProjectorMeshFactory(ms, contour, n, f, delta, color, alpha=0.5) 
+        projector = projectorFac.createMesh()
+        ms.add(projector)
+        projectorFac.correctWorldPos()
+
+        # 5) Set up mediator for event communication between objects
+        if function == "Reg":
+            mediator = ImageMediator(rig_ms, ms, imagePFac, contourFac, projectorFac, idx)
+        elif function == "Val":
+            mediator = ValidationMediator(rig_ms, ms, imagePFac, contourFac, projectorFac, idx)
+        else:
+            raise ValueError("Component function can only be 'Reg' or 'Val'!")
+        rig_ms.addMediator(mediator)
+        ms.setMediator(mediator)
+
+        return ms, projector, mediator
+
+
+
+
+    def setupComps(self, M, img_paths, contour_paths, ns, fs, deltas, res_ls, colors, rig_ms):
+        ms_ls = [None for _ in range(M)]
+        projectorsReg = []
+        projectorsVal = []
+        mediatorsReg = []
+        mediatorsVal = []
+
+        for i in range(M):
+            if i <= 1:
+                ms_ls[i], projector, mediator = self.setupComp(img_paths[i], contour_paths[i], ns[i], fs[i], deltas[i], res_ls[i], colors[i], 
+                            rig_ms, "Reg", i)
+                projectorsReg.append(projector)
+                mediatorsReg.append(mediator)
+                print(f"index{i} gives a Registrating obejct")
+            else:
+                ms_ls[i], projector, mediator = self.setupComp(img_paths[i], contour_paths[i], ns[i], fs[i], deltas[i], res_ls[i], colors[i], 
+                            rig_ms, "Val", i-2)
+                projectorsVal.append(projector)
+                mediatorsVal.append(mediator)
+                print(f"index{i} gives a Validating obejct")
+                
+        mediators = mediatorsReg + mediatorsVal 
+        return ms_ls, projectorsReg, projectorsVal, mediatorsReg, mediatorsVal, mediators
+    
+
+
+
 
     def update(self):
 
@@ -238,10 +276,14 @@ class MyCanvas(InputCanvas):
         match_count = self.registrator.matchCount
         mean_error = self.registrator.meanError
         mean_norm_measure = self.registrator.meanNormMeasure
+        mean_error_val = self.validator.meanError
+        mean_norm_measure_val = self.validator.meanNormMeasure
 
         
         self.GetParent().update_tool_panel(transform_matrix, distance, 
-                                           match_count, mean_error, mean_norm_measure)
+                                           match_count, 
+                                           mean_error, mean_norm_measure,
+                                           mean_error_val, mean_norm_measure_val)
 
 
         """ Update the scene and toggle between cameras."""
@@ -258,39 +300,23 @@ class MyCanvas(InputCanvas):
             self.rig_cm.setWorldRotation(self.rig_ms.getWorldRotationMatrix())
             self.rig_cm.lookAttachment.setWorldRotation(self.rig_ms.lookAttachment.getWorldRotationMatrix())
             if self.viewport == 0:
-                self.camera.zoom = 0.5
-                # self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": True})
-                # self.mediators[0].notify(self, "update visibility", {"object": "contour", "is_visible": True})
-                # self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": False})
-                # self.mediators[1].notify(self, "update visibility", {"object": "contour", "is_visible": False})
-            elif self.viewport == 1:
-                self.camera.zoom = 1
-                # self.mediators[1].notify(self, "update visibility", {"object": "image", "is_visible": True})
-                # self.mediators[1].notify(self, "update visibility", {"object": "contour", "is_visible": True})
-                # self.mediators[0].notify(self, "update visibility", {"object": "image", "is_visible": False})
-                # self.mediators[0].notify(self, "update visibility", {"object": "contour", "is_visible": False})
+                self.camera.zoom = 0.5 # pinna
+            else:
+                self.camera.zoom = 1 # other components
             self.camera.setOrthographic()
 
         """monitor updates"""
-        if self.state == 0:
+        if self.state == 0: # CAD view
 
             self.rig_cm.update(self)
             self.camera.update(self)
-        else:
+        else: # Surgical view
             self.rig_ms.update(self)
-            if self.viewport == 0:
-                self.ms0.update(self)
-            elif self.viewport == 1:
-                self.ms1.update(self)
+            self.ms_ls[self.viewport].update(self)
  
         """Render the scene"""
-        self.renderer.render(self.scene, self.camera, viewportSplit="left")   
-        if self.viewport == 0:
-            self.renderer.render(self.scene, self.ms0, clearColor = False,viewportSplit="right")
-        elif self.viewport == 1:
-            self.renderer.render(self.scene, self.ms1, clearColor = False,viewportSplit="right")
-        
-        # print(f"scene update(): {self.matchFac.mesh.visible}")
+        self.renderer.render(self.scene, self.camera, viewportSplit="left")  
+        self.renderer.render(self.scene, self.ms_ls[self.viewport], clearColor=False, viewportSplit="right") 
         
         
 

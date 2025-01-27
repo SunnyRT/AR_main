@@ -9,15 +9,14 @@ import numpy as np
 
 class Microscope(Camera):
     
-    def __init__(self, imageTexture, n, res, isPerspective=True, mediator=None):
+    def __init__(self, imageTexture, n, res, isPerspective=True):
         self.pxWidth = imageTexture.width
         self.pxHeight = imageTexture.height
         self.aspectRatio = self.pxWidth / self.pxHeight
         self.n = n # FIXME: this does not change with near / far clipping plane of the camera, nor z????
         self.res = res
         self.isPerspective = isPerspective
-        if mediator is not None:
-            self.mediator = mediator
+        self.mediator = None
 
         self.initialize()
         self.intialized = True

@@ -13,10 +13,8 @@ from core.matrix import Matrix
 
 
 
-class RegistratorICP(object):
-    """ Iterative Closest Point (ICP) registration algorithm 
-        To align mesh1 to target mesh2.
-        By using Levenberg–Marquardt optimization. """
+class ValidatorICP(object):
+    """ Compute mean distance and normal similarity between matching points using ICP algorithm """
     
 
     def __init__(self, mesh1_ls, mesh2, microscopeRig, d_max=10.0, matchMeshFactory=None):
@@ -47,15 +45,15 @@ class RegistratorICP(object):
             mesh1Vertices_ls.append(mesh1Vertices)
             mesh1VertNorm_ls.append(mesh1VertNorm)
             mesh1VertRay_ls.append(mesh1.geometry.attributes["uniqueVertexRay"].data) # Record which ray each vertex in mesh1 lies on
-            # print(f"Number of rays in mesh1: {len(np.unique(mesh1VertRay_ls[i]))}")
+            print(f"Number of rays in mesh1: {len(np.unique(mesh1VertRay_ls[i]))}")
             
             # 1. Filter out each set of corresponding vertices in mesh2 with the same color as each mesh1
             mesh2Vertices, mesh2VertNom = self.findSameColorPoints(mesh1VertColor, mesh2VertColor_all, mesh2Vertices_all, mesh2VertNorm_all)
             mesh2Vertices_ls.append(mesh2Vertices)
             mesh2VertNorm_ls.append(mesh2VertNom)
-            # print(f"Number of vertices in mesh2 with the same color as mesh1: {mesh2Vertices.shape}")
+            print(f"Number of vertices in mesh2 with the same color as mesh1: {mesh2Vertices.shape}")
             if len(mesh2Vertices) == 0:
-                raise ValueError(f"No matching color found in target projector{i} (mesh1).")
+                print(f"No matching color found in target validation projector{i} (mesh1).")
 
         self.mesh1Vertices_ls = mesh1Vertices_ls
         self.mesh1VertNorm_ls = mesh1VertNorm_ls
@@ -172,6 +170,10 @@ class RegistratorICP(object):
 
     def findClosestPoints(self, mesh1Vertices, mesh1VertNorm, mesh1VertRay, mesh2Vertices, mesh2VertNorm): 
         """ for each vertex in source mesh1, find the closest vertex in target mesh2 """
+        if len(mesh2Vertices) == 0:
+            print("No matching points found within max distance.")
+            return [], [], []
+        
         if mesh1Vertices.shape[1] != 3 or mesh2Vertices.shape[1] != 3:
             raise ValueError("Input vertices must be 3D coordinates.")
         
@@ -260,7 +262,7 @@ class RegistratorICP(object):
         return closestPairsPerRay, closestPairsNormDistPerRay
     
         
-        
+    # FIXME:    
     def calcMatchInfo(self, closestPairsPerRay, closestPairsNormDist):
         self.matchCount = len(closestPairsPerRay)
         # print(f"Number of closest pairs (1 per ray) within dmax: {len(self.closestPairsPerRay)}")
@@ -274,116 +276,101 @@ class RegistratorICP(object):
         sourcePoints = np.array(sourcePoints)
         targetPoints = np.array(targetPoints)
         self.meanError = np.mean(np.linalg.norm(sourcePoints - targetPoints, axis=1))
-        # print(f"Mean distance between matching points: {meanError}")
+        # print(f"Validation - Mean distance between matching points: {self.meanError}") 
 
         # compute mean normal similarity between matching points
         self.meanNormMeasure = np.mean(closestPairsNormDist)
-        # print(f"Mean normal similarity between matching points: {meanNormMeasure}")
+        # print(f"Validation - Mean normal similarity between matching points: {self.meanNormMeasure}")
+   
 
+    # def makeTransformMatrix(self, theta_x, theta_y, theta_z, t_x, t_y, t_z):
+    #     # Rotation matrices around each axis
+    #     Rx = Matrix.makeRotationX(theta_x)
+    #     Ry = Matrix.makeRotationY(theta_y)
+    #     Rz = Matrix.makeRotationZ(theta_z)
+    #     Txyz = Matrix.makeTranslation(t_x, t_y, t_z)
 
-    # # replaced by matchMeshFactory
-    # def createMatchMesh(self):
-    #     if self.closestPairsPerRay is None or len(self.closestPairsPerRay) == 0:
-    #         # raise ValueError("No matching points found within max distance.")
-    #         # print("No matching points found within max distance.")
-    #         return
-    #     matchGeo = MatchGeometry(self.closestPairsPerRay)
-    #     matchMat = LineMaterial({"lineType": "segments", "lineWidth": 1})
-    #     matchMesh = Mesh(matchGeo, matchMat)
-    #     if self.matchMesh in self.sceneObject.children:
-    #         self.sceneObject.remove(self.matchMesh)
-    #         del self.matchMesh
-    #     self.matchMesh = matchMesh
-    #     self.sceneObject.add(self.matchMesh)        
-
-    def makeTransformMatrix(self, theta_x, theta_y, theta_z, t_x, t_y, t_z):
-        # Rotation matrices around each axis
-        Rx = Matrix.makeRotationX(theta_x)
-        Ry = Matrix.makeRotationY(theta_y)
-        Rz = Matrix.makeRotationZ(theta_z)
-        Txyz = Matrix.makeTranslation(t_x, t_y, t_z)
-
-        # Combined rotation matrix
-        TransformMatrix = Rx @ Ry @ Rz @ Txyz
-        # print(f"TransformMatrix: {TransformMatrix}")
-        return TransformMatrix
+    #     # Combined rotation matrix
+    #     TransformMatrix = Rx @ Ry @ Rz @ Txyz
+    #     # print(f"TransformMatrix: {TransformMatrix}")
+    #     return TransformMatrix
     
-    def transformMesh(self, mesh, transformMatrix):
-        # Apply rotation and translation
-        mesh.applyMatrix(transformMatrix, localCoord=False) 
+    # def transformMesh(self, mesh, transformMatrix):
+    #     # Apply rotation and translation
+    #     mesh.applyMatrix(transformMatrix, localCoord=False) 
 
-    def transformPoints(self, points, transformMatrix):
-        # convert into 4D homogeneous coordinates
-        # apply transformation
-        # and convert back to 3D coordinates
-        transformedPoints = (np.hstack((points, np.ones((len(points), 1)))) @ transformMatrix.T)[:, :3]
-        # print(f"points before transform: {points.shape}, after transform: {transformedPoints.shape}")
-        return transformedPoints 
-
-
-
-    def objectiveFunction(self, params, sourcePoints, targetPoints):
-        theta_x, theta_y, theta_z, t_x, t_y, t_z = params
-        transformMatrix = self.makeTransformMatrix(theta_x, theta_y, theta_z, t_x, t_y, t_z)
-        transformedPoints = self.transformPoints(sourcePoints, transformMatrix)
-
-        # Calculate residuals (differences between transformed source and target)
-        residuals = transformedPoints - targetPoints
-        return residuals.flatten()
+    # def transformPoints(self, points, transformMatrix):
+    #     # convert into 4D homogeneous coordinates
+    #     # apply transformation
+    #     # and convert back to 3D coordinates
+    #     transformedPoints = (np.hstack((points, np.ones((len(points), 1)))) @ transformMatrix.T)[:, :3]
+    #     # print(f"points before transform: {points.shape}, after transform: {transformedPoints.shape}")
+    #     return transformedPoints 
 
 
 
+    # def objectiveFunction(self, params, sourcePoints, targetPoints):
+    #     theta_x, theta_y, theta_z, t_x, t_y, t_z = params
+    #     transformMatrix = self.makeTransformMatrix(theta_x, theta_y, theta_z, t_x, t_y, t_z)
+    #     transformedPoints = self.transformPoints(sourcePoints, transformMatrix)
+
+    #     # Calculate residuals (differences between transformed source and target)
+    #     residuals = transformedPoints - targetPoints
+    #     return residuals.flatten()
 
 
-    # ICP Algorithm
-    def register(self, n_iterations=1, tolerance=1e-3):
 
 
-        for i in range(n_iterations):
 
-            source_points, target_points = zip(*self.closestPairsPerRay)
-            source_points = np.array(source_points)
-            target_points = np.array(target_points)
+    # # ICP Algorithm
+    # def register(self, n_iterations=1, tolerance=1e-3):
 
 
-            # put this in as global variable to track all transformations
-            # Initial transformation parameters (identity transformation)
-            params = np.zeros(6)  # [theta_x, theta_y, theta_z, t_x, t_y, t_z]
+    #     for i in range(n_iterations):
 
-            # 3. Optimize transformation using Levenberg–Marquardt
-            result = least_squares(self.objectiveFunction, params, args=(source_points, target_points))
-            paramsPrev = params
-            params = result.x # Update the transformation parameters
+    #         source_points, target_points = zip(*self.closestPairsPerRay)
+    #         source_points = np.array(source_points)
+    #         target_points = np.array(target_points)
 
 
-            # 4. Apply the new transformation to mesh1 vertices and update the vertex positions in mesh1
-            transformMatrix = self.makeTransformMatrix(*params)
+    #         # put this in as global variable to track all transformations
+    #         # Initial transformation parameters (identity transformation)
+    #         params = np.zeros(6)  # [theta_x, theta_y, theta_z, t_x, t_y, t_z]
 
-            self.transformMesh(self.msRig, transformMatrix) # updated the microscope rig
+    #         # 3. Optimize transformation using Levenberg–Marquardt
+    #         result = least_squares(self.objectiveFunction, params, args=(source_points, target_points))
+    #         paramsPrev = params
+    #         params = result.x # Update the transformation parameters
 
-            for j, mesh1 in enumerate(self.mesh1_ls):
-                self.mesh1Vertices_ls[j], self.mesh1VertNorm_ls[j], _ = self.getMeshVertData(mesh1)
+
+    #         # 4. Apply the new transformation to mesh1 vertices and update the vertex positions in mesh1
+    #         transformMatrix = self.makeTransformMatrix(*params)
+
+    #         self.transformMesh(self.msRig, transformMatrix) # updated the microscope rig
+
+    #         for j, mesh1 in enumerate(self.mesh1_ls):
+    #             self.mesh1Vertices_ls[j], self.mesh1VertNorm_ls[j], _ = self.getMeshVertData(mesh1)
             
-            print(f"Iteration {i + 1}: Optimized parameters {params}")
+    #         print(f"Iteration {i + 1}: Optimized parameters {params}")
 
 
 
-            """ prepare for next iteration """
-            # 2. Find closest points between mesh1 and mesh2
-            self.updateMatch()
-            self.matchMeshFactory.update(self.closestPairsPerRay)
+    #         """ prepare for next iteration """
+    #         # 2. Find closest points between mesh1 and mesh2
+    #         self.updateMatch()
+    #         self.matchMeshFactory.update(self.closestPairsPerRay)
             
-            if len(self.closestPairsPerRay) == 0:
-                print("No matches found within max distance.")
-                break
-            """ end of iteration """
+    #         if len(self.closestPairsPerRay) == 0:
+    #             print("No matches found within max distance.")
+    #             break
+    #         """ end of iteration """
 
 
-            # 5. Check for convergence
-            if np.linalg.norm(params - paramsPrev) < tolerance:
-                break
+    #         # 5. Check for convergence
+    #         if np.linalg.norm(params - paramsPrev) < tolerance:
+    #             break
 
-        return params  # Final transformation parameters
+    #     return params  # Final transformation parameters
 
 
 

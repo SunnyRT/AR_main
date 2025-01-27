@@ -10,6 +10,7 @@ class MatchGeometry(Geometry): # connecting lines to visualize match pairs in IC
 
 
         colorData = [color] * len(positionData)
+        print(f"matchcolor: {color}")
 
         self.addAttribute
         self.addAttribute("vec3", "vertexPosition", positionData)

@@ -63,8 +63,8 @@ class Model3dMaterial(Material):
 
             // Constants for component colors
             const vec3 OTIC_CAPSULE_COLOR = vec3(0.4, 0.29803922, 1.0); // (102, 76, 255)
-            const vec3 STAPES_COLOR = vec3(0.0, 0.50196078, 0.75294118); // (0, 128, 192)
-            const vec3 SIGMOID_SINUS_COLOR = vec3(0.06666667, 0.48627451, 0.69803922); // (17, 124, 178)
+            const vec3 STAPES_COLOR = vec3(0.06666667, 0.48627451, 0.69803922); // (17, 124, 178)
+            const vec3 SIGMOID_SINUS_COLOR = vec3(0.0, 0.50196078, 0.75294118); // (0, 128, 192)
             const vec3 INCUS_COLOR = vec3(0.1372549, 0.69803922, 0.0); // (35, 178, 0)
             const vec3 MALLEUS_COLOR = vec3(0.69803922, 0.69803922, 0.1372549); // (178, 178, 35)
             const vec3 CHORDA_TYMPANI_COLOR = vec3(0.90588235, 0.72156863, 0.09411765); // (231, 184, 24)
