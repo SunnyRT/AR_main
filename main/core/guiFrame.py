@@ -533,8 +533,9 @@ class GUIFrame(InputFrame):
             raise Exception("Registrator not initialized")
         for i in range(self.n_itr):
             self.canvas.registrator.register(n_iterations=1)
-            self.canvas.validator.updateMatch()
             self.canvas.on_paint(event=None)
+        for mediator in self.canvas.mediators[2:]:
+            mediator.notify(self, "update match")
         self.canvas.SetFocus()  # Set focus back to the canvas
 
     def on_itr_slider_change(self, event):

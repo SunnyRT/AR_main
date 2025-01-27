@@ -58,6 +58,9 @@ class ValidationMediator(Mediator):
         if event == "update ensemble visibility":
             self.handle_ensemble_visibility(event, data)
 
+        if event == "update match":
+            self.handle_update_match(event, data)
+
 
             
             
@@ -155,3 +158,6 @@ class ValidationMediator(Mediator):
         self.projectorMeshFactory.setVisibility(visible)
 
 
+    def handle_update_match(self, event, data):
+        self.validator.updateMatch()
+        self.matchMeshFactory.update(self.validator.closestPairsPerRay)

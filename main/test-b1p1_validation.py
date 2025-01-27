@@ -76,7 +76,7 @@ class MyCanvas(InputCanvas):
         
         self.contour_paths = ["" for _ in range(M)]
         self.contour_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
-        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\Bone1\\Position1\\x0.4_Bone.sw"
+        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_incus.sw"
         self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_facial_nerve.sw"
         self.contour_paths[3] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_sigmoid_sinus.sw"
         self.contour_paths[4] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_rwn.sw"
