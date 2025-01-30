@@ -54,42 +54,32 @@ class MyCanvas(InputCanvas):
                           # 3: sigmoid sinus (val)
                           # 4: rwn (val)
         
-        M = 5 # number of components used for registration AND validation
+        M = 2 # number of components used for registration AND validation
         self.M = M
 
-        self.res = [0.000117 for _ in range(M)] # FIXME:???
-
-        self.ns = [240 for _ in range(M)]
-        self.ns[0] = 200
-
-        self.fs = [250 for _ in range(M)]
-        self.fs[0] = 230
-
-        self.deltas = [0.5 for _ in range(M)]
-        self.deltas[0] = 2
+        self.res = [0.0003, 0.00015]
+        self.ns = [330, 380]
+        self.fs = [380, 390]
+        self.deltas = [2,0.5]
 
         self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\michaelmas\\ear.ply"
         self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
-        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP" for _ in range(M)]
-        self.image_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
-        
-        self.contour_paths = ["" for _ in range(M)]
-        self.contour_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
-        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_incus.sw"
-        self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_facial_nerve.sw"
-        self.contour_paths[3] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_sigmoid_sinus.sw"
-        self.contour_paths[4] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_rwn.sw"
+        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render1\\render1.png",
+                            "D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render2\\render2.png"]
 
+        self.contour_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render1\\render1.sw",
+                              "D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render2\\render2_full.sw"]
+        
         self.colors = np.zeros((M,3))
         self.colors[0] = [1.0, 0.64705882, 0.29803922]          # pinna
         self.colors[1] = [0.1372549,  0.69803922, 0.        ]   # incus
-        self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
-        self.colors[3] = [0.0, 0.50196078, 0.75294118]          # sigmoid sinus
-        self.colors[4] = [1, 0, 1]                              # FIXME: rwn
+        # self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
+        # self.colors[3] = [0.0, 0.50196078, 0.75294118]          # sigmoid sinus
+        # self.colors[4] = [1, 0, 1]                              # FIXME: rwn
 
 
-        rig_ms_z = 200
+        rig_ms_z = 340
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
@@ -187,12 +177,12 @@ class MyCanvas(InputCanvas):
             mediator.setMatchMeshFactory(matchFacReg)
 
         
-        """"""""""""""""""""""""""" 4. Validator """""""""""""""""""""""""""
-        matchFacVal = MatchMeshFactory(sceneObject=self.scene, color=(1,0,0))
-        self.validator = ValidatorICP(projectorsVal, self.model3d, self.rig_ms, 10, matchFacVal) 
-        for mediator in mediatorsVal:
-            mediator.setValidator(self.validator)
-            mediator.setMatchMeshFactory(matchFacVal)
+        # """"""""""""""""""""""""""" 4. Validator """""""""""""""""""""""""""
+        # matchFacVal = MatchMeshFactory(sceneObject=self.scene, color=(1,0,0))
+        # self.validator = ValidatorICP(projectorsVal, self.model3d, self.rig_ms, 10, matchFacVal) 
+        # for mediator in mediatorsVal:
+        #     mediator.setValidator(self.validator)
+        #     mediator.setMatchMeshFactory(matchFacVal)
 
 
 
@@ -276,8 +266,9 @@ class MyCanvas(InputCanvas):
         match_count = self.registrator.matchCount
         mean_error = self.registrator.meanError
         mean_norm_measure = self.registrator.meanNormMeasure
-        mean_error_val = self.validator.meanError
-        mean_norm_measure_val = self.validator.meanNormMeasure
+
+        mean_error_val = 0 
+        mean_norm_measure_val = 0
 
         
         self.GetParent().update_tool_panel(transform_matrix, distance, 

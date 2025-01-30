@@ -13,7 +13,7 @@ class Microscope(Camera):
         self.pxWidth = imageTexture.width
         self.pxHeight = imageTexture.height
         self.aspectRatio = self.pxWidth / self.pxHeight
-        self.n = n # FIXME: this does not change with near / far clipping plane of the camera, nor z????
+        self.n = n 
         self.res = res
         self.isPerspective = isPerspective
         self.mediator = None

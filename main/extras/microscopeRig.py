@@ -45,8 +45,11 @@ class MicroscopeRig(MovementRig):
             self.mediators[0].notify(self, "microscope rig moved", data={"prevTransform": prevTransform, "currTransform": currTransform}) 
             # notify only 1 single mediatorVal
             # eventually reaching the same validator and the matchMeshFactory
-            self.mediators[2].notify(self, "microscope rig moved", data={"prevTransform": prevTransform, "currTransform": currTransform}) 
-
+            try:
+                self.mediators[2].notify(self, "microscope rig moved", data={"prevTransform": prevTransform, "currTransform": currTransform}) 
+            except:
+                pass
+            
     def addMediator(self, mediator):
         self.mediators.append(mediator)
     

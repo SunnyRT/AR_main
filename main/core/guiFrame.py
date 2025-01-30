@@ -179,7 +179,7 @@ class GUIFrame(InputFrame):
             sizer.Add(hbox, 0, wx.ALL | wx.EXPAND, 0)
             return value_text
         
-        # self.view_angle_text = add_labeled_text(self.tool_panel, tool_sizer, "View Angle:", "0.0")
+        self.view_angle_text = add_labeled_text(self.tool_panel, tool_sizer, "View Angle:", "0.0")
         # self.match_count_text = add_labeled_text(self.tool_panel, tool_sizer, "Number of Matches:", "0")
         tool_sizer.Add(wx.StaticText(self.tool_panel, label="Registration Results:"), 0, wx.ALL | wx.EXPAND, 0)
         self.mean_error_text = add_labeled_text(self.tool_panel, tool_sizer, "Mean Error:", "0.0")
@@ -304,13 +304,14 @@ class GUIFrame(InputFrame):
         
     
     def update_tool_panel(self, transform_matrix, distance, 
+                          view_angle,
                           match_count, 
                           mean_error, mean_norm_measure, 
                           mean_error_val, mean_norm_measure_val):
         """ Update the text in the tool panel."""
         self.transform_matrix_text.SetLabel("Transformation Matrix:\n"+self.format_matrix(transform_matrix))
         # self.distance_text.SetLabel(f"Distance to Origin:\n {distance:.2f}")
-        # self.view_angle_text.SetLabel(f"{view_angle:.2f}")
+        self.view_angle_text.SetLabel(f"{view_angle:.2f}")
         # self.match_count_text.SetLabel(f"{match_count}")
         self.mean_error_text.SetLabel(f"{mean_error:.2f}")
         self.mean_norm_measure_text.SetLabel(f"{mean_norm_measure:.2f}")
