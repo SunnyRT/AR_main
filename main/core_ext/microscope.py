@@ -34,6 +34,7 @@ class Microscope(Camera):
         # width = pxWidth * resolution * nearPlane
         height = pxHeight * resolution * nearPlane
         theta = 2 * np.arctan((height / 2) / nearPlane) / np.pi * 180
+        print(f"recomputed theta: {theta}")
         return theta
     
     def setMediator(self, mediator):

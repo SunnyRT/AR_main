@@ -58,11 +58,11 @@ class MyCanvas(InputCanvas):
         self.M = M
 
         self.res = [0.0003, 0.00015]
-        self.ns = [330, 380]
-        self.fs = [380, 390]
+        self.ns = [350, 400]
+        self.fs = [400, 420]
         self.deltas = [2,0.5]
 
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\michaelmas\\ear.ply"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\clinical_CT_data\pseudo_ct_mesh.ply"
         self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
         self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render1\\render_pinna.png",
@@ -72,10 +72,10 @@ class MyCanvas(InputCanvas):
                               "D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render2\\render_incus.sw"]
         
         self.colors = np.zeros((M,3))
-        self.colors[0] = [255, 127, 0]  /255        # pinna
-        self.colors[1] = [51, 255, 0]/255   # incus
-        self.colors[2] = [255, 255, 51]/255   # facial nerve
-        self.colors[3] = [102, 76, 255]/255          # cochlea
+        self.colors[0] = [1.0, 0.64705882, 0.29803922]       # pinna
+        self.colors[1] = [0.1372549,  0.69803922, 0.        ]    # incus
+        # self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
+        # self.colors[3] = xxx          # cochlea
 
 
 
