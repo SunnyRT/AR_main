@@ -62,7 +62,7 @@ class MyCanvas(InputCanvas):
         self.fs = [400, 420]
         self.deltas = [2,0.5]
 
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\clinical_CT_data\pseudo_ct_mesh.ply"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\clinical_CT_data\\pseudo_ct\\pseudo_ct_mesh.ply"
         self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
         self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render1\\render_pinna.png",
