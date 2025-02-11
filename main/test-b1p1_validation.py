@@ -272,7 +272,8 @@ class MyCanvas(InputCanvas):
         """ Update information displayed in the tool panel"""
         transform_matrix = self.rig_ms.getWorldMatrix()
         distance = np.linalg.norm(self.rig_ms.getWorldPosition())
-        view_angle = self.ms_ls[self.viewport].theta
+        view_angle = self.ms_ls[0].theta
+        print(f"view angle of ms for pinna: {view_angle}")
         match_count = self.registrator.matchCount
         mean_error = self.registrator.meanError
         mean_norm_measure = self.registrator.meanNormMeasure

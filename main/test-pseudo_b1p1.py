@@ -58,20 +58,20 @@ class MyCanvas(InputCanvas):
         self.M = M
 
         self.res = [0.000117 for _ in range(M)] # FIXME:???
-        self.ns = [470, 520, 520]
-        self.fs = [520, 540, 550]
+        self.ns = [420, 470, 470]
+        self.fs = [470, 490, 500]
         self.deltas = [2, 0.5, 0.5]
 
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\clinical_CT_data\\pseudo_ct\\pseudo_ct_mesh.ply"
-        self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_clinical_CT_data\\pseudo_wxdcm\\pseudo_ct_mesh.ply"
+        # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\rwnContour_center.txt"
 
-        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP" for _ in range(M)]
-        self.image_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
+        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\3_christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP" for _ in range(M)]
+        self.image_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\3_christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
         
         self.contour_paths = ["" for _ in range(M)]
-        self.contour_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
-        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_incus.sw"
-        self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_facial_nerve.sw"
+        self.contour_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\3_christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
+        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\x0.4_Bone_incus.sw"
+        self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\x0.4_Bone_facial_nerve.sw"
         self.colors = np.zeros((M,3))
         self.colors[0] = [1.0, 0.64705882, 0.29803922]          # pinna
         self.colors[1] = [0.1372549,  0.69803922, 0.        ]   # incus
@@ -146,11 +146,11 @@ class MyCanvas(InputCanvas):
         model3dMaterial = Model3dMaterial(properties={"useVertexColors": True})
         self.model3d = Mesh(geometry3d, model3dMaterial)
 
-        # Load round window niche (RWN) contour
-        geometryRWN = CurveGeometry(self.rwn_path, color=[1, 0, 1])
-        materialRWN = LineMaterial(properties={"useVertexColors": True, "lineWidth": 3})
-        rwn = Mesh(geometryRWN, materialRWN)
-        self.model3d.add(rwn)
+        # # Load round window niche (RWN) contour
+        # geometryRWN = CurveGeometry(self.rwn_path, color=[1, 0, 1])
+        # materialRWN = LineMaterial(properties={"useVertexColors": True, "lineWidth": 3})
+        # rwn = Mesh(geometryRWN, materialRWN)
+        # self.model3d.add(rwn)
 
         self.scene.add(self.model3d)
         self.model3d.rotateY(pi/2)

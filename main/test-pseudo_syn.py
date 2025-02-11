@@ -58,18 +58,18 @@ class MyCanvas(InputCanvas):
         self.M = M
 
         self.res = [0.0003, 0.00015]
-        self.ns = [350, 400]
-        self.fs = [400, 420]
+        self.ns = [250, 300]
+        self.fs = [300, 320]
         self.deltas = [2,0.5]
 
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\clinical_CT_data\\pseudo_ct\\pseudo_ct_mesh.ply"
-        self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_clinical_CT_data\\pseudo_wxdcm\\pseudo_ct_mesh.ply"
+        # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
-        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render1\\render_pinna.png",
-                            "D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render2\\render_incus.png"]
+        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render_pinna.png",
+                            "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render_incus.png"]
 
-        self.contour_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render1\\render_pinna.sw",
-                              "D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render2\\render_incus.sw"]
+        self.contour_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render_pinna.sw",
+                              "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render_incus.sw"]
         
         self.colors = np.zeros((M,3))
         self.colors[0] = [1.0, 0.64705882, 0.29803922]       # pinna
@@ -79,7 +79,7 @@ class MyCanvas(InputCanvas):
 
 
 
-        rig_ms_z = 340
+        rig_ms_z = 240
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
@@ -145,11 +145,11 @@ class MyCanvas(InputCanvas):
         model3dMaterial = Model3dMaterial(properties={"useVertexColors": True})
         self.model3d = Mesh(geometry3d, model3dMaterial)
 
-        # Load round window niche (RWN) contour
-        geometryRWN = CurveGeometry(self.rwn_path, color=[1, 0, 1])
-        materialRWN = LineMaterial(properties={"useVertexColors": True, "lineWidth": 3})
-        rwn = Mesh(geometryRWN, materialRWN)
-        self.model3d.add(rwn)
+        # # Load round window niche (RWN) contour
+        # geometryRWN = CurveGeometry(self.rwn_path, color=[1, 0, 1])
+        # materialRWN = LineMaterial(properties={"useVertexColors": True, "lineWidth": 3})
+        # rwn = Mesh(geometryRWN, materialRWN)
+        # self.model3d.add(rwn)
 
         self.scene.add(self.model3d)
         self.model3d.rotateY(pi/2)

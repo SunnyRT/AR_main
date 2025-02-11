@@ -87,15 +87,16 @@ class Camera(Object3D):
         # else:
 
         # Assume self.isPerspective = False!! (i.e. orthographic CAD view)
-        if inputObject.isKeyPressed('w'):
-            self.zoom += 0.01
-            self.setOrthographic()
-        if inputObject.isKeyPressed('s'):
-            self.zoom -= 0.01
-            self.setOrthographic()
-        mouseScroll = inputObject.getMouseScroll()
-        if mouseScroll != 0:
-            self.zoom += mouseScroll * 0.01
-            self.setOrthographic()
+        if self.isPerspective == False:
+            if inputObject.isKeyPressed('w'):
+                self.zoom += 0.01
+                self.setOrthographic()
+            if inputObject.isKeyPressed('s'):
+                self.zoom -= 0.01
+                self.setOrthographic()
+            mouseScroll = inputObject.getMouseScroll()
+            if mouseScroll != 0:
+                self.zoom += mouseScroll * 0.01
+                self.setOrthographic()
 
         super().update(inputObject, deltaTime) # Propagate update to children

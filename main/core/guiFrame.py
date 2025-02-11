@@ -304,8 +304,8 @@ class GUIFrame(InputFrame):
         
     
     def update_tool_panel(self, transform_matrix, distance, 
-                          view_angle,
                           match_count, 
+                          view_angle,
                           mean_error, mean_norm_measure, 
                           mean_error_val, mean_norm_measure_val):
         """ Update the text in the tool panel."""

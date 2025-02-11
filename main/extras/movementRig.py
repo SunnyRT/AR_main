@@ -108,7 +108,7 @@ class MovementRig(Object3D):
         # Handle middle mouse button to move forward/backward (or zoom)
         mouseScroll = inputObject.getMouseScroll()
         if mouseScroll != 0:
-            self.translate(0, 0, -mouseScroll * moveAmount)
+            self.translate(0, 0, -mouseScroll * moveAmount * 100)
 
 
     
