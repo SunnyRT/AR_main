@@ -75,11 +75,13 @@ class Object3D(object):
 
     # get/set position components of transform
     def getPosition(self):
-        return [self.transform.item((0, 3)), self.transform.item((1, 3)), self.transform.item((2, 3))]
+        norm = self.transform.item((3, 3))
+        return [self.transform.item((0, 3))/norm, self.transform.item((1, 3))/norm, self.transform.item((2, 3))/norm]
     
     def getWorldPosition(self):
         worldTransform = self.getWorldMatrix()
-        return [worldTransform.item((0, 3)), worldTransform.item((1, 3)), worldTransform.item((2, 3))]
+        norm = worldTransform.item((3, 3))
+        return [worldTransform.item((0, 3))/norm, worldTransform.item((1, 3))/norm, worldTransform.item((2, 3))/norm]
     
     def setPosition(self, position):
         # self.transform.itemset((0, 3), position[0])
@@ -90,9 +92,10 @@ class Object3D(object):
         self.transform[0, 3] = position[0]
         self.transform[1, 3] = position[1]
         self.transform[2, 3] = position[2]
+        self.transform[3, 3] = 1.0
 
     def setWorldPosition(self, position):
-        currentWorldPosition = self.getWorldPosition()
+        currentWorldPosition = self.getWorldPosition() # return a length-3 vector (x, y, z) non-homogeneous
         translation = [position[0] - currentWorldPosition[0],
                        position[1] - currentWorldPosition[1],
                        position[2] - currentWorldPosition[2]]

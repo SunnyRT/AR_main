@@ -404,17 +404,6 @@ class GUIFrame(InputFrame):
                             reading_matrix = False
                             transform = np.array(matrix_lines)
                             self.canvas.init_registration = transform
-                            # imgPlane_zpos = self.canvas.image2d.imagePlane.getWorldPosition()[2]
-                            # coneMesh_len = self.canvas.f - self.canvas.n
-                            # print(f"Old imagePlane position: {self.canvas.image2d.imagePlane.getWorldPosition()}")
-                            # self.canvas.rig_ms.setWorldPosition([transform[0][3], transform[1][3], transform[2][3]])
-                            # self.canvas.rig_ms.setWorldRotation(transform[0:3, 0:3])
-                            
-
-                            # # update self.canvas.n and self.canvas.f
-                            # self.canvas.n = transform[2][3] - imgPlane_zpos
-                            # self.canvas.f = self.canvas.n + coneMesh_len
-                            # print(f"new near plane: {self.canvas.n}, new far plane: {self.canvas.f}")
 
                     # Parse additional parameters
                     elif line.startswith("[Object:"):
@@ -459,11 +448,12 @@ class GUIFrame(InputFrame):
                     file.write("Transformation Matrix:\n")
                     matrix = self.canvas.rig_ms.getWorldMatrix()  # get world matrix of both microscopes == rig_ms
                     for row in matrix:
-                        file.write(" ".join(f"{value:.2f}" for value in row) + "\n")
+                        file.write(" ".join(f"{value}" for value in row) + "\n")
                     file.write("\n")
                     
                     # Write additional parameters
-                    for i, projectorFac in enumerate(self.canvas.projectorFacs):
+                    for i, mediator in enumerate(self.canvas.mediators):
+                        projectorFac = mediator.projectorMeshFactory
                         file.write(f"[Object: {i}]\n")
                         file.write(f"Resolution: {self.canvas.res[i]}\n")
                         file.write(f"Near plane (n): {projectorFac.n}\n")

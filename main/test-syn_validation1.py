@@ -62,21 +62,21 @@ class MyCanvas(InputCanvas):
         self.fs = [380, 390]
         self.deltas = [2,0.5]
 
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\michaelmas\\ear.ply"
-        self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\2_michaelmas\\ear.ply"
+        self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\rwnContour_center.txt"
 
-        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render1\\render_pinna.png",
-                            "D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render2\\render_incus.png"]
+        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render_pinna.png",
+                            "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render_incus.png"]
 
-        self.contour_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render1\\render_pinna.sw",
-                              "D:\\sunny\\Codes\\IIB_project\\data\\syn_validation\\render2\\render_incus.sw"]
+        self.contour_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render_pinna.sw",
+                              "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render_incus.sw"]
         
         self.colors = np.zeros((M,3))
-        self.colors[0] = [255, 127, 0]  /255        # pinna
-        self.colors[1] = [51, 255, 0]/255   # incus
-        self.colors[2] = [255, 255, 51]/255   # facial nerve
-        self.colors[3] = [102, 76, 255]/255          # cochlea
-
+        self.colors[0] = [1.0, 0.64705882, 0.29803922]          # pinna
+        self.colors[1] = [0.1372549,  0.69803922, 0.        ]   # incus
+        # self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
+        # self.colors[3] = [0.4, 76/255, 1.0]                     # cochlea
+        # self.colors[4] = [1, 0, 1]                              # FIXME: rwn
 
 
         rig_ms_z = 340
@@ -120,10 +120,11 @@ class MyCanvas(InputCanvas):
 
         # Set up microscope rig for surgery viewport
         self.rig_ms = MicroscopeRig()
-        self.rig_ms.setWorldPosition(self.init_registration[:,3])        
         self.rig_ms.setWorldRotation(np.array([self.init_registration[0][0:3],
                                              self.init_registration[1][0:3],
                                              self.init_registration[2][0:3]]))
+        self.rig_ms.setWorldPosition(self.init_registration[:,3])        
+
         self.scene.add(self.rig_ms)
 
         self.ms_ls, projectorsReg, projectorsVal, mediatorsReg, mediatorsVal, self.mediators = self.setupComps(self.M, 
@@ -183,6 +184,14 @@ class MyCanvas(InputCanvas):
         # for mediator in mediatorsVal:
         #     mediator.setValidator(self.validator)
         #     mediator.setMatchMeshFactory(matchFacVal)
+ 
+        # """"""""""""""""""""""""""" DEBUG """""""""""""""""""""""""""
+        # print(f"world matrix of model3d: {self.model3d.getWorldMatrix()}")
+        # print(f"world matrix of rig_ms: {self.rig_ms.getWorldMatrix()}")
+        # for i in range(self.M):
+        #     print(f"object {i}:")
+        #     print(f"world matrix of ms{i}: {self.ms_ls[i].getWorldMatrix()}")
+        #     print(f"world matrix of projector{i}: {projectorsReg[i].getWorldMatrix()}")
 
 
 
@@ -288,9 +297,10 @@ class MyCanvas(InputCanvas):
         if self.isKeyDown("i"): 
             self.viewport = (self.viewport + 1) % len(self.mediators) # TODO: 0: pinna, 1: incus, 2:etc
 
-            self.rig_cm.setWorldPosition(self.rig_ms.getWorldPosition())
             self.rig_cm.setWorldRotation(self.rig_ms.getWorldRotationMatrix())
             self.rig_cm.lookAttachment.setWorldRotation(self.rig_ms.lookAttachment.getWorldRotationMatrix())
+            self.rig_cm.setWorldPosition(self.rig_ms.getWorldPosition())
+
             if self.viewport == 0:
                 self.camera.zoom = 0.5 # pinna
             else:

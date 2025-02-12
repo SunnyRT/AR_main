@@ -51,10 +51,10 @@ class MyCanvas(InputCanvas):
         self.fs = []
         self.deltas = []
 
-        self.model3d_path = "D:\sunny\Codes\IIB_project\data\michaelmas\ear.ply"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\2_michaelmas\\ear.ply"
 
-        self.image0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.png"
-        self.contour0_path = "D:\sunny\Codes\IIB_project\data\michaelmas\pinna.sw"
+        self.image0_path = "D:\\sunny\\Codes\\IIB_project\\data\\2_michaelmas\\pinna.png"
+        self.contour0_path = "D:\\sunny\\Codes\\IIB_project\\data\\2_michaelmas\\pinna.sw"
         self.color_pinna = [1.0, 0.64705882, 0.29803922]
         res0 = 0.0003
         n0 = 210
@@ -65,8 +65,8 @@ class MyCanvas(InputCanvas):
         self.fs.append(f0)
         self.deltas.append(delta0)
 
-        self.image1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.png"
-        self.contour1_path = "D:\sunny\Codes\IIB_project\data\michaelmas\incus.sw"
+        self.image1_path = "D:\\sunny\\Codes\\IIB_project\\data\\2_michaelmas\\incus.png"
+        self.contour1_path = "D:\\sunny\\Codes\\IIB_project\\data\\2_michaelmas\\incus.sw"
         self.color_incus = [0.1372549,  0.69803922, 0.        ]
         res1= 0.00015
         n1 = 250
@@ -231,14 +231,17 @@ class MyCanvas(InputCanvas):
         """ Update information displayed in the tool panel"""
         transform_matrix = self.rig_ms.getWorldMatrix()
         distance = np.linalg.norm(self.rig_ms.getWorldPosition())
-        # view_angle = self.ms1.theta
+        view_angle = self.ms1.theta
         match_count = self.registrator.matchCount
         mean_error = self.registrator.meanError
         mean_norm_measure = self.registrator.meanNormMeasure
 
         
         self.GetParent().update_tool_panel(transform_matrix, distance, 
-                                           match_count, mean_error, mean_norm_measure)
+                                           match_count, 
+                                           view_angle,
+                                           mean_error, mean_norm_measure, 
+                                           0, 0)
 
 
         """ Update the scene and toggle between cameras."""
