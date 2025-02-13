@@ -11,9 +11,9 @@ class Model3dGeometry(Geometry):
         
         # extract vertex positions from the .ply file
         vertex_positions = np.asarray(mesh.vertices)
-        # FIXME: recenter the model3d about its centroid
-        centroid = np.mean(vertex_positions, axis=0)
-        vertex_positions = [[vertex[0] - centroid[0], vertex[1] - centroid[1], vertex[2] - centroid[2]] for vertex in vertex_positions] 
+        # # FIXME: recenter the model3d about its centroid
+        # centroid = np.mean(vertex_positions, axis=0)
+        # vertex_positions = [[vertex[0] - centroid[0], vertex[1] - centroid[1], vertex[2] - centroid[2]] for vertex in vertex_positions] 
 
         # extract vertex colors if available
         if mesh.has_vertex_colors():
