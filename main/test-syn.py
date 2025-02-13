@@ -62,7 +62,8 @@ class MyCanvas(InputCanvas):
         self.fs = [380, 390]
         self.deltas = [2,0.5]
 
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\2_michaelmas\\ear_centered.ply"
+        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\rwnContour_center.txt"
 
         self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render1.png",
@@ -92,7 +93,7 @@ class MyCanvas(InputCanvas):
         print("Initializing program...")
 
         # Initialize renderer, scene, and cameras
-        self.renderer = RendererDual(glcanvas=self, clearColor=[0,0,0])
+        self.renderer = RendererDual(glcanvas=self, clearColor=[1,1,1])
         self.scene = Scene()
 
 
@@ -123,7 +124,7 @@ class MyCanvas(InputCanvas):
         self.rig_ms.setWorldRotation(np.array([self.init_registration[0][0:3],
                                              self.init_registration[1][0:3],
                                              self.init_registration[2][0:3]]))
-        self.rig_ms.setWorldPosition(self.init_registration[:,3])        
+        self.rig_ms.setWorldPosition(self.init_registration[:,3])
 
         self.scene.add(self.rig_ms)
 

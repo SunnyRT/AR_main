@@ -54,42 +54,43 @@ class MyCanvas(InputCanvas):
                           # 3: sigmoid sinus (val)
                           # 4: rwn (val)
         
-        M = 5 # number of components used for registration AND validation
+        M = 3 # number of components used for registration AND validation
         self.M = M
 
         self.res = [0.000117 for _ in range(M)] # FIXME:???
 
-        self.ns = [240 for _ in range(M)]
-        self.ns[0] = 200
+        self.ns = [340 for _ in range(M)]
+        self.ns[0] = 300
 
-        self.fs = [250 for _ in range(M)]
-        self.fs[0] = 230
+        self.fs = [350 for _ in range(M)]
+        self.fs[0] = 330
 
         self.deltas = [0.5 for _ in range(M)]
         self.deltas[0] = 2
 
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\michaelmas\\ear.ply"
-        self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
+        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
+        # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
-        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP" for _ in range(M)]
-        self.image_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
+        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\3_christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP" for _ in range(M)]
+        self.image_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\3_christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.BMP"
         
         self.contour_paths = ["" for _ in range(M)]
-        self.contour_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
-        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_incus.sw"
-        self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_facial_nerve.sw"
-        self.contour_paths[3] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_sigmoid_sinus.sw"
-        self.contour_paths[4] = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\x0.4_Bone_rwn.sw"
+        self.contour_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\3_christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Pinna.sw"
+        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\x0.4_Bone_incus.sw"
+        self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\x0.4_Bone_facial_nerve.sw"
+        # self.contour_paths[3] = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\x0.4_Bone_sigmoid_sinus.sw"
+        # self.contour_paths[4] = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\x0.4_Bone_rwn.sw"
 
         self.colors = np.zeros((M,3))
         self.colors[0] = [1.0, 0.64705882, 0.29803922]          # pinna
         self.colors[1] = [0.1372549,  0.69803922, 0.        ]   # incus
         self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
-        self.colors[3] = [0.0, 0.50196078, 0.75294118]          # sigmoid sinus
-        self.colors[4] = [1, 0, 1]                              # FIXME: rwn
+        # self.colors[3] = [0.0, 0.50196078, 0.75294118]          # sigmoid sinus
+        # self.colors[4] = [1, 0, 1]                              # FIXME: rwn
 
 
-        rig_ms_z = 200
+        rig_ms_z = 300
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
@@ -130,10 +131,11 @@ class MyCanvas(InputCanvas):
 
         # Set up microscope rig for surgery viewport
         self.rig_ms = MicroscopeRig()
-        self.rig_ms.setWorldPosition(self.init_registration[:,3])        
         self.rig_ms.setWorldRotation(np.array([self.init_registration[0][0:3],
                                              self.init_registration[1][0:3],
                                              self.init_registration[2][0:3]]))
+        self.rig_ms.setWorldPosition(self.init_registration[:,3])
+
         self.scene.add(self.rig_ms)
 
         self.ms_ls, projectorsReg, projectorsVal, mediatorsReg, mediatorsVal, self.mediators = self.setupComps(self.M, 
@@ -155,11 +157,11 @@ class MyCanvas(InputCanvas):
         model3dMaterial = Model3dMaterial(properties={"useVertexColors": True})
         self.model3d = Mesh(geometry3d, model3dMaterial)
 
-        # Load round window niche (RWN) contour
-        geometryRWN = CurveGeometry(self.rwn_path, color=[1, 0, 1])
-        materialRWN = LineMaterial(properties={"useVertexColors": True, "lineWidth": 3})
-        rwn = Mesh(geometryRWN, materialRWN)
-        self.model3d.add(rwn)
+        # # Load round window niche (RWN) contour
+        # geometryRWN = CurveGeometry(self.rwn_path, color=[1, 0, 1])
+        # materialRWN = LineMaterial(properties={"useVertexColors": True, "lineWidth": 3})
+        # rwn = Mesh(geometryRWN, materialRWN)
+        # self.model3d.add(rwn)
 
         self.scene.add(self.model3d)
         self.model3d.rotateY(pi/2)
@@ -272,8 +274,7 @@ class MyCanvas(InputCanvas):
         """ Update information displayed in the tool panel"""
         transform_matrix = self.rig_ms.getWorldMatrix()
         distance = np.linalg.norm(self.rig_ms.getWorldPosition())
-        view_angle = self.ms_ls[0].theta
-        print(f"view angle of ms for pinna: {view_angle}")
+        view_angle = self.ms_ls[self.viewport].theta
         match_count = self.registrator.matchCount
         mean_error = self.registrator.meanError
         mean_norm_measure = self.registrator.meanNormMeasure
@@ -298,9 +299,10 @@ class MyCanvas(InputCanvas):
         if self.isKeyDown("i"): 
             self.viewport = (self.viewport + 1) % len(self.mediators) # TODO: 0: pinna, 1: incus, 2:etc
 
-            self.rig_cm.setWorldPosition(self.rig_ms.getWorldPosition())
             self.rig_cm.setWorldRotation(self.rig_ms.getWorldRotationMatrix())
             self.rig_cm.lookAttachment.setWorldRotation(self.rig_ms.lookAttachment.getWorldRotationMatrix())
+            self.rig_cm.setWorldPosition(self.rig_ms.getWorldPosition())
+
             if self.viewport == 0:
                 self.camera.zoom = 0.5 # pinna
             else:
