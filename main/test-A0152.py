@@ -59,27 +59,27 @@ class MyCanvas(InputCanvas):
 
         self.res = [0.000117 for _ in range(M)] # FIXME:???
 
-        self.ns = [250 for _ in range(M)]
-        self.ns[0] = 210
+        self.ns = [240 for _ in range(M)]
+        self.ns[0] = 200
 
-        self.fs = [270 for _ in range(M)]
-        self.fs[0] = 250
+        self.fs = [260 for _ in range(M)]
+        self.fs[0] = 240
 
         self.deltas = [0.5 for _ in range(M)]
         self.deltas[0] = 2
 
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
-        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
+        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
-        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0148-20250221_201137.jpg" for _ in range(M)]
-        self.image_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0149-20250221_201143.jpg"
+        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0152-20250221_201412.jpg" for _ in range(M)]
+        self.image_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0153-20250221_201418.jpg"
         
         self.contour_paths = ["" for _ in range(M)]
-        self.contour_paths[0] ="D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0149_pinna.sw"
-        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0148_incus.sw"
-        self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0148_facialN.sw"
-        self.contour_paths[3] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0148_OticCap.sw"
+        self.contour_paths[0] ="D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0153_pinna.sw"
+        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0152_incus.sw"
+        self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0152_facialN.sw"
+        self.contour_paths[3] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0152_OticCap.sw"
         # self.contour_paths[4] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\.sw"
 
         self.colors = np.zeros((M,3))

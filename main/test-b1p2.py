@@ -59,11 +59,11 @@ class MyCanvas(InputCanvas):
 
         self.res = [0.000117 for _ in range(M)] # FIXME:???
 
-        self.ns = [340 for _ in range(M)]
-        self.ns[0] = 300
+        self.ns = [420 for _ in range(M)]
+        self.ns[0] = 380
 
-        self.fs = [350 for _ in range(M)]
-        self.fs[0] = 330
+        self.fs = [440 for _ in range(M)]
+        self.fs[0] = 420
 
         self.deltas = [0.5 for _ in range(M)]
         self.deltas[0] = 2
@@ -90,7 +90,7 @@ class MyCanvas(InputCanvas):
         # self.colors[4] = [1, 0, 1]                              # FIXME: rwn
 
 
-        rig_ms_z = 300
+        rig_ms_z = 380
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         

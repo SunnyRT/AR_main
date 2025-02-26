@@ -68,8 +68,8 @@ class MyCanvas(InputCanvas):
         self.deltas = [0.5 for _ in range(M)]
         self.deltas[0] = 2
 
-        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
+        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
         self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\3_christmas\\Images_02122024\\Bone1\\Position1\\x0.4_Bone.BMP" for _ in range(M)]

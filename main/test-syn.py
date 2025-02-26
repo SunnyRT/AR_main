@@ -54,29 +54,33 @@ class MyCanvas(InputCanvas):
                           # 3: sigmoid sinus (val)
                           # 4: rwn (val)
         
-        M = 2 # number of components used for registration AND validation
+        M = 4 # number of components used for registration AND validation
         self.M = M
 
-        self.res = [0.0003, 0.00015]
-        self.ns = [330, 380]
-        self.fs = [380, 390]
-        self.deltas = [2,0.5]
+        self.res = [0.0003, 0.00015, 0.00015, 0.00015]
+        self.ns = [330, 380, 380, 380]
+        self.fs = [380, 390, 390, 390]
+        self.deltas = [2, 0.5, 0.5, 0.5]
 
         # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
         self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\rwnContour_center.txt"
 
         self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render1.png",
+                            "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2.png",
+                            "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2.png",
                             "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2.png"]
 
         self.contour_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render1.sw",
-                              "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2_half.sw"]
+                              "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2_pinna_half.sw",
+                              "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2_facialN.sw",
+                              "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2_oticCap.sw"]
         
         self.colors = np.zeros((M,3))
         self.colors[0] = [1.0, 0.64705882, 0.29803922]          # pinna
         self.colors[1] = [0.1372549,  0.69803922, 0.        ]   # incus
-        # self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
-        # self.colors[3] = [0.4, 76/255, 1.0]                     # cochlea
+        self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
+        self.colors[3] = [0.4, 76/255, 1.0]                     # cochlea
         # self.colors[4] = [1, 0, 1]                              # FIXME: rwn
 
 
@@ -179,12 +183,12 @@ class MyCanvas(InputCanvas):
             mediator.setMatchMeshFactory(matchFacReg)
 
         
-        # """"""""""""""""""""""""""" 4. Validator """""""""""""""""""""""""""
-        # matchFacVal = MatchMeshFactory(sceneObject=self.scene, color=(1,0,0))
-        # self.validator = ValidatorICP(projectorsVal, self.model3d, self.rig_ms, 10, matchFacVal) 
-        # for mediator in mediatorsVal:
-        #     mediator.setValidator(self.validator)
-        #     mediator.setMatchMeshFactory(matchFacVal)
+        """"""""""""""""""""""""""" 4. Validator """""""""""""""""""""""""""
+        matchFacVal = MatchMeshFactory(sceneObject=self.scene, color=(1,0,0))
+        self.validator = ValidatorICP(projectorsVal, self.model3d, self.rig_ms, 10, matchFacVal) 
+        for mediator in mediatorsVal:
+            mediator.setValidator(self.validator)
+            mediator.setMatchMeshFactory(matchFacVal)
  
         # """"""""""""""""""""""""""" DEBUG """""""""""""""""""""""""""
         # print(f"world matrix of model3d: {self.model3d.getWorldMatrix()}")
@@ -277,8 +281,8 @@ class MyCanvas(InputCanvas):
         mean_error = self.registrator.meanError
         mean_norm_measure = self.registrator.meanNormMeasure
 
-        mean_error_val = 0 
-        mean_norm_measure_val = 0
+        mean_error_val = self.validator.meanError
+        mean_norm_measure_val = self.validator.meanNormMeasure
 
         
         self.GetParent().update_tool_panel(transform_matrix, distance, 
