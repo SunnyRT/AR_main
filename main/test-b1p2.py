@@ -57,7 +57,8 @@ class MyCanvas(InputCanvas):
         M = 3 # number of components used for registration AND validation
         self.M = M
 
-        self.res = [0.000117 for _ in range(M)] # FIXME:???
+        # self.res = [0.000117 for _ in range(M)] # FIXME:???
+        self.res = [0.00006 for _ in range(M)]
 
         self.ns = [420 for _ in range(M)]
         self.ns[0] = 380

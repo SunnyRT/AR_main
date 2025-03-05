@@ -58,6 +58,7 @@ class MyCanvas(InputCanvas):
         self.M = M
 
         self.res = [0.000117 for _ in range(M)] # FIXME:???
+        # self.res = [0.00006 for _ in range(M)]
 
         self.ns = [340 for _ in range(M)]
         self.ns[0] = 300

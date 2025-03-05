@@ -57,13 +57,15 @@ class MyCanvas(InputCanvas):
         M = 4 # number of components used for registration AND validation
         self.M = M
 
-        self.res = [0.0003, 0.00015, 0.00015, 0.00015]
+        # self.res = [0.0003, 0.00015, 0.00015, 0.00015]
+        self.res = [0.0006, 0.0003, 0.0003, 0.0003]
+
         self.ns = [330, 380, 380, 380]
         self.fs = [380, 390, 390, 390]
         self.deltas = [2, 0.5, 0.5, 0.5]
 
-        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
+        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\rwnContour_center.txt"
 
         self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render1.png",
