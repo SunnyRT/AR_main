@@ -57,8 +57,8 @@ class MyCanvas(InputCanvas):
         M = 4 # number of components used for registration AND validation
         self.M = M
 
-        # self.res = [0.000117 for _ in range(M)] # FIXME:???
-        self.res = [0.00006 for _ in range(M)]
+        self.res = [0.000117 for _ in range(M)] # FIXME:???
+        # self.res = [0.00006 for _ in range(M)]
 
         self.ns = [240 for _ in range(M)]
         self.ns[0] = 200
@@ -69,8 +69,8 @@ class MyCanvas(InputCanvas):
         self.deltas = [0.5 for _ in range(M)]
         self.deltas[0] = 2
 
-        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
-        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
+        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
+        self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
         self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\A0152-20250221_201412.jpg" for _ in range(M)]

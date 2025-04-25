@@ -57,36 +57,42 @@ class MyCanvas(InputCanvas):
         M = 4 # number of components used for registration AND validation
         self.M = M
 
-        self.res = [0.0003, 0.00015, 0.00015, 0.00015]
-        # self.res = [0.0006, 0.0003, 0.0003, 0.0003]
+        self.res = [0.00006 for _ in range(M)] # FIXME:???
+        # self.res = [0.00012 for _ in range(M)]
+        # self.res = [0.00003 for _ in range(M)]
 
-        self.ns = [330, 380, 380, 380]
-        self.fs = [380, 390, 390, 390]
-        self.deltas = [2, 0.5, 0.5, 0.5]
+        self.ns = [470 for _ in range(M)]
+        self.ns[0] = 420
+
+        self.fs = [500 for _ in range(M)]
+        self.fs[0] = 480
+
+        self.deltas = [0.5 for _ in range(M)]
+        self.deltas[0] = 2
 
         self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
         # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
-        # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\rwnContour_center.txt"
+        # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
-        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render1.png",
-                            "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2.png",
-                            "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2.png",
-                            "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2.png"]
-
-        self.contour_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render1\\render1.sw",
-                              "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2_pinna_half.sw",
-                              "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2_facialN.sw",
-                              "D:\\sunny\\Codes\\IIB_project\\data\\5_syn_validation\\render2\\render2_oticCap.sw"]
+        self.image_paths = ["D:\\sunny\\Codes\\IIB_project\\data\\9_image_final\\S011\\S011.jpg" for _ in range(M)]
+        self.image_paths[0] = "D:\\sunny\\Codes\\IIB_project\\data\\9_image_final\\S011\\S010.jpg"
         
+        self.contour_paths = ["" for _ in range(M)]
+        self.contour_paths[0] ="D:\\sunny\\Codes\\IIB_project\\data\\9_image_final\\S011\\S010_pinna.sw"
+        self.contour_paths[1] = "D:\\sunny\\Codes\\IIB_project\\data\\9_image_final\\S011\\S011_incus.sw"
+        self.contour_paths[2] = "D:\\sunny\\Codes\\IIB_project\\data\\9_image_final\\S011\\S011_facialN.sw"
+        self.contour_paths[3] = "D:\\sunny\\Codes\\IIB_project\\data\\9_image_final\\S011\\S011_OticCap.sw"
+        # self.contour_paths[4] = "D:\\sunny\\Codes\\IIB_project\\data\\7_clear_bone\\.sw"
+
         self.colors = np.zeros((M,3))
         self.colors[0] = [1.0, 0.64705882, 0.29803922]          # pinna
         self.colors[1] = [0.1372549,  0.69803922, 0.        ]   # incus
         self.colors[2] = [0.94901961, 0.94901961, 0.        ]   # facial nerve
-        self.colors[3] = [0.4, 76/255, 1.0]                     # cochlea
+        self.colors[3] = [0.4,        0.29803922, 1.        ]   # otic Capsule
         # self.colors[4] = [1, 0, 1]                              # FIXME: rwn
 
 
-        rig_ms_z = 340
+        rig_ms_z = 420
         self.init_registration = np.eye(4) # TODO: check!!!
         self.init_registration[2][3] = rig_ms_z # TODO: check!!!
         
@@ -191,14 +197,6 @@ class MyCanvas(InputCanvas):
         for mediator in mediatorsVal:
             mediator.setValidator(self.validator)
             mediator.setMatchMeshFactory(matchFacVal)
- 
-        # """"""""""""""""""""""""""" DEBUG """""""""""""""""""""""""""
-        # print(f"world matrix of model3d: {self.model3d.getWorldMatrix()}")
-        # print(f"world matrix of rig_ms: {self.rig_ms.getWorldMatrix()}")
-        # for i in range(self.M):
-        #     print(f"object {i}:")
-        #     print(f"world matrix of ms{i}: {self.ms_ls[i].getWorldMatrix()}")
-        #     print(f"world matrix of projector{i}: {projectorsReg[i].getWorldMatrix()}")
 
 
 
@@ -282,7 +280,6 @@ class MyCanvas(InputCanvas):
         match_count = self.registrator.matchCount
         mean_error = self.registrator.meanError
         mean_norm_measure = self.registrator.meanNormMeasure
-
         mean_error_val = self.validator.meanError
         mean_norm_measure_val = self.validator.meanNormMeasure
 
