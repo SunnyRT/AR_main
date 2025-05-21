@@ -625,6 +625,18 @@ class GUIFrame(InputFrame):
                 print(f"Warning: material has no method 'setComponentVisibility'")
         else:
             print(f"Warning: model3d has no attribute 'material'")
+
+        # update the visibility of the children of the model3d object (i.e. model3dshell)
+        if hasattr(self.canvas.model3d, 'children'):
+            for child in self.canvas.model3d.children:
+                child_material = child.material
+                if hasattr(child_material, 'setComponentVisibility'):
+                    child_material.setComponentVisibility(component, is_checked)
+                    self.canvas.SetFocus()
+                else:
+                    print(f"Warning: child has no method 'setComponentVisibility'")
+        # else:
+        #     print(f"Warning: model3d has no attribute 'children'")
         self.canvas.Refresh()
             
 

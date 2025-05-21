@@ -65,6 +65,7 @@ class MyCanvas(InputCanvas):
         self.deltas = [2, 0.5, 0.5, 0.5]
 
         self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
+        self.model3d_shell_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\shells\\shell_outward_1.0.ply"
         # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\rwnContour_center.txt"
 
@@ -165,17 +166,27 @@ class MyCanvas(InputCanvas):
 
 
         # Grid setup
-        grid = GridHelper(size=1024, divisions=64, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
-        grid.rotateX(-pi / 2)
+        # grid = GridHelper(size=1024, divisions=64, gridColor=[0.6, 0.6, 0.6], centerColor=[0.5, 0.5, 0.5], lineWidth=1)
+        # grid.rotateX(-pi / 2)
         # self.scene.add(grid)
 
         # Axes helper
-        axes = AxesHelper(axisLength=128, lineWidth=2)
+        # axes = AxesHelper(axisLength=128, lineWidth=2)
         # self.scene.add(axes)
         self.initialized = True
 
         print(f"number of registrating comp:{len(projectorsReg), len(mediatorsReg)}")
         print(f"number of validating comp:{len(projectorsVal), len(mediatorsVal)}")
+
+
+        """"""""""""""""""""""""""" 3. Model3d shell"""""""""""""""""""""""""""
+        geometry3dShell = Model3dGeometry(self.model3d_shell_path)
+        alpha3dShell = 0.5
+        model3dShellMaterial = Model3dMaterial(properties={"useVertexColors": True, "alpha": alpha3dShell})
+        model3dShell = Mesh(geometry3dShell, model3dShellMaterial)
+        self.model3d.add(model3dShell)
+
+        
         """"""""""""""""""""""""""" 4. Registrator """""""""""""""""""""""""""
         # Setup ICP registrator
         matchFacReg = MatchMeshFactory(sceneObject=self.scene)
