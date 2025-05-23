@@ -70,6 +70,7 @@ class MyCanvas(InputCanvas):
         self.deltas[0] = 2
 
         self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
+        self.model3d_shell_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\shells\\shell_outward_0.5.ply"
         # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
@@ -181,6 +182,14 @@ class MyCanvas(InputCanvas):
 
         print(f"number of registrating comp:{len(projectorsReg), len(mediatorsReg)}")
         print(f"number of validating comp:{len(projectorsVal), len(mediatorsVal)}")
+
+        """"""""""""""""""""""""""" 3. Model3d shell"""""""""""""""""""""""""""
+        geometry3dShell = Model3dGeometry(self.model3d_shell_path)
+        alpha3dShell = 0.25
+        model3dShellMaterial = Model3dMaterial(properties={"useVertexColors": True, "alpha": alpha3dShell})
+        model3dShell = Mesh(geometry3dShell, model3dShellMaterial)
+        self.model3d.add(model3dShell)
+
         """"""""""""""""""""""""""" 4. Registrator """""""""""""""""""""""""""
         # Setup ICP registrator
         matchFacReg = MatchMeshFactory(sceneObject=self.scene)
