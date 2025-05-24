@@ -71,7 +71,7 @@ class MyCanvas(InputCanvas):
         self.deltas[0] = 2
 
         self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
-        self.model3d_shell_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\shells\\shell_outward_1.0.ply"
+        self.model3d_shell_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\shells\\shell_outward_0.5.ply"
         # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\lent\\rwnContour_center.txt"
 
