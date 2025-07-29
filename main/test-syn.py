@@ -65,6 +65,7 @@ class MyCanvas(InputCanvas):
         self.deltas = [2, 0.5, 0.5, 0.5]
 
         self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\micro_ct_mesh_center.ply"
+        # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\2_michaelmas\\ear_centered.ply"
         self.model3d_shell_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\micro_ct\\shells\\shell_outward_0.5.ply"
         # self.model3d_path = "D:\\sunny\\Codes\\IIB_project\\data\\6_CT_data\\pseudo_ct\\pseudo_ct_mesh_center.ply"
         # self.rwn_path = "D:\\sunny\\Codes\\IIB_project\\data\\4_lent\\rwnContour_center.txt"
@@ -184,7 +185,7 @@ class MyCanvas(InputCanvas):
         alpha3dShell = 0.5
         model3dShellMaterial = Model3dMaterial(properties={"useVertexColors": True, "alpha": alpha3dShell})
         model3dShell = Mesh(geometry3dShell, model3dShellMaterial)
-        self.model3d.add(model3dShell)
+        # self.model3d.add(model3dShell)
 
         
         """"""""""""""""""""""""""" 4. Registrator """""""""""""""""""""""""""

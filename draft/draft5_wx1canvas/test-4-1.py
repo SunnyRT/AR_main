@@ -21,16 +21,24 @@ class TestCanvas(BaseCanvas):
         self.camera.setPosition([0, 0, 100])
 
         # 3D Model
-        geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\summer\\fitted_otic_capsule.ply")
+        # geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\1_summer_discard\\fitted_otic_capsule.ply")
+        geometry3d = BoxGeometry(2, 2, 2)  # Example box geometry
         material3d = SurfaceMaterial({"useVertexColors": True})
         self.mesh3d = Mesh(geometry3d, material3d)
         self.scene.add(self.mesh3d)
+        
+
+        geometry2 = BoxGeometry(1, 1, 1)  # Example box geometry
+        material2 = SurfaceMaterial({"useVertexColors": True})
+        self.mesh2= Mesh(geometry2, material2)
+        self.mesh3d.add(self.mesh2)
+        self.mesh2.setPosition([10, 0, 0])
 
         # 2D Plane
         geometry2d = PlaneGeometry(64, 64, 256, 256)
         material2d = SurfaceMaterial({"useVertexColors": True})
         self.image2d = Mesh(geometry2d, material2d)
-        self.scene.add(self.image2d)
+        # self.scene.add(self.image2d)
 
     def update(self):
         """Update the scene: rotate objects and render."""

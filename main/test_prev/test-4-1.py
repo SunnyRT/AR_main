@@ -4,7 +4,7 @@ from core.base import BaseCanvas
 from core_ext.renderer import Renderer
 from core_ext.scene import Scene
 from core_ext.camera import Camera
-from main.mesh.mesh import Mesh
+from mesh.mesh import Mesh
 from geometry.boxGeometry import BoxGeometry
 from geometry.planeGeometry import PlaneGeometry
 from geometry.model3dGeometry import Model3dGeometry
@@ -15,13 +15,13 @@ class TestCanvas(BaseCanvas):
         """Initialize the scene and objects."""
         print("Initializing program...")
 
-        self.renderer = Renderer()
+        self.renderer = Renderer(self)
         self.scene = Scene()
         self.camera = Camera(aspectRatio=800/600)
         self.camera.setPosition([0, 0, 100])
 
         # 3D Model
-        geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\summer\\fitted_otic_capsule.ply")
+        geometry3d = Model3dGeometry("D:\\sunny\\Codes\\IIB_project\\data\\1_summer_discard\\fitted_otic_capsule.ply")
         material3d = SurfaceMaterial({"useVertexColors": True})
         self.mesh3d = Mesh(geometry3d, material3d)
         self.scene.add(self.mesh3d)
@@ -30,7 +30,7 @@ class TestCanvas(BaseCanvas):
         geometry2d = PlaneGeometry(64, 64, 256, 256)
         material2d = SurfaceMaterial({"useVertexColors": True})
         self.image2d = Mesh(geometry2d, material2d)
-        self.scene.add(self.image2d)
+        # self.scene.add(self.image2d)
 
     def update(self):
         """Update the scene: rotate objects and render."""
