@@ -1,5 +1,5 @@
-# OpenGL examples with PyOpenGL and Pygame
-The OpenGL examples are based on book *"Developing Graphics Frameworks with Python and OpenGL"* by Lee Stemkoski and Michael Pascale published by CRC Press in 2021. 
+# AR registration with PyOpenGL and Pygame
+The work is based on book *"Developing Graphics Frameworks with Python and OpenGL"* by Lee Stemkoski and Michael Pascale published by CRC Press in 2021. 
 
 
 The environment was Python 3.9.19 with the following packages:
@@ -17,7 +17,7 @@ pip install glfw
 
 To execute the program window, type in the cmd:
 ``` 
-python main/test-main.py
+python main/test-xxx.py
 ```
 Note that it might be needed to change the path for desired .ply and image file 
 
