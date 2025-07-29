@@ -19,7 +19,10 @@ To execute the program window, type in the cmd:
 ``` 
 python main/test-xxx.py
 ```
-Note that it might be needed to change the path for desired .ply and image file 
+Note that it might be needed to change the path for desired .ply and image file.
+Some sample data files are available within the data_sample directory. 
+The ```xxx.sw``` files contains the vertex coordinates for the traced contour.
+
 
 
 
